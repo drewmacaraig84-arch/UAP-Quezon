@@ -61,7 +61,17 @@ export default function Footer() {
 
       <div className="footer-bottom container-wide">
         <p>&copy; {year} <strong>United Architects of the Philippines</strong> — Mindoro Chapter</p>
-        <p className="footer-credit">Designed &amp; Developed by <strong>Aries King Nieto</strong> and <strong>Drew Macaraig</strong></p>
+        <p className="footer-credit">
+          Designed &amp; Developed by <strong>Aries King Nieto</strong> and{' '}
+          <a
+            href="https://portfolio-drew-c5ac.vercel.app/#home"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-credit-link"
+          >
+            <strong>Drew Macaraig</strong>
+          </a>
+        </p>
       </div>
     </footer>
   );
