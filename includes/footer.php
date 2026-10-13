@@ -5,7 +5,7 @@
             &copy; <?php echo date('Y'); ?> <strong>United Architects of the Philippines &bull; Mindoro Chapter</strong>
         </div>
         <div style="font-size: 12px; color: var(--text-secondary);">
-            UAP-MC Portal &bull; Designed &amp; Developed by <strong>Aries King Nieto</strong> and <a href="https://portfolio-drew-c5ac.vercel.app/#home" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; text-underline-offset: 2px;"><strong>Drew Macaraig</strong></a>
+            UAP-MC Portal &bull; Designed &amp; Developed by <strong>Aries King Nieto</strong> and <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; text-underline-offset: 2px;"><strong>Drew Macaraig</strong></a>
         </div>
     </div>
 </footer>

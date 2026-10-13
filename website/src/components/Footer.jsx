@@ -64,7 +64,7 @@ export default function Footer() {
         <p className="footer-credit">
           Designed &amp; Developed by <strong>Aries King Nieto</strong> and{' '}
           <a
-            href="https://portfolio-drew-c5ac.vercel.app/#home"
+            href="https://drewportfoliio.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="footer-credit-link"
