@@ -534,7 +534,26 @@ include __DIR__ . '/../includes/header.php';
               : 'globe';
           ?>
             <tr>
-              <td><strong style="color: var(--text-primary);"><?php echo htmlspecialchars($am['name']); ?></strong></td>
+              <td>
+                <strong style="color: var(--text-primary);"><?php echo htmlspecialchars($am['name']); ?></strong>
+                <?php
+                  $isStandingOk = function_exists('is_good_member') ? is_good_member($pdo, (int)$am['user_id']) : true;
+                ?>
+                <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+                  <?php if ($isStandingOk): ?>
+                    <span class="badge-pill badge-paid" style="font-size: 10px; padding: 2px 7px; display: inline-flex; align-items: center; gap: 4px;">
+                      <?php echo icon('check', '', 10); ?> Live on Website
+                    </span>
+                  <?php else: ?>
+                    <span class="badge-pill badge-unpaid" style="font-size: 10px; padding: 2px 7px; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: inline-flex; align-items: center; gap: 4px;" title="Profile is hidden from public directory because member has overdue dues or good standing hold">
+                      <?php echo icon('alert', '', 10); ?> Hidden: Standing Hold
+                    </span>
+                    <a href="good_members.php" style="font-size: 10.5px; color: var(--accent-primary); text-decoration: underline;" title="Manage Good Standing">
+                      Manage &rarr;
+                    </a>
+                  <?php endif; ?>
+                </div>
+              </td>
               <td><code><?php echo htmlspecialchars($am['id_number']); ?></code></td>
               <td>
                 <?php if (!empty($am['company_name'])): ?>

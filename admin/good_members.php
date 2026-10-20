@@ -98,7 +98,7 @@ foreach ($allMembers as &$m) {
 unset($m);
 
 $activeTab = $_GET['tab'] ?? 'certified';
-if (!in_array($activeTab, ['certified', 'revoked', 'all'], true)) {
+if (!in_array($activeTab, ['certified', 'pending', 'revoked', 'all'], true)) {
     $activeTab = 'certified';
 }
 
@@ -116,6 +116,11 @@ include __DIR__ . '/../includes/header.php';
     <div class="hero-badge" style="background: rgba(16,185,129,0.12); color: #10b981; border-color: rgba(16,185,129,0.3);">
       <?php echo icon('good_members', '', 14); ?> <span><?php echo count($certifiedMembers); ?> Certified Members</span>
     </div>
+    <?php if (count($pendingSettlementMembers) > 0): ?>
+      <div class="hero-badge" style="background: rgba(245,158,11,0.12); color: #f59e0b; border-color: rgba(245,158,11,0.3);">
+        <?php echo icon('clock', '', 14); ?> <span><?php echo count($pendingSettlementMembers); ?> Pending Settlement</span>
+      </div>
+    <?php endif; ?>
     <?php if (count($revokedMembers) > 0): ?>
       <div class="hero-badge" style="background: rgba(239,68,68,0.12); color: #ef4444; border-color: rgba(239,68,68,0.3);">
         <?php echo icon('alert', '', 14); ?> <span><?php echo count($revokedMembers); ?> Revoked / On Hold</span>
@@ -148,6 +153,11 @@ include __DIR__ . '/../includes/header.php';
     <?php echo icon('good_members', '', 14); ?>
     <span>Certified Good Standing</span>
     <span class="badge-pill <?php echo $activeTab === 'certified' ? 'badge-paid' : ''; ?>" style="font-size: 11px; padding: 2px 7px;"><?php echo count($certifiedMembers); ?></span>
+  </a>
+  <a href="good_members.php?tab=pending" class="btn btn-sm <?php echo $activeTab === 'pending' ? 'btn-primary' : 'btn-secondary'; ?>" style="display: inline-flex; align-items: center; gap: 6px;">
+    <?php echo icon('clock', '', 14); ?>
+    <span>Pending Dues Settlement</span>
+    <span class="badge-pill <?php echo count($pendingSettlementMembers) > 0 ? 'badge-pending' : ''; ?>" style="font-size: 11px; padding: 2px 7px;"><?php echo count($pendingSettlementMembers); ?></span>
   </a>
   <a href="good_members.php?tab=revoked" class="btn btn-sm <?php echo $activeTab === 'revoked' ? 'btn-primary' : 'btn-secondary'; ?>" style="display: inline-flex; align-items: center; gap: 6px;">
     <?php echo icon('alert', '', 14); ?>
@@ -234,6 +244,89 @@ include __DIR__ . '/../includes/header.php';
                           onclick="openRevokeModal(<?php echo (int)$member['id']; ?>, '<?php echo htmlspecialchars(addslashes($member['name'])); ?>', '<?php echo htmlspecialchars(addslashes($member['id_number'])); ?>')">
                     <?php echo icon('alert', '', 12); ?> <span>Revoke Standing</span>
                   </button>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php endif; ?>
+
+  <?php elseif ($activeTab === 'pending'): ?>
+    <!-- TAB: PENDING SETTLEMENT -->
+    <?php if (empty($pendingSettlementMembers)): ?>
+      <div style="text-align: center; padding: 48px 16px; color: var(--text-secondary);">
+        <div style="width: 54px; height: 54px; border-radius: 14px; background: rgba(16,185,129,0.1); color: #10b981; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+          <?php echo icon('check', '', 28); ?>
+        </div>
+        <strong style="display: block; font-size: 16px; color: var(--text-primary);">All members have settled dues</strong>
+        <p class="muted" style="margin-top: 4px; font-size: 13px;">No approved chapter members currently have overdue or pending dues obligations.</p>
+      </div>
+    <?php else: ?>
+      <div class="table-shell">
+        <table id="rosterTable">
+          <thead>
+            <tr>
+              <th>Member Architect</th>
+              <th>PRC ID Number</th>
+              <th>Dues Settlement</th>
+              <th>Remaining Balance</th>
+              <th>Standing Status</th>
+              <th style="text-align: right;">Admin Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($pendingSettlementMembers as $member): ?>
+              <?php
+                $avatar = !empty($member['profile_photo']) ? (str_starts_with($member['profile_photo'], 'http') ? $member['profile_photo'] : BASE_URL . '/' . ltrim($member['profile_photo'], '/')) : null;
+                $initials = strtoupper(substr($member['name'] ?? 'M', 0, 1) . substr(strrchr($member['name'] ?? '', ' ') ?: ($member['name'] ?? 'M'), 1, 1));
+              ?>
+              <tr>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="table-avatar-wrap">
+                      <?php if ($avatar): ?>
+                        <img src="<?php echo htmlspecialchars($avatar); ?>" alt="" class="table-avatar-img">
+                      <?php else: ?>
+                        <?php echo htmlspecialchars($initials); ?>
+                      <?php endif; ?>
+                    </div>
+                    <div>
+                      <strong style="color: var(--text-primary);"><?php echo htmlspecialchars($member['name']); ?></strong>
+                    </div>
+                  </div>
+                </td>
+                <td><code><?php echo htmlspecialchars($member['id_number']); ?></code></td>
+                <td>
+                  <span style="font-size: 13px; font-weight: 600;"><?php echo (int)$member['paid_count']; ?>/<?php echo (int)$member['total_dues']; ?></span>
+                  <span class="muted" style="font-size: 11px;"> paid</span>
+                </td>
+                <td>
+                  <strong style="color: #ef4444;">
+                    ₱<?php echo number_format(max(0, (float)($member['remaining_balance'] ?? 0)), 2); ?>
+                  </strong>
+                </td>
+                <td>
+                  <span class="badge-pill badge-pending" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <?php echo icon('clock', '', 11); ?> Pending Settlement
+                  </span>
+                </td>
+                <td style="text-align: right; white-space: nowrap;">
+                  <form method="post" style="display: inline-block;"
+                        data-confirm="Grant Good Standing status to <?php echo htmlspecialchars($member['name']); ?>? This grants an explicit administrative certification override."
+                        data-confirm-title="Grant Good Standing"
+                        data-confirm-btn="Grant Standing"
+                        data-confirm-class="btn-primary">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="action" value="grant_good_standing">
+                    <input type="hidden" name="user_id" value="<?php echo (int)$member['id']; ?>">
+                    <button type="submit" class="btn btn-sm btn-primary" style="display: inline-flex; align-items: center; gap: 4px;" title="Grant administrative Good Standing exemption">
+                      <?php echo icon('check', '', 12); ?> <span>Grant Standing</span>
+                    </button>
+                  </form>
+                  <a href="payments.php" class="btn btn-sm btn-secondary" style="display: inline-flex; align-items: center; gap: 4px;" title="Verify or record dues payments">
+                    <?php echo icon('payment', '', 12); ?> <span>Verify Pay</span>
+                  </a>
                 </td>
               </tr>
             <?php endforeach; ?>
@@ -393,6 +486,23 @@ include __DIR__ . '/../includes/header.php';
                       <?php echo icon('check', '', 12); ?> <span>Restore</span>
                     </button>
                   </form>
+                <?php elseif (!$standing['is_good']): ?>
+                  <form method="post" style="display: inline-block;"
+                        data-confirm="Grant Good Standing status to <?php echo htmlspecialchars($member['name']); ?>? This applies an administrative certification override."
+                        data-confirm-title="Grant Good Standing"
+                        data-confirm-btn="Grant Standing"
+                        data-confirm-class="btn-primary">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="action" value="grant_good_standing">
+                    <input type="hidden" name="user_id" value="<?php echo (int)$member['id']; ?>">
+                    <button type="submit" class="btn btn-sm btn-primary" style="display: inline-flex; align-items: center; gap: 4px;" title="Grant administrative Good Standing exemption">
+                      <?php echo icon('check', '', 12); ?> <span>Grant Standing</span>
+                    </button>
+                  </form>
+                  <button type="button" class="btn btn-sm btn-secondary" style="color: #ef4444; border-color: rgba(239,68,68,0.3); display: inline-flex; align-items: center; gap: 4px;"
+                          onclick="openRevokeModal(<?php echo (int)$member['id']; ?>, '<?php echo htmlspecialchars(addslashes($member['name'])); ?>', '<?php echo htmlspecialchars(addslashes($member['id_number'])); ?>')">
+                    <?php echo icon('alert', '', 12); ?> <span>Revoke</span>
+                  </button>
                 <?php else: ?>
                   <button type="button" class="btn btn-sm btn-secondary" style="color: #ef4444; border-color: rgba(239,68,68,0.3); display: inline-flex; align-items: center; gap: 4px;"
                           onclick="openRevokeModal(<?php echo (int)$member['id']; ?>, '<?php echo htmlspecialchars(addslashes($member['name'])); ?>', '<?php echo htmlspecialchars(addslashes($member['id_number'])); ?>')">

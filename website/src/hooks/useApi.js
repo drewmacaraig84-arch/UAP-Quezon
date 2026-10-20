@@ -54,9 +54,23 @@ export function useApi(endpoint) {
     // Reuse existing in-flight promise if multiple components query the same endpoint simultaneously
     let fetchPromise = inFlightRequests.get(endpoint);
     if (!fetchPromise) {
-      fetchPromise = fetch(endpoint, { headers: { Accept: 'application/json' } })
-        .then((r) => {
-          if (!r.ok) throw new Error(`API error ${r.status}`);
+      fetchPromise = fetch(endpoint, {
+        headers: { Accept: 'application/json' },
+        credentials: 'include',
+      })
+        .then(async (r) => {
+          if (!r.ok) {
+            let msg = `API error ${r.status}`;
+            try {
+              const errData = await r.json();
+              if (errData && errData.error) {
+                msg = errData.error;
+              }
+            } catch {
+              // Ignore non-JSON body
+            }
+            throw new Error(msg);
+          }
           return r.json();
         })
         .then((d) => {

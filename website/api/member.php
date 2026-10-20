@@ -12,18 +12,43 @@ try {
                           WHERE (wm.id = ? OR wm.user_id = ?) AND wm.is_published = 1");
     $stmt->execute([$id, $id]);
     $member = $stmt->fetch();
-    if (!$member) { http_response_code(404); echo json_encode(['error' => 'Not found']); exit; }
+    if (!$member) { 
+        http_response_code(404); 
+        echo json_encode(['error' => 'The requested architect profile does not exist or has been unpublished.', 'code' => 'NOT_FOUND']); 
+        exit; 
+    }
 
     if (!empty($member['user_id'])) {
+        $isAdminOrOwner = (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') || 
+                          (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === (int)$member['user_id']);
+
         if (function_exists('has_unlocked_website_directory') && !has_unlocked_website_directory($pdo, (int)$member['user_id'])) {
-            http_response_code(404);
-            echo json_encode(['error' => 'This directory profile is currently pending approval or payment.']);
-            exit;
+            if (!$isAdminOrOwner) {
+                http_response_code(403);
+                echo json_encode([
+                    'error' => 'This directory profile is currently pending approval or directory fee payment.',
+                    'code' => 'PENDING_DIRECTORY',
+                    'name' => $member['name'] ?? null
+                ]);
+                exit;
+            } else {
+                $member['is_admin_preview'] = true;
+                $member['preview_notice'] = 'Directory profile is currently pending approval or fee payment.';
+            }
         }
         if (function_exists('is_good_member') && !is_good_member($pdo, (int)$member['user_id'])) {
-            http_response_code(404);
-            echo json_encode(['error' => 'Member profile is currently on administrative hold or pending certification.']);
-            exit;
+            if (!$isAdminOrOwner) {
+                http_response_code(403);
+                echo json_encode([
+                    'error' => 'Member profile is currently on administrative hold or pending certification.',
+                    'code' => 'ADMIN_HOLD',
+                    'name' => $member['name'] ?? null
+                ]);
+                exit;
+            } else {
+                $member['is_admin_preview'] = true;
+                $member['preview_notice'] = 'Member profile is currently on administrative hold or has overdue chapter dues.';
+            }
         }
     }
 

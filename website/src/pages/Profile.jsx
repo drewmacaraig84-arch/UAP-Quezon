@@ -18,16 +18,52 @@ export default function Profile() {
     </main>
   );
 
-  if (error || !m) return (
-    <main className="page-container">
-      <div className="container text-center" style={{ padding: 'var(--space-10) 0' }}>
-        <h2 className="muted">Profile not found</h2>
-        <Link to="/directory" className="btn btn-outline" style={{ marginTop: 24 }}>
-          <IconArrowLeft size={16} /> Back to Directory
-        </Link>
-      </div>
-    </main>
-  );
+  if (error || !m) {
+    const isHold = error?.toLowerCase().includes('administrative hold') || error?.toLowerCase().includes('pending certification');
+    const isPending = error?.toLowerCase().includes('pending approval') || error?.toLowerCase().includes('payment');
+
+    return (
+      <main className="page-container">
+        <div className="container text-center" style={{ padding: 'var(--space-10) 0', maxWidth: 580, margin: '0 auto' }}>
+          <div className="card" style={{ padding: 'var(--space-8) var(--space-6)', borderRadius: 'var(--r-lg)' }}>
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: isHold ? 'rgba(239, 68, 68, 0.12)' : isPending ? 'rgba(245, 158, 11, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+              color: isHold ? '#f87171' : isPending ? '#fbbf24' : 'var(--c-text-3)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 16
+            }}>
+              {isHold ? (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+              ) : isPending ? (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ) : (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              )}
+            </div>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: 12, color: 'var(--c-text-1)' }}>
+              {isHold ? 'Profile Temporarily Unavailable' : isPending ? 'Profile Pending Activation' : 'Profile Not Found'}
+            </h2>
+            <p className="muted" style={{ fontSize: '0.95rem', lineHeight: 1.6, marginBottom: 24 }}>
+              {error || 'The requested architect profile could not be found or has been unpublished.'}
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link to="/directory" className="btn btn-outline">
+                <IconArrowLeft size={16} /> Back to Directory
+              </Link>
+              <a href="/login" className="btn btn-primary">
+                Member Portal &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   const initials = m.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
   const socialInfo = m.link_url ? getSocialLinkInfo(m.link_url, m.link_type) : null;
@@ -35,6 +71,29 @@ export default function Profile() {
   return (
     <main className="page-container">
       <div className="container profile-container">
+        {m.is_admin_preview && (
+          <div style={{
+            background: 'rgba(245, 158, 11, 0.12)',
+            border: '1px solid rgba(245, 158, 11, 0.35)',
+            borderRadius: 'var(--r-md)',
+            padding: '12px 18px',
+            marginBottom: 20,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            color: '#fbbf24',
+            fontSize: '0.9rem'
+          }}>
+            <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+            <div>
+              <strong>Chapter Admin Preview:</strong> {m.preview_notice || 'This profile is currently in hold/pending status.'}
+              <div style={{ fontSize: '0.8rem', opacity: 0.85, marginTop: 2 }}>
+                Visible to you because you are authenticated as an Administrator. Public visitors see an administrative hold notice until status is updated.
+              </div>
+            </div>
+          </div>
+        )}
+
         <Link to="/directory" className="profile-back reveal">
           <IconArrowLeft size={16} />
           <span>Back to Directory</span>
