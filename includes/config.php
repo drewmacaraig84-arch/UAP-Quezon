@@ -430,6 +430,37 @@ if ($pdo instanceof PDO) {
     } catch (Throwable $e) {}
 }
 
+// Ensure directory_applications has required columns (member_due_id, notes, updated_at)
+if ($pdo instanceof PDO) {
+    try {
+        $daCheck = $pdo->query("SHOW TABLES LIKE 'directory_applications'")->fetch();
+        if ($daCheck) {
+            $colMemDue = $pdo->query("SHOW COLUMNS FROM directory_applications LIKE 'member_due_id'")->fetch();
+            if (!$colMemDue) {
+                try { $pdo->exec("ALTER TABLE directory_applications ADD COLUMN member_due_id INT NULL AFTER fee_amount"); } catch (Throwable $e) {}
+            }
+            $colNotes = $pdo->query("SHOW COLUMNS FROM directory_applications LIKE 'notes'")->fetch();
+            if (!$colNotes) {
+                try { $pdo->exec("ALTER TABLE directory_applications ADD COLUMN notes TEXT NULL AFTER member_due_id"); } catch (Throwable $e) {}
+            }
+            $colUpdatedAt = $pdo->query("SHOW COLUMNS FROM directory_applications LIKE 'updated_at'")->fetch();
+            if (!$colUpdatedAt) {
+                try { $pdo->exec("ALTER TABLE directory_applications ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"); } catch (Throwable $e) {}
+            }
+            $colRej = $pdo->query("SHOW COLUMNS FROM directory_applications LIKE 'rejected_at'")->fetch();
+            if (!$colRej) {
+                try { $pdo->exec("ALTER TABLE directory_applications ADD COLUMN reapply_allowed TINYINT(1) NOT NULL DEFAULT 1 AFTER notes"); } catch (Throwable $e) {}
+                try { $pdo->exec("ALTER TABLE directory_applications ADD COLUMN reapply_after DATE NULL AFTER reapply_allowed"); } catch (Throwable $e) {}
+                try { $pdo->exec("ALTER TABLE directory_applications ADD COLUMN dismissed_notification TINYINT(1) NOT NULL DEFAULT 0 AFTER reapply_after"); } catch (Throwable $e) {}
+                try { $pdo->exec("ALTER TABLE directory_applications ADD COLUMN rejected_at TIMESTAMP NULL AFTER dismissed_notification"); } catch (Throwable $e) {}
+            }
+            try {
+                $pdo->exec("ALTER TABLE directory_applications MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending_fee'");
+            } catch (Throwable $e) {}
+        }
+    } catch (Throwable $e) {}
+}
+
 if (session_status() === PHP_SESSION_NONE && php_sapi_name() !== 'cli') {
     @session_start();
 }

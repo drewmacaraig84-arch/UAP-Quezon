@@ -66,6 +66,18 @@ function ensure_user_profile_photo_column($pdo) {
                 $pdo->exec("DELETE FROM website_members WHERE user_id IS NOT NULL AND user_id NOT IN (SELECT id FROM users)");
             } catch (Throwable $e) {}
 
+            $colMemDue = $pdo->query("SHOW COLUMNS FROM directory_applications LIKE 'member_due_id'")->fetch();
+            if (!$colMemDue) {
+                try { $pdo->exec("ALTER TABLE directory_applications ADD COLUMN member_due_id INT NULL AFTER fee_amount"); } catch (Throwable $e) {}
+            }
+            $colNotes = $pdo->query("SHOW COLUMNS FROM directory_applications LIKE 'notes'")->fetch();
+            if (!$colNotes) {
+                try { $pdo->exec("ALTER TABLE directory_applications ADD COLUMN notes TEXT NULL AFTER member_due_id"); } catch (Throwable $e) {}
+            }
+            $colUpdatedAt = $pdo->query("SHOW COLUMNS FROM directory_applications LIKE 'updated_at'")->fetch();
+            if (!$colUpdatedAt) {
+                try { $pdo->exec("ALTER TABLE directory_applications ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"); } catch (Throwable $e) {}
+            }
             $colRej = $pdo->query("SHOW COLUMNS FROM directory_applications LIKE 'rejected_at'")->fetch();
             if (!$colRej) {
                 try { $pdo->exec("ALTER TABLE directory_applications ADD COLUMN reapply_allowed TINYINT(1) NOT NULL DEFAULT 1 AFTER notes"); } catch (Throwable $e) {}
@@ -73,6 +85,9 @@ function ensure_user_profile_photo_column($pdo) {
                 try { $pdo->exec("ALTER TABLE directory_applications ADD COLUMN dismissed_notification TINYINT(1) NOT NULL DEFAULT 0 AFTER reapply_after"); } catch (Throwable $e) {}
                 try { $pdo->exec("ALTER TABLE directory_applications ADD COLUMN rejected_at TIMESTAMP NULL AFTER dismissed_notification"); } catch (Throwable $e) {}
             }
+            try {
+                $pdo->exec("ALTER TABLE directory_applications MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending_fee'");
+            } catch (Throwable $e) {}
         }
     } catch (Throwable $e) {}
 }
