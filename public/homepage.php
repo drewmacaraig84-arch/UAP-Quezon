@@ -321,7 +321,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             max-width: 1100px;
             margin: 3.5rem auto 0;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
             padding: 1.8rem 2rem;
             background: rgba(19, 29, 51, 0.65);
@@ -706,7 +706,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 
         @media (max-width: 960px) {
             .content-grid { grid-template-columns: 1fr; }
-            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .stats-bar { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
             .footer-container { grid-template-columns: 1fr; }
             header nav { display: none; }
         }
@@ -770,10 +770,6 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 <?php echo icon('wallet', '', 16); ?>
                 <span>Pay Dues &amp; Access Receipts</span>
             </a>
-            <a href="<?php echo BASE_URL; ?>/admin/system_health.php" class="btn-outline-quezon" style="border-color: rgba(229,138,19,0.3);">
-                <?php echo icon('shield', '', 16); ?>
-                <span>Super Admin</span>
-            </a>
         </div>
 
         <!-- STATS -->
@@ -785,10 +781,6 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             <div class="stat-item">
                 <div class="stat-value" style="color: var(--quezon-green-light);">42+</div>
                 <div class="stat-label">Years of Heritage</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" style="color: #60a5fa;">100%</div>
-                <div class="stat-label">PRC &amp; RA 9266 Compliant</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" style="color: #fbbf24;">4</div>
@@ -1037,7 +1029,12 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         </div>
 
         <div class="copyright">
-            <div>&copy; <?php echo date('Y'); ?> United Architects of the Philippines - Quezon Chapter. All rights reserved.</div>
+            <div>
+                &copy; <?php echo date('Y'); ?> United Architects of the Philippines - Quezon Chapter. All rights reserved.
+                <div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-muted);">
+                    Developed by <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: var(--quezon-gold); font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">Drew Macaraig</a>
+                </div>
+            </div>
             <div style="color: var(--quezon-green-light); font-weight: 600;">Area B • Quezon Province</div>
         </div>
     </footer>

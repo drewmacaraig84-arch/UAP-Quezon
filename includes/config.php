@@ -303,14 +303,58 @@ try {
     );
 } catch (PDOException $e) {
     $pdoError = $e->getMessage();
-    if (php_sapi_name() === 'cli') {
-        // Allow CLI scripts (e.g. setup/migration retry loops) to catch or inspect the error
-        // If not in setup or caught, throw so CLI displays error stack
-        if (!defined('CONFIG_IGNORE_DB_FAILURE')) {
-            throw $e;
+    
+    // Auto-discover database on shared hosts like InfinityFree if name differed
+    if (str_contains($e->getMessage(), '1044') || str_contains($e->getMessage(), '1049') || (int)$e->getCode() === 1044 || (int)$e->getCode() === 1049) {
+        try {
+            $rootPdo = new PDO("mysql:host=" . DB_HOST . $dbPortStr . ";charset=utf8mb4", DB_USER, DB_PASS);
+            $dbs = $rootPdo->query("SHOW DATABASES")->fetchAll(PDO::FETCH_COLUMN);
+            $foundDb = null;
+            foreach ($dbs as $d) {
+                if ($d !== 'information_schema' && $d !== 'test' && str_starts_with($d, DB_USER)) {
+                    $foundDb = $d;
+                    break;
+                }
+            }
+            if ($foundDb) {
+                $pdo = new PDO(
+                    "mysql:host=" . DB_HOST . $dbPortStr . ";dbname=" . $foundDb . ";charset=utf8mb4",
+                    DB_USER,
+                    DB_PASS,
+                    [
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                        PDO::ATTR_EMULATE_PREPARES => false,
+                        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4, sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))"
+                    ]
+                );
+                $pdoError = null;
+            }
+        } catch (Throwable $ignore) {}
+    }
+
+    if ($pdo === null) {
+        if (php_sapi_name() === 'cli') {
+            if (!defined('CONFIG_IGNORE_DB_FAILURE')) {
+                throw $e;
+            }
+        } else {
+            $isSharedHost = defined('IS_HOSTED') && IS_HOSTED;
+            $msg = "Database connection failed: " . htmlspecialchars($e->getMessage());
+            if ($isSharedHost && (str_contains($e->getMessage(), '1044') || str_contains($e->getMessage(), '1049'))) {
+                $msg .= "<br><br><div style='font-family:sans-serif; background:#fef2f2; border:1px solid #ef4444; border-radius:8px; padding:16px; color:#991b1b; max-width:600px;'>";
+                $msg .= "<strong>Database Setup Required on InfinityFree:</strong><br>";
+                $msg .= "The database could not be accessed. If you have not created a database yet:<br>";
+                $msg .= "<ol style='margin-top:8px;'>";
+                $msg .= "<li>Open your InfinityFree <strong>vPanel</strong> &rarr; <strong>MySQL Databases</strong>.</li>";
+                $msg .= "<li>In the <strong>Create Database</strong> box, type a database name (e.g. <code>uap_qc</code>) and click Create.</li>";
+                $msg .= "<li>Click <strong>phpMyAdmin</strong> next to your new database and import <code>schema.sql</code>.</li>";
+                $msg .= "</ol>";
+                $msg .= "<a href='db_test.php' style='color:#b91c1c; font-weight:bold; text-decoration:underline;'>Click here to run the Database Diagnostic tool &rarr;</a>";
+                $msg .= "</div>";
+            }
+            die($msg);
         }
-    } else {
-        die("Database connection failed: " . $e->getMessage());
     }
 }
 
