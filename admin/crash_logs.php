@@ -49,6 +49,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $deleted = $pdo->exec("DELETE FROM system_crash_logs WHERE is_resolved = 1");
         audit_log('CRASH_LOGS_CLEARED', 'SYSTEM', "Deleted $deleted resolved crash logs.", $_SESSION['user_id']);
         $message = "Successfully removed $deleted resolved crash logs.";
+    } elseif ($action === 'clear_all') {
+        $deleted = $pdo->exec("DELETE FROM system_crash_logs");
+        audit_log('CRASH_LOGS_PURGED', 'SYSTEM', "Purged all $deleted crash logs.", $_SESSION['user_id']);
+        $message = "All $deleted crash logs have been completely cleared.";
     } elseif ($action === 'delete_log') {
         $logId = (int)($_POST['log_id'] ?? 0);
         $stmt = $pdo->prepare("DELETE FROM system_crash_logs WHERE id = ?");
@@ -188,6 +192,16 @@ include __DIR__ . '/../includes/header.php';
           <?php echo icon('trash', '', 14); ?> Clear Resolved
         </button>
       </form>
+
+      <?php if ($totalLogsCount > 0): ?>
+        <form method="POST" style="margin: 0;" onsubmit="return confirm('Permanently purge ALL <?php echo $totalLogsCount; ?> crash logs?');">
+          <?php echo csrf_field(); ?>
+          <input type="hidden" name="action" value="clear_all">
+          <button type="submit" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; border-color: rgba(239,68,68,0.4); color: #f87171;">
+            <?php echo icon('trash', '', 14); ?> Purge All (<?php echo $totalLogsCount; ?>)
+          </button>
+        </form>
+      <?php endif; ?>
 
       <a href="?export=csv" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
         <?php echo icon('download', '', 14); ?> Export CSV
