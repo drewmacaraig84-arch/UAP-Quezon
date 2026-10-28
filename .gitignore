@@ -25,6 +25,8 @@ query
 members_page.html
 members_response.html
 stress-test.php
+scratch/
+db_test.php
 
 
 # Runtime Logs
