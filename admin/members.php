@@ -31,13 +31,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
                 $pay_ids->execute([$md_id]);
                 $p_rows = $pay_ids->fetchAll(PDO::FETCH_COLUMN);
                 if ($p_rows) {
-                    $in = implode(',', array_map('intval', $p_rows));
-                    $pdo->exec("DELETE FROM receipts WHERE payment_id IN ($in)");
-                    $pdo->exec("DELETE FROM payments WHERE id IN ($in)");
+                    $ph = implode(',', array_fill(0, count($p_rows), '?'));
+                    $pdo->prepare("DELETE FROM receipts WHERE payment_id IN ($ph)")->execute(array_values($p_rows));
+                    $pdo->prepare("DELETE FROM payments WHERE id IN ($ph)")->execute(array_values($p_rows));
                 }
             }
-            $in = implode(',', array_map('intval', $md_rows));
-            $pdo->exec("DELETE FROM member_dues WHERE id IN ($in)");
+            $phMd = implode(',', array_fill(0, count($md_rows), '?'));
+            $pdo->prepare("DELETE FROM member_dues WHERE id IN ($phMd)")->execute(array_values($md_rows));
         }
 
         $pdo->prepare("DELETE FROM directory_applications WHERE user_id = ?")->execute([$user_id]);
@@ -73,9 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
         $p_rows = $pay_ids->fetchAll(PDO::FETCH_COLUMN);
 
         if ($p_rows) {
-            $in = implode(',', array_map('intval', $p_rows));
-            $pdo->exec("DELETE FROM receipts WHERE payment_id IN ($in)");
-            $pdo->exec("DELETE FROM payments WHERE id IN ($in)");
+            $ph = implode(',', array_fill(0, count($p_rows), '?'));
+            $pdo->prepare("DELETE FROM receipts WHERE payment_id IN ($ph)")->execute(array_values($p_rows));
+            $pdo->prepare("DELETE FROM payments WHERE id IN ($ph)")->execute(array_values($p_rows));
         }
 
         $pdo->prepare("DELETE FROM member_dues WHERE id = ?")->execute([$member_due_id]);

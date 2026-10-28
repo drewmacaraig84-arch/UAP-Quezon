@@ -145,3 +145,48 @@ UAP-Quezon/
 └── logs/                          (Diagnostics)
     └── crash.log                  (Physical system error & crash log file)
 ```
+
+
+---
+
+## 🌐 InfinityFree Deployment Guide
+
+The application is parameterized and pre-configured for **InfinityFree** shared hosting.
+
+### Step 1: Create MySQL Database in vPanel
+1. Log in to your InfinityFree Account -> Click **Manage** on your account -> **Control Panel (vPanel)**.
+2. In vPanel, open **MySQL Databases**.
+3. Create a new database (e.g., `uap_quezon`).
+4. Note your credentials shown on the page:
+   - **MySQL Host Name**: `sqlXXX.infinityfree.com` (or `sqlXXX.epizy.com`) — *do NOT use localhost*
+   - **Database Name**: `if0_XXXXXXXX_uap_quezon`
+   - **MySQL User Name**: `if0_XXXXXXXX`
+   - **MySQL Password**: Your vPanel account password
+
+### Step 2: Import Database Schema
+1. In vPanel, click **phpMyAdmin** next to your newly created database.
+2. Click the **Import** tab at the top.
+3. Choose [`schema.sql`](file:///c:/laragon/www/UAP-Quezon/schema.sql) from this repository and click **Go**.
+4. All 17 tables (users, dues, member_attendance, crash_logs, settings, etc.) will be created and seeded with default administrative accounts.
+
+### Step 3: Configure Database Parameters
+You have two easy options:
+
+#### Option A: Edit [`includes/db_config.php`](file:///c:/laragon/www/UAP-Quezon/includes/db_config.php) (Recommended for InfinityFree)
+Open `includes/db_config.php` in File Manager and enter your credentials:
+```php
+define('DB_HOST', 'sql123.infinityfree.com'); // Your assigned MySQL Host
+define('DB_PORT', 3306);
+define('DB_NAME', 'if0_38000000_uap_quezon'); // Full database name
+define('DB_USER', 'if0_38000000');            // Your vPanel username
+define('DB_PASS', 'your_vpanel_password');    // Your vPanel password
+define('ENABLE_REDIS', false);                // Keep false on shared hosting
+```
+
+#### Option B: Using `.env`
+If you prefer `.env`, create `.env` in the root folder using [`.env.example`](file:///c:/laragon/www/UAP-Quezon/.env.example) as reference.
+
+### Step 4: Upload Files to `htdocs/`
+1. Using an FTP client (FileZilla) or the online Monsta File Manager in vPanel, upload all project files directly inside the `htdocs/` directory.
+2. Ensure folder permissions for `uploads/` and `logs/` are writable (`0755` or `0775`).
+3. Visit your InfinityFree URL (e.g. `https://yourdomain.infinityfreeapp.com`).

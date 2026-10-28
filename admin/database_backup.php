@@ -76,7 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = "All $count tables optimized and indexed successfully.";
     } elseif ($action === 'optimize_table') {
         $table = $_POST['table'] ?? '';
-        if ($table) {
+        $validTables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
+        if ($table && in_array($table, $validTables, true)) {
             $pdo->query("OPTIMIZE TABLE `{$table}`");
             audit_log('DB_OPTIMIZE_TABLE', 'DATABASE', "Optimized table '$table'", $_SESSION['user_id']);
             $message = "Table `{$table}` optimized successfully.";

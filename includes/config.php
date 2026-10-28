@@ -80,6 +80,11 @@ if (!empty($databaseUrl)) {
     }
 }
 
+// Load direct database config file if present (useful for InfinityFree / cPanel / Shared Hosting)
+if (file_exists(__DIR__ . '/db_config.php')) {
+    require_once __DIR__ . '/db_config.php';
+}
+
 // ===== DATABASE CONFIGURATION =====
 // Supports standard .env, Railway (MYSQLHOST, MYSQLPORT, etc.), and local Laragon defaults.
 if (!defined('DB_HOST')) {
@@ -108,6 +113,9 @@ if (!defined('REDIS_DB')) {
 }
 if (!defined('REDIS_PASSWORD')) {
     define('REDIS_PASSWORD', $env(['REDIS_PASSWORD', 'REDISPASSWORD', 'REDIS_AUTH'], ''));
+}
+if (!defined('ENABLE_REDIS')) {
+    define('ENABLE_REDIS', (bool) $env('ENABLE_REDIS', false));
 }
 if (!defined('CACHE_TTL')) {
     define('CACHE_TTL', (int) $env('CACHE_TTL', 300));
@@ -189,6 +197,11 @@ function redis_client() {
     }
 
     $client = false;
+
+    // Skip Redis on shared hosting like InfinityFree to eliminate connection latency
+    if (!defined('ENABLE_REDIS') || !ENABLE_REDIS) {
+        return false;
+    }
 
     try {
         $socket = @fsockopen(REDIS_HOST, REDIS_PORT, $errno, $errstr, 2);
@@ -283,7 +296,9 @@ try {
         DB_PASS,
         [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4, sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))"
         ]
     );
 } catch (PDOException $e) {
@@ -332,7 +347,16 @@ define('BASE_URL', defined('BASE_URL_OVERRIDE') ? BASE_URL_OVERRIDE : $baseUrl);
 if (!defined('IS_HOSTED')) {
     $isRailway = !empty(getenv('RAILWAY_ENVIRONMENT')) || !empty(getenv('RAILWAY_PROJECT_ID')) || !empty(getenv('RAILWAY_STATIC_URL'));
     $isDocker  = file_exists('/.dockerenv') || file_exists('/run/.containerenv');
-    $isCloud   = (isset($_SERVER['HTTP_HOST']) && (str_contains($_SERVER['HTTP_HOST'], 'railway.app') || str_contains($_SERVER['HTTP_HOST'], 'render.com') || str_contains($_SERVER['HTTP_HOST'], 'fly.dev')));
+    $httpHost  = $_SERVER['HTTP_HOST'] ?? '';
+    $isCloud   = (!empty($httpHost) && (
+        str_contains($httpHost, 'railway.app') || 
+        str_contains($httpHost, 'render.com') || 
+        str_contains($httpHost, 'fly.dev') ||
+        str_contains($httpHost, 'infinityfreeapp.com') ||
+        str_contains($httpHost, 'epizy.com') ||
+        str_contains($httpHost, 'rf.gd') ||
+        str_contains($httpHost, 'byetcluster.com')
+    ));
     define('IS_HOSTED', $isRailway || $isDocker || $isCloud);
     define('IS_LOCAL', !IS_HOSTED);
 }

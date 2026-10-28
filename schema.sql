@@ -5,8 +5,11 @@
 -- Audit Trail, Dues Management, and Website Directory
 -- ====================================================================
 
-CREATE DATABASE IF NOT EXISTS uap_quezon CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE uap_quezon;
+-- Note: When importing to shared hosting like InfinityFree or cPanel, do not run CREATE DATABASE or USE.
+-- Select your database in phpMyAdmin and import the tables directly.
+-- (For local Laragon/XAMPP, you may uncomment the two lines below)
+-- CREATE DATABASE IF NOT EXISTS uap_quezon CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- USE uap_quezon;
 
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS audit_logs;
