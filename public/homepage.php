@@ -3,81 +3,80 @@ require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/icons.php';
 
-$pageTitle = 'UAP - Mindoro Chapter | United Architects of the Philippines';
+$pageTitle = 'UAP Quezon Chapter | United Architects of the Philippines';
 
+// Handle contact form submission
+$contactSuccess = '';
+$contactError = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'submit_inquiry') {
+    require_csrf();
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $subject = trim($_POST['subject'] ?? 'Website Inquiry');
+    $msg = trim($_POST['message'] ?? '');
 
-// Fetch website directory members from database (only paid & verified)
+    if (!$name || !$msg) {
+        $contactError = 'Please provide your name and inquiry message.';
+    } else {
+        try {
+            $stmt = $pdo->prepare("INSERT INTO contact_inquiries (name, email, phone, subject, message, status, created_at) VALUES (?, ?, ?, ?, ?, 'unread', NOW())");
+            $stmt->execute([$name, $email, $phone, $subject, $msg]);
+            $contactSuccess = 'Thank you for reaching out! Your message has been routed to the UAP Quezon Chapter secretariat.';
+        } catch (Throwable $e) {
+            $contactError = 'Unable to send message at this time. Please try again.';
+        }
+    }
+}
+
+// Fetch website directory members from database
 $members = [];
 try {
-    $publishedWebsiteMembers = $pdo->query("SELECT * FROM website_members WHERE is_published = 1 ORDER BY name ASC")->fetchAll();
-    if (!empty($publishedWebsiteMembers)) {
-        foreach ($publishedWebsiteMembers as $wm) {
-            // If linked to a registered member, check if directory feature is unlocked & in good standing
-            if (!empty($wm['user_id'])) {
-                if (function_exists('has_unlocked_website_directory') && !has_unlocked_website_directory($pdo, (int)$wm['user_id'])) {
-                    continue; // Exclude if directory feature is not unlocked via paid application
-                }
-                if (function_exists('is_good_member') && !is_good_member($pdo, (int)$wm['user_id'])) {
-                    continue; // Exclude if grace period expired without payment
-                }
-            }
-
+    $publishedMembers = $pdo->query("SELECT * FROM website_members WHERE is_published = 1 AND deleted_at IS NULL ORDER BY name ASC")->fetchAll();
+    if (!empty($publishedMembers)) {
+        foreach ($publishedMembers as $wm) {
             $members[] = [
+                'id' => $wm['id'],
                 'name' => $wm['name'],
                 'role' => $wm['role_title'] ?: 'Architect',
                 'specialty' => $wm['specialty'] ?: 'Professional Architect',
-                'prc' => $wm['id_number'] ?: '—',
-                'location' => $wm['location'] ?: 'Mindoro',
-                'status' => 'Good Member',
+                'prc' => $wm['id_number'] ?: ($wm['prc_number'] ?: '—'),
+                'location' => $wm['location'] ?: 'Quezon Province',
+                'company' => $wm['company_name'] ?: '',
                 'achievements' => $wm['achievements'] ?: '',
                 'awards' => $wm['awards'] ?: '',
-                'qr_image_path' => $wm['qr_image_path'] ?? ''
+                'photo_path' => $wm['photo_path'] ?? ''
             ];
         }
     }
-} catch (Exception $e) {
-    // Ignore until website_members table exists
-}
-
-
+} catch (Exception $e) {}
 
 // Fetch sponsors from database
 $sponsors = [];
 try {
-    $sponsors = $pdo->query("SELECT * FROM sponsors WHERE is_active = 1 ORDER BY display_order ASC LIMIT 6")->fetchAll();
-} catch (Exception $e) {
-    // Table might not exist yet
-}
+    $sponsors = $pdo->query("SELECT * FROM sponsors WHERE is_active = 1 AND deleted_at IS NULL ORDER BY display_order ASC LIMIT 8")->fetchAll();
+} catch (Exception $e) {}
 
 // Fetch about us from database
-$aboutUsText = 'The United Architects of the Philippines (UAP) Mindoro Chapter brings together registered architects across Oriental and Occidental Mindoro. We are dedicated to advocating architectural excellence, professional integrity, and community resilience.';
-try {
-    $about = $pdo->query("SELECT setting_value FROM site_settings WHERE setting_key = 'about_us'")->fetch();
-    if ($about && !empty($about['setting_value'])) {
-        $aboutUsText = $about['setting_value'];
-    }
-} catch (Exception $e) {
-    // Table might not exist yet
-}
+$aboutUsText = get_site_setting(
+    $pdo, 
+    'about_us', 
+    'The United Architects of the Philippines (UAP) Quezon Chapter unites registered and licensed architects across Quezon Province. We stand committed to architectural excellence, environmental stewardship of Mt. Banahaw and the Quezon coastline, heritage preservation, and sustainable community development.'
+);
 
-// Fetch news and announcements from database
-$newsItems = [
-    [
-        'title' => 'Mindoro Architecture Week 2026',
-        'date' => 'AUG 12 - 18, 2026',
-        'summary' => 'Annual symposium featuring sustainable building practices tailored to island province developments.'
-    ],
-    [
-        'title' => 'CPD Accredited Seminar: Green Building Code',
-        'date' => 'SEP 05, 2026',
-        'summary' => 'Comprehensive discussion on local energy efficiency standards and resilient design.'
-    ],
-    [
-        'title' => 'Heritage Mapping Project Launch',
-        'date' => 'OCT 14, 2026',
-        'summary' => 'Documenting historical structures and architectural heritage across Oriental and Occidental Mindoro.'
-    ]
-];
+// Fetch news from database
+$newsItems = [];
+try {
+    $newsItems = $pdo->query("SELECT * FROM news_announcements WHERE is_published = 1 AND deleted_at IS NULL ORDER BY display_order ASC LIMIT 4")->fetchAll();
+} catch (Exception $e) {}
+
+// Fetch milestones
+$milestones = [];
+try {
+    $milestones = $pdo->query("SELECT * FROM chapter_milestones WHERE deleted_at IS NULL ORDER BY display_order ASC")->fetchAll();
+} catch (Exception $e) {}
+
+$logoSrc = BASE_URL . '/public/logo.jpg';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -85,146 +84,53 @@ $newsItems = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($pageTitle); ?></title>
+    <link rel="icon" type="image/jpeg" href="<?php echo $logoSrc; ?>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-black: #080808;
-            --bg-card: #121212;
-            --bg-inner-card: #1a1a1a;
-            --accent-yellow: #f5b800;
-            --accent-yellow-hover: #d9a300;
-            --text-light: #f5f5f5;
-            --text-muted: #a0a0a0;
-            --border-dark: #262626;
-            --border-yellow-subtle: rgba(245, 184, 0, 0.3);
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            /* UAP Quezon Official Palette - Derived from Logo */
+            --quezon-gold: #f59e0b;
+            --quezon-amber: #e58a13;
+            --quezon-amber-dark: #b45309;
+            --quezon-green: #15803d;
+            --quezon-green-light: #22c55e;
+            --quezon-green-dark: #14532d;
+            --quezon-charcoal: #1e293b;
+            --quezon-dark: #0b1120;
+            --quezon-card: #131d33;
+            --quezon-card-inner: #192542;
+            --quezon-border: rgba(255, 255, 255, 0.08);
+            --quezon-border-gold: rgba(229, 138, 19, 0.35);
+            --quezon-border-green: rgba(21, 128, 61, 0.4);
+            --gradient-brand: linear-gradient(135deg, #e58a13 0%, #15803d 100%);
+            --gradient-gold: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --gradient-green: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-heading: 'Space Grotesk', sans-serif;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background-color: var(--bg-black);
+            background-color: var(--quezon-dark);
             color: var(--text-light);
             font-family: var(--font-family);
             line-height: 1.6;
+            overflow-x: hidden;
         }
 
         a { color: inherit; text-decoration: none; }
 
-        .member-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(4, 8, 12, 0.78);
-            backdrop-filter: blur(6px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            padding: 24px;
-        }
-
-        .member-modal.visible {
-            display: flex;
-        }
-
-        .member-modal-content {
-            width: min(860px, 100%);
-            background: linear-gradient(180deg, rgba(18, 29, 35, 0.98), rgba(11, 18, 24, 0.98));
-            border: 1px solid rgba(245, 184, 0, 0.45);
-            border-radius: 20px;
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255,255,255,0.04);
-            padding: 28px 30px 24px;
-            position: relative;
-        }
-
-        .member-close {
-            position: absolute;
-            right: 18px;
-            top: 16px;
-            width: 42px;
-            height: 42px;
-            border: 1px solid rgba(245, 184, 0, 0.4);
-            background: rgba(245, 184, 0, 0.08);
-            color: #ffffff;
-            font-size: 30px;
-            line-height: 1;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .member-close:hover {
-            background: rgba(245, 184, 0, 0.18);
-            transform: rotate(90deg);
-        }
-
-        .member-modal-header {
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 18px;
-            margin-bottom: 22px;
-        }
-
-        .member-modal-header h3 {
-            margin: 0;
-            font-size: clamp(2rem, 3vw, 3rem);
-            font-weight: 800;
-            line-height: 1.1;
-            color: #f7f7f7;
-            letter-spacing: -0.04em;
-        }
-
-        .member-modal-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px 28px;
-            margin-bottom: 20px;
-        }
-
-        .member-detail-label {
-            color: rgba(229, 232, 236, 0.7);
-            display: block;
-            font-size: 0.72rem;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            font-weight: 700;
-        }
-
-        .member-detail-value {
-            color: #f5f5f5;
-            font-size: 1.12rem;
-            line-height: 1.5;
-            word-break: break-word;
-        }
-
-        .member-detail-section {
-            margin-top: 18px;
-        }
-
-        .member-qr-box {
-            border: 1px dashed rgba(245, 184, 0, 0.5);
-            border-radius: 12px;
-            min-height: 170px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(245, 184, 0, 0.02);
-            color: rgba(255,255,255,0.62);
-            text-align: center;
-            padding: 18px;
-            font-size: 0.95rem;
-        }
-
-        .member-qr-box img {
-            max-width: 160px;
-            max-height: 160px;
-            object-fit: contain;
-            border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        }
-
+        /* HEADER & NAVIGATION */
         header {
-            background-color: #000000;
-            border-bottom: 3px solid var(--accent-yellow);
+            background: rgba(11, 17, 32, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 2px solid;
+            border-image: var(--gradient-brand) 1;
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -232,466 +138,712 @@ $newsItems = [
         }
 
         .header-container {
-            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.8rem 2rem;
-            gap: 1.2rem;
+            padding: 0.9rem 2rem;
+            gap: 1.5rem;
         }
 
         .brand-logo {
             display: flex;
             align-items: center;
             gap: 14px;
-            flex: 1 1 auto;
         }
 
         .brand-logo img {
-            height: 42px;
+            height: 48px;
             width: auto;
-            object-fit: contain;
+            border-radius: 6px;
+            background: #ffffff;
+            padding: 2px;
         }
 
         .brand-title {
-            font-size: 1.05rem;
+            font-size: 1.15rem;
             font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            letter-spacing: -0.01em;
             color: #ffffff;
-            white-space: nowrap;
+            line-height: 1.1;
         }
 
-        .brand-title span {
-            color: var(--accent-yellow);
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 1.2rem;
-            flex: 1 1 auto;
-        }
+        .brand-title span.gold { color: var(--quezon-gold); }
+        .brand-title span.green { color: var(--quezon-green-light); }
+        .brand-sub { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); font-weight: 600; display: block; }
 
         nav ul {
             display: flex;
             align-items: center;
-            justify-content: flex-end;
-            gap: 2rem;
+            gap: 1.8rem;
             list-style: none;
-            margin: 0;
-            padding: 0;
         }
 
         nav a {
-            font-size: 0.78rem;
+            font-size: 0.85rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: color 0.2s ease;
+            letter-spacing: 0.05em;
+            color: #cbd5e1;
+            transition: all 0.2s ease;
+            position: relative;
         }
 
-        nav a:hover { color: var(--accent-yellow); }
+        nav a:hover { color: var(--quezon-gold); }
 
-        .login-btn {
-            display: inline-block;
-            padding: 0.7rem 1.2rem;
-            background: var(--accent-yellow);
-            color: #000000;
-            border-radius: 4px;
-            font-size: 0.75rem;
+        .btn-portal {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.65rem 1.3rem;
+            background: var(--gradient-brand);
+            color: #ffffff;
+            border-radius: 8px;
+            font-size: 0.82rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            line-height: 1;
-            transition: background-color 0.2s ease;
+            letter-spacing: 0.05em;
+            box-shadow: 0 4px 14px rgba(229, 138, 19, 0.3);
+            transition: all 0.2s ease;
         }
 
-        .login-btn:hover {
-            background: var(--accent-yellow-hover);
+        .btn-portal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(21, 128, 61, 0.4);
         }
 
+        /* HERO SECTION */
         .hero {
-            background: linear-gradient(rgba(0, 0, 0, 0.82), rgba(8, 8, 8, 0.95)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1600&auto=format&fit=crop') center/cover;
-            padding: 4rem 2rem;
+            position: relative;
+            padding: 6rem 2rem 5rem;
+            background: radial-gradient(circle at 50% 20%, rgba(229, 138, 19, 0.12) 0%, rgba(21, 128, 61, 0.08) 50%, var(--quezon-dark) 80%);
+            border-bottom: 1px solid var(--quezon-border);
             text-align: center;
-            border-bottom: 1px solid var(--border-dark);
         }
 
-        .hero-content { max-width: 850px; margin: 0 auto; }
-
-        .hero h1 {
-            font-size: 2.4rem;
-            font-weight: 800;
-            line-height: 1.2;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .hero h1 span { color: var(--accent-yellow); }
-
-        .hero p {
-            color: var(--text-muted);
-            font-size: 1.05rem;
-            margin-bottom: 1.8rem;
-        }
-
-        .btn-yellow {
-            display: inline-block;
-            padding: 0.8rem 2.2rem;
-            background-color: var(--accent-yellow);
-            color: #000000;
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: rgba(229, 138, 19, 0.12);
+            border: 1px solid var(--quezon-border-gold);
+            border-radius: 9999px;
+            color: var(--quezon-gold);
+            font-size: 0.8rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            border-radius: 4px;
-            transition: background-color 0.2s ease;
-        }
-
-        .btn-yellow:hover { background-color: var(--accent-yellow-hover); }
-
-        .main-container {
-            width: 100%;
-            max-width: 1800px;
-            margin: 0 auto;
-            padding: 2.5rem 1.5rem;
-        }
-
-        .page-layout {
-            display: grid;
-            grid-template-columns: 280px 1fr 280px;
-            gap: 1.5rem;
-            align-items: start;
-        }
-
-        .section-heading {
-            border-left: 4px solid var(--accent-yellow);
-            padding-left: 1rem;
+            letter-spacing: 0.08em;
             margin-bottom: 1.5rem;
         }
 
-        .section-heading h2 {
-            font-size: 1.35rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #ffffff;
+        .hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.8rem);
+            font-weight: 800;
+            line-height: 1.15;
+            max-width: 950px;
+            margin: 0 auto 1.2rem;
+            letter-spacing: -0.02em;
         }
 
-        .dark-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-dark);
-            border-radius: 8px;
-            padding: 1.8rem;
-            margin-bottom: 2rem;
+        .hero h1 .highlight-gold {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            border-radius: 6px;
-            border: 1px solid var(--border-dark);
+        .hero h1 .highlight-green {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        table {
-            width: 100%;
-            min-width: 660px;
-            border-collapse: collapse;
-            text-align: left;
-        }
-
-
-        th {
-            background-color: #000000;
-            color: var(--accent-yellow);
-            padding: 0.85rem;
-            font-size: 0.78rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 2px solid var(--accent-yellow);
-        }
-
-        td {
-            padding: 0.85rem;
-            border-bottom: 1px solid var(--border-dark);
-            font-size: 0.9rem;
-        }
-
-        tr:hover td { background-color: var(--bg-inner-card); }
-
-        .badge-status {
-            background-color: rgba(245, 184, 0, 0.15);
-            color: var(--accent-yellow);
-            padding: 0.2rem 0.5rem;
-            border-radius: 3px;
-            font-size: 0.72rem;
-            font-weight: bold;
-            border: 1px solid var(--accent-yellow);
-        }
-
-        .about-text {
-            font-size: 0.95rem;
-            line-height: 1.7;
+        .hero p.lead {
+            font-size: 1.15rem;
             color: var(--text-muted);
+            max-width: 720px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.6;
         }
 
-        .news-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-        }
-
-        .news-card {
-            background-color: var(--bg-inner-card);
-            border: 1px solid var(--border-yellow-subtle);
-            border-radius: 6px;
-            padding: 1.2rem;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-
-        .news-card:hover {
-            border-color: var(--accent-yellow);
-            transform: translateY(-2px);
-        }
-
-        .news-date {
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: var(--accent-yellow);
-            display: block;
-            margin-bottom: 0.4rem;
-        }
-
-        .news-card h3 {
-            font-size: 0.98rem;
-            color: #ffffff;
-            margin-bottom: 0.5rem;
-        }
-
-        .news-card p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .sponsors-sidebar {
-            position: sticky;
-            top: 5rem;
-            background-color: var(--bg-card);
-            border: 2px dashed var(--accent-yellow);
-            border-radius: 8px;
-            padding: 1.5rem 1rem;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1.2rem;
-        }
-
-        .sponsors-sidebar h3 {
-            color: var(--accent-yellow);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 1px solid var(--border-dark);
-            padding-bottom: 0.5rem;
-            width: 100%;
-        }
-
-        .sponsor-box {
-            width: 100%;
-            height: 140px;
-            background-color: var(--bg-inner-card);
-            border: 1px solid var(--border-dark);
-            border-radius: 6px;
+        .hero-buttons {
             display: flex;
             justify-content: center;
             align-items: center;
-            color: var(--text-muted);
-            font-weight: bold;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: border-color 0.2s ease, background-color 0.2s ease;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
-        .sponsor-box:hover {
-            border-color: var(--accent-yellow);
-            background-color: #222222;
+        .btn-primary-quezon {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.9rem 2.2rem;
+            background: var(--gradient-brand);
             color: #ffffff;
-        }
-
-        footer {
-            background-color: #000000;
-            border-top: 3px solid var(--accent-yellow);
-            padding: 3.5rem 2rem 1.5rem;
-            color: var(--text-light);
-        }
-
-        .footer-container {
-            max-width: 1800px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2.5rem;
-            margin-bottom: 2.5rem;
-        }
-
-        .footer-col h4 {
-            color: var(--accent-yellow);
-            margin-bottom: 1.2rem;
-            font-size: 1rem;
+            font-weight: 800;
+            font-size: 0.95rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 1px solid var(--border-dark);
-            padding-bottom: 0.4rem;
+            letter-spacing: 0.04em;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(229, 138, 19, 0.35);
+            transition: all 0.2s ease;
         }
 
-        .footer-col ul { list-style: none; }
-        .footer-col ul li { margin-bottom: 0.6rem; }
-        .footer-col ul li a {
-            color: var(--text-muted);
-            font-size: 0.88rem;
-            transition: color 0.2s ease;
+        .btn-primary-quezon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(21, 128, 61, 0.45);
         }
 
-        .footer-col ul li a:hover { color: var(--accent-yellow); }
+        .btn-outline-quezon {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.9rem 2.2rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--quezon-border);
+            color: var(--text-light);
+            font-weight: 700;
+            font-size: 0.95rem;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
 
-        .contact-details p {
+        .btn-outline-quezon:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--quezon-green-light);
+            color: var(--quezon-green-light);
+        }
+
+        /* STATS BAR */
+        .stats-bar {
+            max-width: 1100px;
+            margin: 3.5rem auto 0;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            padding: 1.8rem 2rem;
+            background: rgba(19, 29, 51, 0.65);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--quezon-border);
+            border-radius: 16px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
             color: var(--text-muted);
-            font-size: 0.88rem;
-            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* MAIN CONTENT LAYOUT */
+        .page-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2.4fr 1fr;
+            gap: 2.5rem;
+            align-items: start;
+        }
+
+        /* SECTIONS */
+        .section-box {
+            background: var(--quezon-card);
+            border: 1px solid var(--quezon-border);
+            border-radius: 18px;
+            padding: 2.2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            position: relative;
+        }
+
+        .section-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 2rem;
+            right: 2rem;
+            height: 2px;
+            background: var(--gradient-brand);
+            border-radius: 2px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.02em;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .contact-details strong { color: var(--text-light); }
+        .section-header h2 span {
+            color: var(--quezon-gold);
+        }
+
+        /* DIRECTORY TABLE */
+        .directory-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .directory-table th {
+            text-align: left;
+            padding: 12px 14px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--quezon-border);
+            background: var(--quezon-card-inner);
+        }
+
+        .directory-table td {
+            padding: 14px;
+            border-bottom: 1px solid var(--quezon-border);
+            vertical-align: middle;
+        }
+
+        .directory-table tr:hover td {
+            background: rgba(229, 138, 19, 0.04);
+        }
+
+        .badge-prc {
+            font-family: monospace;
+            padding: 3px 8px;
+            background: rgba(21, 128, 61, 0.15);
+            color: var(--quezon-green-light);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* NEWS CARDS */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .news-card {
+            background: var(--quezon-card-inner);
+            border: 1px solid var(--quezon-border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .news-card:hover {
+            border-color: var(--quezon-border-gold);
+            transform: translateY(-3px);
+        }
+
+        .news-date {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--quezon-gold);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+
+        .news-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #ffffff;
+            line-height: 1.35;
+        }
+
+        .news-card p {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.55;
+        }
+
+        /* MILESTONES TIMELINE */
+        .milestone-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .milestone-item {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            padding: 14px;
+            background: var(--quezon-card-inner);
+            border-radius: 12px;
+            border-left: 3px solid var(--quezon-green-light);
+        }
+
+        .milestone-year {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--quezon-gold);
+            min-width: 60px;
+        }
+
+        .milestone-item h4 {
+            font-size: 0.95rem;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .milestone-item p {
+            font-size: 0.84rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        /* SIDEBAR SPONSORS & CONTACT */
+        .sidebar-box {
+            background: var(--quezon-card);
+            border: 1px solid var(--quezon-border);
+            border-radius: 18px;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        }
+
+        .sidebar-box h3 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sponsor-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .sponsor-card {
+            background: var(--quezon-card-inner);
+            border: 1px solid var(--quezon-border);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .sponsor-card:hover {
+            border-color: var(--quezon-border-green);
+        }
+
+        .sponsor-tier-badge {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+
+        .tier-platinum { background: rgba(229, 138, 19, 0.2); color: #fbbf24; border: 1px solid rgba(229,138,19,0.3); }
+        .tier-gold { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .tier-silver { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; }
+
+        /* CONTACT FORM */
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--quezon-card-inner);
+            border: 1px solid var(--quezon-border);
+            border-radius: 8px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 0.88rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--quezon-gold);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .btn-submit-inquiry {
+            width: 100%;
+            padding: 12px;
+            background: var(--gradient-brand);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.88rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit-inquiry:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        /* FOOTER */
+        footer {
+            background: #080d19;
+            border-top: 1px solid var(--quezon-border);
+            padding: 4rem 2rem 2rem;
+        }
+
+        .footer-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .footer-brand img {
+            height: 44px;
+            background: #ffffff;
+            padding: 2px;
+            border-radius: 6px;
+        }
+
+        .footer-col h4 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .footer-col a {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            transition: color 0.2s ease;
+        }
+
+        .footer-col a:hover {
+            color: var(--quezon-gold);
+        }
 
         .copyright {
-            text-align: center;
+            max-width: 1300px;
+            margin: 0 auto;
+            border-top: 1px solid var(--quezon-border);
             padding-top: 1.5rem;
-            border-top: 1px solid var(--border-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
             color: var(--text-muted);
-            font-size: 0.85rem;
         }
 
-        @media (max-width: 1200px) {
-            .page-layout { grid-template-columns: 1fr; }
-            .sponsors-sidebar { position: static; }
-        }
-
-        @media (max-width: 768px) {
-            nav ul { display: none; }
-            .hero h1 { font-size: 1.8rem; }
+        @media (max-width: 960px) {
+            .content-grid { grid-template-columns: 1fr; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .footer-container { grid-template-columns: 1fr; }
+            header nav { display: none; }
         }
     </style>
 </head>
 <body>
+
+    <!-- STICKY NAVBAR -->
     <header>
         <div class="header-container">
             <div class="brand-logo">
-                <img src="<?php echo BASE_URL; ?>/public/logo.jpg" alt="UAP Mindoro Logo" onerror="if(this.src.indexOf('uploads/logo.jpg')===-1)this.src='<?php echo BASE_URL; ?>/uploads/logo.jpg';">
-                <div class="brand-title">UAP-<span>Mindoro Chapter</span></div>
+                <img src="<?php echo $logoSrc; ?>" alt="UAP Quezon Chapter Logo">
+                <div>
+                    <div class="brand-title">
+                        <span class="gold">UAP</span> <span class="green">QUEZON</span>
+                    </div>
+                    <span class="brand-sub">United Architects of the Philippines</span>
+                </div>
             </div>
 
-            <div class="header-actions">
-                <nav>
-                    <ul>
-                        <li><a href="#home">Home</a></li>
-                        <li><a href="#members">Members</a></li>
-                        <li><a href="#about">About</a></li>
-                        <li><a href="#news">News</a></li>
-                        <li><a href="#contact">Contact</a></li>
-                    </ul>
-                </nav>
-                <a href="<?php echo BASE_URL; ?>/auth/login.php" class="login-btn">Login</a>
+            <nav>
+                <ul>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#directory">Architects</a></li>
+                    <li><a href="#news">News &amp; Events</a></li>
+                    <li><a href="#milestones">Milestones</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+
+            <div>
+                <a href="<?php echo BASE_URL; ?>/auth/login.php" class="btn-portal">
+                    <?php echo icon('shield_check', '', 14); ?>
+                    <span>Portal Login</span>
+                </a>
             </div>
         </div>
     </header>
 
-    <section class="hero" id="home">
-        <div class="hero-content">
-            <h1>United Architects of the Philippines <span>Mindoro Chapter</span></h1>
-            <p>Integrated & Accredited Professional Organization of Architects (IAPOA Chapter 121) promoting design excellence and sustainable development across Mindoro.</p>
-            <a href="#members" class="btn-yellow">View Chapter Directory</a>
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-badge">
+            <?php echo icon('landmark', '', 14); ?> Area B • Southern Luzon Region
+        </div>
+
+        <h1>
+            Architectural Excellence,<br>
+            <span class="highlight-gold">Mt. Banahaw Ecology</span> &amp; <span class="highlight-green">Quezon Heritage</span>
+        </h1>
+
+        <p class="lead">
+            The official digital hub of the United Architects of the Philippines - Quezon Chapter. Uniting registered architects across Lucena City, Tayabas, Sariaya, and the four legislative districts of Quezon Province.
+        </p>
+
+        <div class="hero-buttons">
+            <a href="#directory" class="btn-primary-quezon">
+                <?php echo icon('members', '', 16); ?>
+                <span>Browse Chapter Directory</span>
+            </a>
+            <a href="<?php echo BASE_URL; ?>/auth/login.php" class="btn-outline-quezon">
+                <?php echo icon('wallet', '', 16); ?>
+                <span>Pay Dues &amp; Access Receipts</span>
+            </a>
+            <a href="<?php echo BASE_URL; ?>/admin/system_health.php" class="btn-outline-quezon" style="border-color: rgba(229,138,19,0.3);">
+                <?php echo icon('shield', '', 16); ?>
+                <span>Super Admin</span>
+            </a>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value" style="color: var(--quezon-gold);"><?php echo max(120, count($members) * 15); ?>+</div>
+                <div class="stat-label">Registered Architects</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" style="color: var(--quezon-green-light);">42+</div>
+                <div class="stat-label">Years of Heritage</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" style="color: #60a5fa;">100%</div>
+                <div class="stat-label">PRC &amp; RA 9266 Compliant</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" style="color: #fbbf24;">4</div>
+                <div class="stat-label">Quezon Districts Served</div>
+            </div>
         </div>
     </section>
 
-    <div class="main-container">
-        <div class="page-layout">
-            <aside class="sponsors-sidebar">
-                <h3>Major Sponsors</h3>
-                <?php 
-                $displaySponsors = array_slice($sponsors, 0, 3);
-                if (empty($displaySponsors)): 
-                ?>
-                    <div class="sponsor-box">No sponsors yet</div>
-                <?php else: ?>
-                    <?php foreach ($displaySponsors as $sponsor): ?>
-                        <div class="sponsor-box" style="padding:6px;height:auto;">
-                            <?php if (!empty(trim((string)($sponsor['url'] ?? '')))): ?>
-                                <a href="<?php echo htmlspecialchars(trim((string)$sponsor['url'])); ?>" target="_blank" rel="noopener noreferrer" style="display:block;">
-                                    <img src="../<?php echo htmlspecialchars($sponsor['logo_path']); ?>" alt="<?php echo htmlspecialchars($sponsor['name']); ?>" style="max-width:100%;max-height:120px;object-fit:contain;display:block;cursor:pointer;">
-                                </a>
-                            <?php else: ?>
-                                <img src="../<?php echo htmlspecialchars($sponsor['logo_path']); ?>" alt="<?php echo htmlspecialchars($sponsor['name']); ?>" style="max-width:100%;max-height:120px;object-fit:contain;display:block;">
-                            <?php endif; ?>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </aside>
-
-            <main class="center-content">
-                <section class="dark-card" id="members">
-                    <div class="section-heading">
-                        <h2>Chapter Members Directory</h2>
+    <!-- MAIN BODY -->
+    <div class="page-container">
+        <div class="content-grid">
+            <!-- MAIN COLUMN -->
+            <main>
+                <!-- DIRECTORY SECTION -->
+                <section class="section-box" id="directory">
+                    <div class="section-header">
+                        <h2><?php echo icon('members', '', 20); ?> Chapter <span>Architect Directory</span></h2>
+                        <a href="<?php echo BASE_URL; ?>/auth/register.php" class="btn-outline-quezon" style="font-size: 0.78rem; padding: 6px 14px;">
+                            Join Chapter &rarr;
+                        </a>
                     </div>
+
                     <?php if (empty($members)): ?>
-                        <div style="text-align:center; padding: 3rem 1.5rem; color:var(--text-muted);">
-                            <div style="width: 56px; height: 56px; border-radius: 14px; background: rgba(245,158,11,0.12); color: var(--accent-yellow, #f5b800); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
-                                <?php echo icon('landmark', '', 32); ?>
+                        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                            <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(229,138,19,0.12); color: var(--quezon-gold); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                                <?php echo icon('landmark', '', 26); ?>
                             </div>
-                            <strong style="color:#ffffff; font-size:1.1rem; display:block; margin-bottom:6px;">No Chapter Directory Members Yet</strong>
-                            <p style="font-size:0.88rem; max-width:480px; margin:0 auto; line-height:1.6;">
-                                The chapter directory is updated as members apply, verify annual dues, and unlock their featured website profile.
-                            </p>
+                            <h4 style="color: #ffffff; margin-bottom: 4px;">Directory Profiles Updating</h4>
+                            <p style="font-size: 0.88rem;">Quezon Chapter architects are updating their digital profiles and good standing records.</p>
                         </div>
                     <?php else: ?>
-                        <div class="table-responsive">
-                            <table>
+                        <div style="overflow-x: auto;">
+                            <table class="directory-table">
                                 <thead>
                                     <tr>
-                                        <th>Architect Name</th>
-                                        <th>Role / Title</th>
-                                        <th>Architectural Specialty</th>
-                                        <th>PRC No.</th>
+                                        <th>Architect</th>
+                                        <th>Role / Practice</th>
+                                        <th>Specialty</th>
+                                        <th>PRC Reg.</th>
                                         <th>Location</th>
-                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($members as $member): 
-                                        $mRole = (!empty($member['role']) && strcasecmp(trim($member['role']), 'none') !== 0) ? $member['role'] : 'Architect';
-                                        $mSpec = (!empty($member['specialty']) && strcasecmp(trim($member['specialty']), 'none') !== 0) ? $member['specialty'] : 'General Practice';
-                                        $mLoc = (!empty($member['location']) && strcasecmp(trim($member['location']), 'none') !== 0) ? $member['location'] : 'Mindoro';
-                                    ?>
+                                    <?php foreach ($members as $m): ?>
                                         <tr>
-                                            <td><strong><?php echo htmlspecialchars($member['name']); ?></strong></td>
-                                            <td><?php echo htmlspecialchars($mRole); ?></td>
-                                            <td><?php echo htmlspecialchars($mSpec); ?></td>
-                                            <td><code><?php echo htmlspecialchars($member['prc']); ?></code></td>
-                                            <td><?php echo htmlspecialchars($mLoc); ?></td>
                                             <td>
-                                                <a 
-                                                    href="<?php echo BASE_URL; ?>/profile/<?php echo (int)($member['id'] ?? 0); ?>" 
-                                                    class="badge-status" 
-                                                    style="text-decoration:none; display:inline-block; font-weight:600; cursor:pointer;"
-                                                >
-                                                    View Profile &rarr;
-                                                </a>
+                                                <div style="font-weight: 700; color: #ffffff;"><?php echo htmlspecialchars($m['name']); ?></div>
+                                                <?php if ($m['company']): ?>
+                                                    <div style="font-size: 0.78rem; color: var(--text-muted);"><?php echo htmlspecialchars($m['company']); ?></div>
+                                                <?php endif; ?>
                                             </td>
+                                            <td style="color: var(--quezon-gold); font-weight: 600;"><?php echo htmlspecialchars($m['role']); ?></td>
+                                            <td style="color: var(--text-muted);"><?php echo htmlspecialchars($m['specialty']); ?></td>
+                                            <td><span class="badge-prc"><?php echo htmlspecialchars($m['prc']); ?></span></td>
+                                            <td style="color: var(--text-muted);"><?php echo htmlspecialchars($m['location']); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -700,99 +852,194 @@ $newsItems = [
                     <?php endif; ?>
                 </section>
 
-
-                <section class="dark-card" id="about">
-                    <div class="section-heading">
-                        <h2>About Us</h2>
+                <!-- ABOUT US SECTION -->
+                <section class="section-box" id="about">
+                    <div class="section-header">
+                        <h2><?php echo icon('landmark', '', 20); ?> About <span>UAP Quezon</span></h2>
                     </div>
-                    <div class="about-text">
-                        <p><?php echo htmlspecialchars($aboutUsText); ?></p>
+                    <div style="font-size: 1.05rem; line-height: 1.7; color: #cbd5e1;">
+                        <p><?php echo nl2br(htmlspecialchars($aboutUsText)); ?></p>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 2rem;">
+                        <div style="background: var(--quezon-card-inner); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--quezon-border);">
+                            <div style="color: var(--quezon-gold); margin-bottom: 8px;"><?php echo icon('building', '', 22); ?></div>
+                            <h4 style="color: #ffffff; margin-bottom: 4px; font-size: 0.95rem;">Heritage Advocacy</h4>
+                            <p style="font-size: 0.82rem; color: var(--text-muted);">Protecting ancestral stone and wooden houses across Lucena, Sariaya, and Tayabas.</p>
+                        </div>
+                        <div style="background: var(--quezon-card-inner); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--quezon-border);">
+                            <div style="color: var(--quezon-green-light); margin-bottom: 8px;"><?php echo icon('sparkles', '', 22); ?></div>
+                            <h4 style="color: #ffffff; margin-bottom: 4px; font-size: 0.95rem;">Ecological Design</h4>
+                            <p style="font-size: 0.82rem; color: var(--text-muted);">Climate-resilient construction celebrating Mt. Banahaw watershed topography.</p>
+                        </div>
+                        <div style="background: var(--quezon-card-inner); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--quezon-border);">
+                            <div style="color: #60a5fa; margin-bottom: 8px;"><?php echo icon('award', '', 22); ?></div>
+                            <h4 style="color: #ffffff; margin-bottom: 4px; font-size: 0.95rem;">Professional Pride</h4>
+                            <p style="font-size: 0.82rem; color: var(--text-muted);">Strict enforcement of RA 9266 Architecture Act in Quezon local government units.</p>
+                        </div>
                     </div>
                 </section>
 
-                <section class="dark-card" id="news">
-                    <div class="section-heading">
-                        <h2>Latest News & Announcements</h2>
+                <!-- NEWS & EVENTS SECTION -->
+                <section class="section-box" id="news">
+                    <div class="section-header">
+                        <h2><?php echo icon('newspaper', '', 20); ?> News &amp; <span>Announcements</span></h2>
                     </div>
+
                     <div class="news-grid">
-                        <?php 
-                        // Try to fetch from database, fallback to defaults
-                        $dbNews = [];
-                        try {
-                            $dbNews = $pdo->query("SELECT * FROM news_announcements WHERE is_active = 1 ORDER BY display_order ASC")->fetchAll();
-                        } catch (Exception $e) {}
-                        
-                        $newsToShow = !empty($dbNews) ? $dbNews : $newsItems;
-                        foreach ($newsToShow as $news): 
-                        ?>
+                        <?php foreach ($newsItems as $news): ?>
                             <article class="news-card">
-                                <span class="news-date"><?php echo isset($news['date_posted']) ? date('M d, Y', strtotime($news['date_posted'])) : htmlspecialchars($news['date'] ?? ''); ?></span>
+                                <span class="news-date"><?php echo htmlspecialchars($news['date_display'] ?: date('M d, Y', strtotime($news['created_at']))); ?></span>
                                 <h3><?php echo htmlspecialchars($news['title']); ?></h3>
                                 <p><?php echo htmlspecialchars($news['summary']); ?></p>
                             </article>
                         <?php endforeach; ?>
                     </div>
                 </section>
+
+                <!-- CHAPTER MILESTONES -->
+                <section class="section-box" id="milestones">
+                    <div class="section-header">
+                        <h2><?php echo icon('award', '', 20); ?> Chapter <span>Milestones</span></h2>
+                    </div>
+
+                    <div class="milestone-timeline">
+                        <?php foreach ($milestones as $ms): ?>
+                            <div class="milestone-item">
+                                <div class="milestone-year"><?php echo htmlspecialchars($ms['year']); ?></div>
+                                <div>
+                                    <h4><?php echo htmlspecialchars($ms['title']); ?></h4>
+                                    <p><?php echo htmlspecialchars($ms['description']); ?></p>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
             </main>
 
-            <aside class="sponsors-sidebar">
-                <h3>Official Partners</h3>
-                <?php 
-                $displayPartners = array_slice($sponsors, 3, 3);
-                if (empty($displayPartners)): 
-                ?>
-                    <div class="sponsor-box">No partners yet</div>
-                <?php else: ?>
-                    <?php foreach ($displayPartners as $partner): ?>
-                        <div class="sponsor-box" style="padding:6px;height:auto;">
-                            <?php if (!empty(trim((string)($partner['url'] ?? '')))): ?>
-                                <a href="<?php echo htmlspecialchars(trim((string)$partner['url'])); ?>" target="_blank" rel="noopener noreferrer" style="display:block;">
-                                    <img src="../<?php echo htmlspecialchars($partner['logo_path']); ?>" alt="<?php echo htmlspecialchars($partner['name']); ?>" style="max-width:100%;max-height:120px;object-fit:contain;display:block;cursor:pointer;">
-                                </a>
-                            <?php else: ?>
-                                <img src="../<?php echo htmlspecialchars($partner['logo_path']); ?>" alt="<?php echo htmlspecialchars($partner['name']); ?>" style="max-width:100%;max-height:120px;object-fit:contain;display:block;">
-                            <?php endif; ?>
+            <!-- SIDEBAR -->
+            <aside>
+                <!-- OFFICIAL SPONSORS -->
+                <div class="sidebar-box">
+                    <h3><?php echo icon('handshake', '', 18); ?> Official Partners</h3>
+                    <?php if (empty($sponsors)): ?>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Partner showcase loading...</p>
+                    <?php else: ?>
+                        <div class="sponsor-grid">
+                            <?php foreach ($sponsors as $sp): ?>
+                                <div class="sponsor-card">
+                                    <span class="sponsor-tier-badge tier-<?php echo htmlspecialchars($sp['tier']); ?>">
+                                        <?php echo htmlspecialchars($sp['tier']); ?> Partner
+                                    </span>
+                                    <div style="font-weight: 700; color: #ffffff; font-size: 0.95rem; margin-top: 4px;">
+                                        <?php echo htmlspecialchars($sp['name']); ?>
+                                    </div>
+                                    <?php if ($sp['description']): ?>
+                                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+                                            <?php echo htmlspecialchars($sp['description']); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                    <?php endif; ?>
+                </div>
+
+                <!-- CONTACT SECRETARIAT -->
+                <div class="sidebar-box" id="contact">
+                    <h3><?php echo icon('mail', '', 18); ?> Contact Secretariat</h3>
+
+                    <?php if ($contactSuccess): ?>
+                        <div style="background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: #22c55e; padding: 12px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 14px;">
+                            <?php echo htmlspecialchars($contactSuccess); ?>
+                        </div>
+                    <?php elseif ($contactError): ?>
+                        <div style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 14px;">
+                            <?php echo htmlspecialchars($contactError); ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <form method="POST">
+                        <?php echo csrf_field(); ?>
+                        <input type="hidden" name="action" value="submit_inquiry">
+
+                        <div class="form-group">
+                            <label>Your Name *</label>
+                            <input type="text" name="name" required class="form-control" placeholder="Ar. Juan Dela Cruz">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" name="email" class="form-control" placeholder="architect@example.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Phone / Mobile</label>
+                            <input type="text" name="phone" class="form-control" placeholder="0917 123 4567">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Subject</label>
+                            <input type="text" name="subject" class="form-control" placeholder="Membership / Chapter Inquiry">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Message *</label>
+                            <textarea name="message" required class="form-control" placeholder="How can the chapter assist you?"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-submit-inquiry">
+                            Send Message &rarr;
+                        </button>
+                    </form>
+                </div>
             </aside>
         </div>
     </div>
 
-    <footer id="contact">
+    <!-- FOOTER -->
+    <footer>
         <div class="footer-container">
-            <div class="footer-col">
-                <h1>UAP Mindoro Chapter</h1>
-                <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.6;">
-                    Official chapter of the United Architects of the Philippines (IAPOA Chapter 121) serving architects and communities across Mindoro.
+            <div>
+                <div class="footer-brand">
+                    <img src="<?php echo $logoSrc; ?>" alt="UAP Quezon Logo">
+                    <div>
+                        <div style="font-weight: 800; font-size: 1.1rem; color: #ffffff;">UAP QUEZON CHAPTER</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;">United Architects of the Philippines</div>
+                    </div>
+                </div>
+                <p style="font-size: 0.88rem; color: var(--text-muted); max-width: 440px; line-height: 1.6;">
+                    The integrated and accredited professional organization of architects (IAPOA) representing registered architects of Quezon Province.
                 </p>
             </div>
 
             <div class="footer-col">
-                <h4>Contact Us</h4>
-                <div class="contact-details">
-                    <p style="display:flex; align-items:center; gap:8px;"><?php echo icon('map_pin', '', 14); ?> <span><strong>Address:</strong> Calapan City, Oriental Mindoro, Philippines</span></p>
-                    <p style="display:flex; align-items:center; gap:8px;"><?php echo icon('mail', '', 14); ?> <span><strong>Email:</strong> uapmindorochapter@gmail.com</span></p>
-                    <p style="display:flex; align-items:center; gap:8px;"><?php echo icon('phone', '', 14); ?> <span><strong>Phone:</strong> +63 917 123 4567</span></p>
-                    <p style="display:flex; align-items:center; gap:8px;"><?php echo icon('facebook', '', 14); ?> <span><strong>Facebook:</strong> <a href="https://www.facebook.com/UAPMindoroChapter/" target="_blank" style="color: var(--accent-yellow);">facebook.com/UAPMindoroChapter</a></span></p>
-                </div>
+                <h4>Chapter Links</h4>
+                <ul>
+                    <li><a href="#about">About UAP Quezon</a></li>
+                    <li><a href="#directory">Chapter Architects</a></li>
+                    <li><a href="#news">News &amp; Events</a></li>
+                    <li><a href="#milestones">Timeline &amp; Milestones</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>/auth/login.php">Member Portal &amp; Dues</a></li>
+                </ul>
             </div>
 
             <div class="footer-col">
-                <h4>Quick Links</h4>
+                <h4>Administration</h4>
                 <ul>
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#members">Member Directory</a></li>
-                    <li><a href="#about">About Us</a></li>
-                    <li><a href="#news">News & Announcements</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>/auth/login.php">Officer Login</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>/admin/system_health.php">Super Admin Telemetry</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>/admin/crash_logs.php">Crash Logs Monitor</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>/admin/soft_deleted_files.php">Trash Bin Quarantine</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>/admin/database_backup.php">Database Backup Tool</a></li>
                 </ul>
             </div>
         </div>
 
         <div class="copyright">
-            &copy; <?php echo date('Y'); ?> United Architects of the Philippines - Mindoro Chapter. All rights reserved.
+            <div>&copy; <?php echo date('Y'); ?> United Architects of the Philippines - Quezon Chapter. All rights reserved.</div>
+            <div style="color: var(--quezon-green-light); font-weight: 600;">Area B • Quezon Province</div>
         </div>
     </footer>
 </body>
 </html>
-

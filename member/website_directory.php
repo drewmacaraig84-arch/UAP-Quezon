@@ -351,7 +351,7 @@ if (!$profile) {
         'id_number' => $uRow['id_number'] ?? '',
         'role_title' => 'Architect',
         'specialty' => '',
-        'location' => 'Mindoro',
+        'location' => 'Quezon',
         'company_name' => '',
         'company_logo_path' => null,
         'link_url' => '',
@@ -419,7 +419,7 @@ include __DIR__ . '/../includes/header.php';
         <div style="font-size: 32px; color: var(--accent-primary, #f5b800); margin-bottom: 8px;">★</div>
         <h3 style="margin-bottom: 8px;">Unlock Your Official Website Directory Listing</h3>
         <p class="muted" style="max-width: 540px; margin: 0 auto 20px; font-size: 14px;">
-          Promote your architectural practice, services, portfolio, and contact links directly on the public UAP Mindoro Website.
+          Promote your architectural practice, services, portfolio, and contact links directly on the public UAP Quezon Website.
         </p>
         <form method="POST" style="display: inline-block;">
           <?php echo csrf_field(); ?>
@@ -579,7 +579,7 @@ include __DIR__ . '/../includes/header.php';
           </div>
           <div class="field" style="margin: 0;">
             <label>Company / Office Address</label>
-            <input type="text" name="location" value="<?php echo htmlspecialchars($profile['location'] ?? ''); ?>" placeholder="e.g. Calapan City, Oriental Mindoro" required>
+            <input type="text" name="location" value="<?php echo htmlspecialchars($profile['location'] ?? ''); ?>" placeholder="e.g. Calapan City, Oriental Quezon" required>
           </div>
         </div>
 

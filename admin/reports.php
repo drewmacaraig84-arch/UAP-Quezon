@@ -24,7 +24,7 @@ foreach ($payments as $p) {
     if ($p['status'] === 'rejected') $total_rejected += (float)$p['amount_paid'];
 }
 
-$page_title = 'Financial Reports • UAP Mindoro Chapter';
+$page_title = 'Financial Reports • UAP Quezon Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 

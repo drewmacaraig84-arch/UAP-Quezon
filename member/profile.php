@@ -22,6 +22,7 @@ $wmStmt->execute([$userId]);
 $wmRecord = $wmStmt->fetch();
 
 $isGoodStanding = is_good_member($pdo, $userId);
+$attendance = get_or_create_member_attendance($pdo, $userId);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
@@ -30,10 +31,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Action 1: Update Profile Details & Photo
     if ($action === 'update_profile') {
         $name = trim($_POST['name'] ?? '');
+        $prc_number = trim($_POST['prc_number'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
+        $gender = trim($_POST['gender'] ?? '');
+        $birth_date = !empty($_POST['birth_date']) ? $_POST['birth_date'] : null;
+        $civil_status = trim($_POST['civil_status'] ?? '');
+        $address = trim($_POST['address'] ?? '');
         $removePhoto = !empty($_POST['remove_photo']);
 
         if (empty($name)) {
-            $error = 'Full Name is required.';
+            $error = 'Full Legal Name is required.';
         } else {
             $photoPath = $user['profile_photo'] ?? null;
 
@@ -99,16 +107,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (empty($error)) {
-                $upd = $pdo->prepare("UPDATE users SET name = ?, profile_photo = ? WHERE id = ?");
-                $upd->execute([$name, $photoPath, $userId]);
+                // Calculate age dynamically
+                $computedAge = null;
+                if (!empty($birth_date)) {
+                    try {
+                        $dob = new DateTime($birth_date);
+                        $today = new DateTime();
+                        $computedAge = $dob->diff($today)->y;
+                    } catch (Exception $e) {
+                        $computedAge = null;
+                    }
+                }
 
-                // Also sync name with website_members
+                $upd = $pdo->prepare("
+                    UPDATE users 
+                    SET name = ?, prc_number = ?, email = ?, phone = ?, gender = ?, birth_date = ?, age = ?, civil_status = ?, address = ?, profile_photo = ? 
+                    WHERE id = ?
+                ");
+                $upd->execute([
+                    $name,
+                    $prc_number ?: null,
+                    $email ?: null,
+                    $phone ?: null,
+                    $gender ?: null,
+                    $birth_date ?: null,
+                    $computedAge,
+                    $civil_status ?: null,
+                    $address ?: null,
+                    $photoPath,
+                    $userId
+                ]);
+
+                // Also sync name and prc_number with website_members
                 if ($wmRecord) {
-                    $pdo->prepare("UPDATE website_members SET name = ? WHERE user_id = ?")->execute([$name, $userId]);
+                    $pdo->prepare("UPDATE website_members SET name = ?, prc_number = COALESCE(?, prc_number) WHERE user_id = ?")->execute([$name, $prc_number ?: null, $userId]);
                 }
 
                 $_SESSION['name'] = $name;
-                $success = 'Your profile and photo have been updated successfully!';
+                $success = 'Your profile details and credentials have been updated successfully!';
 
                 // Refresh user and directory records
                 $stmt->execute([$userId]);
@@ -142,7 +178,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$page_title = 'My Profile • UAP Mindoro Chapter';
+// Compute dynamic age for display
+$userBirthDate = $user['birth_date'] ?? null;
+$userAge = null;
+if (!empty($userBirthDate)) {
+    try {
+        $dobObj = new DateTime($userBirthDate);
+        $todayObj = new DateTime();
+        $userAge = $dobObj->diff($todayObj)->y;
+    } catch (Exception $e) {
+        $userAge = null;
+    }
+}
+
+$page_title = 'My Profile • UAP Quezon Chapter';
 include __DIR__ . '/../includes/header.php';
 
 $currentPhoto = ($user['profile_photo'] ?? null) ?: ($wmRecord['photo_path'] ?? null);
@@ -154,10 +203,10 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
   <div>
     <p class="eyebrow">CHAPTER MEMBER PORTAL</p>
     <h1>My Profile</h1>
-    <p class="page-subtitle">Manage your personal profile picture, chapter identity, and account credentials.</p>
+    <p class="page-subtitle">Manage your personal profile picture, chapter identity, demographic credentials, and account settings.</p>
   </div>
   <div class="hero-badge">
-    <?php echo icon('members', '', 14); ?> <span>PRC #<?php echo htmlspecialchars($user['id_number']); ?></span>
+    <?php echo icon('members', '', 14); ?> <span>PRC #<?php echo htmlspecialchars($user['prc_number'] ?: $user['id_number']); ?></span>
   </div>
 </div>
 
@@ -175,23 +224,25 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
   </div>
 <?php endif; ?>
 
-<div class="profile-grid-layout">
-  <!-- LEFT: AVATAR & ACCOUNT SUMMARY -->
-  <div class="profile-avatar-card">
-    <div class="profile-avatar-large-wrap">
+<div class="profile-grid-layout" style="display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start;">
+  <!-- LEFT: 1x1 AVATAR & COMPLETE MEMBER BIO CARD -->
+  <div class="profile-avatar-card" style="background: var(--card-bg, #1e293b); border: 1px solid var(--border-color, #334155); border-radius: 12px; padding: 24px; text-align: center;">
+    <div class="profile-avatar-large-wrap" style="width: 140px; height: 140px; margin: 0 auto 16px; border-radius: 14px; overflow: hidden; border: 3px solid var(--accent-primary, #f59e0b); background: #0f172a; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
       <?php if ($avatarUrl): ?>
-        <img src="<?php echo htmlspecialchars($avatarUrl); ?>" alt="<?php echo htmlspecialchars($user['name']); ?>" class="profile-avatar-large-img" id="avatarPreviewImg">
+        <img src="<?php echo htmlspecialchars($avatarUrl); ?>" alt="<?php echo htmlspecialchars($user['name']); ?>" class="profile-avatar-large-img" id="avatarPreviewImg" style="width: 100%; height: 100%; object-fit: cover;">
       <?php else: ?>
-        <div class="profile-avatar-large-placeholder" id="avatarPreviewPlaceholder">
+        <div class="profile-avatar-large-placeholder" id="avatarPreviewPlaceholder" style="font-size: 38px; font-weight: 800; color: #f59e0b;">
           <?php echo htmlspecialchars($initials); ?>
         </div>
       <?php endif; ?>
     </div>
 
-    <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">
+    <span class="badge" style="display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); padding: 3px 8px; border-radius: 4px; margin-bottom: 8px;">1x1 Official Portrait</span>
+
+    <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">
       <?php echo htmlspecialchars($user['name']); ?>
     </h3>
-    <p style="font-size: 13px; color: var(--accent-primary); font-weight: 600; margin-bottom: 12px;">
+    <p style="font-size: 13px; color: var(--accent-primary, #f59e0b); font-weight: 600; margin: 0 0 12px 0;">
       <?php echo !empty($wmRecord['role_title']) ? htmlspecialchars($wmRecord['role_title']) : 'Registered Architect'; ?>
     </p>
 
@@ -214,6 +265,10 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
         </span>
       <?php endif; ?>
 
+      <a href="chapter_status.php" style="text-decoration:none;">
+        <?php echo render_activity_badge($attendance); ?>
+      </a>
+
       <?php if (!empty($wmRecord['is_published'])): ?>
         <span class="badge" style="background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid #3b82f6;">
           <?php echo icon('website_directory', '', 12); ?> Directory Published
@@ -221,54 +276,50 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
       <?php endif; ?>
     </div>
 
-    <!-- Summary Details -->
-    <div style="width: 100%; border-top: 1px solid var(--border-color); padding-top: 16px; font-size: 12px; color: var(--text-secondary); text-align: left;">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-        <span>PRC ID Number:</span>
-        <strong style="color: var(--text-primary);"><?php echo htmlspecialchars($user['id_number']); ?></strong>
+    <!-- Complete Member Details List -->
+    <div style="width: 100%; border-top: 1px solid var(--border-color); padding-top: 16px; font-size: 12.5px; color: var(--text-secondary); text-align: left; display: flex; flex-direction: column; gap: 9px;">
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.06); padding-bottom: 6px;">
+        <span>PRC License #:</span>
+        <strong style="color: var(--accent-primary);"><?php echo htmlspecialchars($user['prc_number'] ?: $user['id_number']); ?></strong>
       </div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.06); padding-bottom: 6px;">
+        <span>Gender:</span>
+        <strong style="color: var(--text-primary);"><?php echo htmlspecialchars($user['gender'] ?: '—'); ?></strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.06); padding-bottom: 6px;">
+        <span>Age:</span>
+        <strong style="color: var(--text-primary);"><?php echo $userAge !== null ? $userAge . ' yrs' : '—'; ?></strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.06); padding-bottom: 6px;">
+        <span>Birth Date:</span>
+        <strong style="color: var(--text-primary);"><?php echo !empty($user['birth_date']) ? date('M d, Y', strtotime($user['birth_date'])) : '—'; ?></strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.06); padding-bottom: 6px;">
+        <span>Mobile #:</span>
+        <strong style="color: var(--text-primary);"><?php echo htmlspecialchars($user['phone'] ?: '—'); ?></strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.06); padding-bottom: 6px;">
+        <span>Civil Status:</span>
+        <strong style="color: var(--text-primary);"><?php echo htmlspecialchars($user['civil_status'] ?: '—'); ?></strong>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 2px; border-bottom: 1px dashed rgba(255,255,255,0.06); padding-bottom: 6px;">
+        <span>Email Address:</span>
+        <strong style="color: var(--text-primary); word-break: break-all; font-size: 12px;"><?php echo htmlspecialchars($user['email'] ?: '—'); ?></strong>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 2px; border-bottom: 1px dashed rgba(255,255,255,0.06); padding-bottom: 6px;">
+        <span>Address:</span>
+        <strong style="color: var(--text-primary); font-size: 12px; line-height: 1.35;"><?php echo htmlspecialchars($user['address'] ?: '—'); ?></strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding-top: 4px;">
         <span>Account Status:</span>
         <strong style="color: #10b981; text-transform: uppercase;"><?php echo htmlspecialchars($user['status']); ?></strong>
       </div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-        <span>Chapter Member Since:</span>
-        <strong style="color: var(--text-primary);"><?php echo date('M Y', strtotime($user['created_at'])); ?></strong>
-      </div>
-      <?php if (!empty($wmRecord['specialty'])): ?>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-          <span>Specialty:</span>
-          <strong style="color: var(--text-primary);"><?php echo htmlspecialchars($wmRecord['specialty']); ?></strong>
-        </div>
-      <?php endif; ?>
-      <?php if (!empty($wmRecord['company_name'])): ?>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-          <span>Company / Firm:</span>
-          <strong style="color: var(--text-primary);"><?php echo htmlspecialchars($wmRecord['company_name']); ?></strong>
-        </div>
-      <?php endif; ?>
-      <?php if (!empty($wmRecord['link_url'])): 
-        $linkIcon = function_exists('detect_social_link_type') ? detect_social_link_type($wmRecord['link_url'], $wmRecord['link_type'] ?? 'auto') : 'globe';
-      ?>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <span>Showcase Link:</span>
-          <a href="<?php echo htmlspecialchars($wmRecord['link_url']); ?>" target="_blank" rel="noopener noreferrer" style="color: var(--accent-primary); display: inline-flex; align-items: center; gap: 4px; font-weight: 600; text-decoration: none; font-size: 11.5px;">
-            <?php echo icon($linkIcon === 'website' ? 'globe' : $linkIcon, '', 13); ?>
-            <span><?php echo ucfirst($linkIcon); ?></span>
-          </a>
-        </div>
-      <?php endif; ?>
-      <?php if ($standing['is_revoked']): ?>
-        <div style="margin-top: 10px; padding: 8px 10px; background: rgba(239,68,68,0.08); border-radius: 6px; border: 1px solid rgba(239,68,68,0.2); font-size: 11.5px; color: #ef4444; line-height: 1.4;">
-          <strong>Administrative Hold:</strong> <?php echo htmlspecialchars($standing['reason'] ?: 'Good standing placed on hold by Chapter Administration.'); ?>
-        </div>
-      <?php endif; ?>
     </div>
 
     <!-- Quick Link to Website Directory Profile -->
     <div style="width: 100%; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-color);">
       <a href="<?php echo BASE_URL; ?>/member/website_directory.php" class="btn btn-outline btn-sm" style="width: 100%; justify-content: center; font-size: 12px; margin-bottom: 12px;">
-        <?php echo icon('website_directory', '', 14); ?> Manage Directory &amp; Showcase
+        <?php echo icon('website_directory', '', 14); ?> Manage Directory Showcase
       </a>
 
       <?php if ($wmRecord && function_exists('has_unlocked_website_directory') && has_unlocked_website_directory($pdo, $userId)): 
@@ -285,34 +336,11 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
           <?php if ($qrRelative && file_exists(__DIR__ . '/../' . ltrim($qrRelative, '/'))): ?>
             <div style="position: relative; width: 110px; height: 110px; margin: 0 auto 10px; background: #ffffff; padding: 6px; border-radius: 8px; box-shadow: 0 3px 10px rgba(0,0,0,0.35); overflow: hidden;">
               <img src="<?php echo BASE_URL . '/' . ltrim($qrRelative, '/'); ?>" alt="My Directory QR Code" style="width: 100%; height: 100%; object-fit: contain; <?php echo $isRevoked ? 'filter: blur(6px) grayscale(80%); opacity: 0.35;' : ''; ?> transition: filter 0.3s ease, opacity 0.3s ease;">
-              <?php if ($isRevoked): ?>
-                <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(15,23,42,0.68); color: #ef4444; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px; text-align: center;">
-                  <?php echo icon('alert', '', 18); ?>
-                  <span style="margin-top: 3px; font-size: 9px; line-height: 1.15;">QR Code Suspended</span>
-                </div>
-              <?php endif; ?>
             </div>
           <?php endif; ?>
 
-          <?php if ($isRevoked): ?>
-            <p style="font-size: 11px; color: #ef4444; margin: 0 0 10px; line-height: 1.35; font-weight: 600;">
-              QR Code &amp; directory profile are suspended while standing is revoked.
-            </p>
-          <?php else: ?>
-            <p style="font-size: 11px; color: var(--text-secondary); margin: 0 0 10px; line-height: 1.35;">
-              Scannable QR code linking to your official public architect profile.
-            </p>
-          <?php endif; ?>
-
           <div style="display: flex; flex-direction: column; gap: 6px;">
-            <?php if ($isRevoked): ?>
-              <button type="button" disabled class="btn btn-sm" style="width: 100%; justify-content: center; font-size: 11.5px; font-weight: 700; padding: 7px 10px; background: #374151; border: 1px solid #4b5563; color: #9ca3af; cursor: not-allowed; opacity: 0.6; pointer-events: none;" title="Download disabled while standing is revoked">
-                <?php echo icon('download', '', 13); ?> Download QR Code
-              </button>
-              <button type="button" disabled class="btn btn-sm" style="width: 100%; justify-content: center; font-size: 11px; padding: 5px 10px; background: #1f2937; border: 1px solid #374151; color: #6b7280; cursor: not-allowed; opacity: 0.5; pointer-events: none;" title="View Profile disabled while standing is revoked">
-                <?php echo icon('external_link', '', 12); ?> View Public Profile
-              </button>
-            <?php else: ?>
+            <?php if (!$isRevoked): ?>
               <a href="download_qr.php" class="btn btn-primary btn-sm" style="width: 100%; justify-content: center; font-size: 11.5px; font-weight: 700; padding: 7px 10px;">
                 <?php echo icon('download', '', 13); ?> Download QR Code
               </a>
@@ -326,21 +354,22 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
     </div>
   </div>
 
-  <!-- RIGHT: EDIT PROFILE FORM & PASSWORD CHANGE -->
+  <!-- RIGHT: EDIT PROFILE FORM & CREDENTIALS -->
   <div style="display: flex; flex-direction: column; gap: 24px;">
-    <!-- Profile Details & Picture -->
+    <!-- Profile Details & Portrait Form -->
     <div class="card" style="padding: 24px;">
       <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
-        <?php echo icon('user', '', 18); ?> Profile Details &amp; Portrait
+        <?php echo icon('user', '', 18); ?> Edit Profile Details &amp; Demographic Credentials
       </h3>
 
       <form method="post" enctype="multipart/form-data" action="">
         <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="update_profile">
 
-        <div class="form-group" style="margin-bottom: 20px;">
+        <!-- 1x1 Photo Upload -->
+        <div class="form-group" style="margin-bottom: 20px; padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px;">
           <label class="form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
-            Profile Picture / Architect Portrait
+            1x1 Profile Picture / Architect Portrait
           </label>
           <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
             <input type="file" name="profile_photo" id="memberPhotoInput" accept="image/png, image/jpeg, image/webp" class="form-control" style="flex: 1; min-width: 220px;" onchange="previewAvatar(this)">
@@ -351,24 +380,79 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
               </label>
             <?php endif; ?>
           </div>
-          <small class="form-text" style="color: var(--text-secondary); margin-top: 4px; display: block;">
-            Supported formats: JPG, PNG, WebP (Max 5MB). This portrait automatically syncs with your public Architect Directory profile.
+          <small class="form-text" style="color: var(--text-secondary); margin-top: 6px; display: block;">
+            Recommended: Square (1x1 ratio) high-resolution image in JPG, PNG, or WebP format. Syncs directly with public architect directory.
           </small>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+        <!-- Row 1: Name & PRC Number -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
           <div class="form-group">
-            <label class="form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">Full Name</label>
-            <input type="text" name="name" class="form-control" value="<?php echo htmlspecialchars($user['name']); ?>" required>
+            <label class="form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">Full Legal Name <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="name" class="form-control" value="<?php echo htmlspecialchars($user['name']); ?>" required placeholder="e.g. Ar. Juan Dela Cruz, uap">
           </div>
           <div class="form-group">
-            <label class="form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">PRC ID Number</label>
-            <input type="text" class="form-control" value="<?php echo htmlspecialchars($user['id_number']); ?>" disabled style="opacity: 0.75; cursor: not-allowed;">
-            <small style="font-size: 11px; color: var(--text-secondary);">Contact chapter secretariat to update registered PRC number.</small>
+            <label class="form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">PRC License #</label>
+            <input type="text" name="prc_number" class="form-control" value="<?php echo htmlspecialchars($user['prc_number'] ?: $user['id_number']); ?>" placeholder="e.g. 0089452">
+            <small style="font-size: 11px; color: var(--text-secondary);">Registered PRC License / ID number.</small>
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary" style="padding: 10px 22px;">
+        <!-- Row 2: Gender & Civil Status -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">Gender</label>
+            <select name="gender" class="form-control">
+              <option value="">Select Gender</option>
+              <option value="Male" <?php echo ($user['gender'] ?? '') === 'Male' ? 'selected' : ''; ?>>Male</option>
+              <option value="Female" <?php echo ($user['gender'] ?? '') === 'Female' ? 'selected' : ''; ?>>Female</option>
+              <option value="Prefer not to say" <?php echo ($user['gender'] ?? '') === 'Prefer not to say' ? 'selected' : ''; ?>>Prefer not to say</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">Civil Status</label>
+            <select name="civil_status" class="form-control">
+              <option value="">Select Civil Status</option>
+              <option value="Single" <?php echo ($user['civil_status'] ?? '') === 'Single' ? 'selected' : ''; ?>>Single</option>
+              <option value="Married" <?php echo ($user['civil_status'] ?? '') === 'Married' ? 'selected' : ''; ?>>Married</option>
+              <option value="Widowed" <?php echo ($user['civil_status'] ?? '') === 'Widowed' ? 'selected' : ''; ?>>Widowed</option>
+              <option value="Separated" <?php echo ($user['civil_status'] ?? '') === 'Separated' ? 'selected' : ''; ?>>Separated</option>
+              <option value="Divorced" <?php echo ($user['civil_status'] ?? '') === 'Divorced' ? 'selected' : ''; ?>>Divorced</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 3: Birth Date (with live Age calculation) & Mobile # -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label" style="font-weight: 600; margin: 0;">Birth Date</label>
+              <span id="liveAgeBadge" style="font-size: 11.5px; font-weight: 700; color: #f59e0b; background: rgba(245,158,11,0.12); padding: 2px 8px; border-radius: 4px;">
+                <?php echo $userAge !== null ? "Age: $userAge yrs" : 'Age: —'; ?>
+              </span>
+            </div>
+            <input type="date" name="birth_date" id="birthDateInput" class="form-control" value="<?php echo htmlspecialchars($user['birth_date'] ?? ''); ?>" onchange="updateAgePreview(this.value)">
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">Mobile #</label>
+            <input type="tel" name="phone" class="form-control" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" placeholder="e.g. +63 917 123 4567">
+          </div>
+        </div>
+
+        <!-- Row 4: Email Address -->
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">Email Address</label>
+          <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" placeholder="architect@example.com">
+        </div>
+
+        <!-- Row 5: Complete Address -->
+        <div class="form-group" style="margin-bottom: 22px;">
+          <label class="form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">Complete Address</label>
+          <textarea name="address" rows="2" class="form-control" placeholder="House/Unit #, Street, Barangay, City/Municipality, Province"><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
+          <small style="font-size: 11px; color: var(--text-secondary);">Residential or official architectural studio address.</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
           <?php echo icon('check', '', 16); ?> Save Profile Details
         </button>
       </form>
@@ -414,9 +498,26 @@ function previewAvatar(input) {
     const reader = new FileReader();
     reader.onload = function(e) {
       const wrap = document.querySelector('.profile-avatar-large-wrap');
-      wrap.innerHTML = '<img src="' + e.target.result + '" alt="Avatar Preview" class="profile-avatar-large-img">';
+      wrap.innerHTML = '<img src="' + e.target.result + '" alt="Avatar Preview" class="profile-avatar-large-img" style="width: 100%; height: 100%; object-fit: cover;">';
     };
     reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function updateAgePreview(birthDateStr) {
+  const badge = document.getElementById('liveAgeBadge');
+  if (!birthDateStr) {
+    badge.textContent = 'Age: —';
+    return;
+  }
+  const dob = new Date(birthDateStr);
+  const diff = Date.now() - dob.getTime();
+  const ageDate = new Date(diff);
+  const calculatedAge = Math.abs(ageDate.getUTCFullYear() - 1970);
+  if (!isNaN(calculatedAge)) {
+    badge.textContent = 'Age: ' + calculatedAge + ' yrs';
+  } else {
+    badge.textContent = 'Age: —';
   }
 }
 </script>

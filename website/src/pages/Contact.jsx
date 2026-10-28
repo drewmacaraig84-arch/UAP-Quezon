@@ -10,8 +10,8 @@ export default function Contact() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
 
-  const contactEmail = settings?.contact_email || 'uapmindoro@gmail.com';
-  const contactAddress = settings?.contact_address || 'Calapan City, Oriental Mindoro, Philippines 5200';
+  const contactEmail = settings?.contact_email || 'uapQuezon@gmail.com';
+  const contactAddress = settings?.contact_address || 'Calapan City, Oriental Quezon, Philippines 5200';
   const contactPhone = settings?.contact_phone || '+63 (0) XXXX XXXX';
   const hoursWeekdays = settings?.office_hours_weekdays || '9:00 AM – 5:00 PM';
   const hoursSaturday = settings?.office_hours_saturday || '9:00 AM – 12:00 PM';
@@ -77,7 +77,7 @@ export default function Contact() {
           <p className="eyebrow">Get in Touch</p>
           <h1 className="display-2">Contact <span className="text-gold">Us</span></h1>
           <p className="body-lg muted" style={{ marginTop: 12, maxWidth: 500 }}>
-            Reach out to the UAP Mindoro Chapter Secretariat for inquiries, membership, and professional matters.
+            Reach out to the UAP Quezon Chapter Secretariat for inquiries, membership, and professional matters.
           </p>
         </div>
       </div>
@@ -140,7 +140,7 @@ export default function Contact() {
                   <IconMailSent size={48} />
                 </div>
                 <h3>Inquiry Received!</h3>
-                <p className="muted">Thank you for reaching out. Your message has been directly sent to the UAP Mindoro Chapter Secretariat. We will get in touch with you shortly.</p>
+                <p className="muted">Thank you for reaching out. Your message has been directly sent to the UAP Quezon Chapter Secretariat. We will get in touch with you shortly.</p>
                 <button className="btn btn-outline" onClick={() => setSent(false)} style={{ marginTop: '16px' }}>Send Another Inquiry</button>
               </div>
             ) : (
@@ -176,7 +176,7 @@ export default function Contact() {
                 </div>
                 <div className="form-group">
                   <label htmlFor="message">Message <span style={{ color: 'var(--c-gold)' }}>*</span></label>
-                  <textarea id="message" name="message" className="input" rows="5" placeholder="How can the UAP Mindoro Chapter assist you?" required value={form.message} onChange={handleChange} disabled={submitting} />
+                  <textarea id="message" name="message" className="input" rows="5" placeholder="How can the UAP Quezon Chapter assist you?" required value={form.message} onChange={handleChange} disabled={submitting} />
                 </div>
                 <button type="submit" className="btn btn-gold" style={{ alignSelf: 'flex-start' }} disabled={submitting}>
                   {submitting ? 'Sending Message...' : 'Send Message'}

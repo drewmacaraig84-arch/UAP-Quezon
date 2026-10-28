@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $u = $uData->fetch();
                 if ($u) {
                     $pdo->prepare("INSERT INTO website_members (user_id, name, id_number, role_title, specialty, location, photo_path, is_published) 
-                                   VALUES (?, ?, ?, 'Architect', 'General Practice', 'Mindoro', ?, 1)")
+                                   VALUES (?, ?, ?, 'Architect', 'General Practice', 'Quezon', ?, 1)")
                         ->execute([$userId, $u['name'], $u['id_number'], $u['profile_photo'] ?: null]);
                 }
             } else {
@@ -282,7 +282,7 @@ try {
     } catch (Throwable $e2) {}
 }
 
-$page_title = 'Website Directory Manager • UAP Mindoro Chapter';
+$page_title = 'Website Directory Manager • UAP Quezon Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 

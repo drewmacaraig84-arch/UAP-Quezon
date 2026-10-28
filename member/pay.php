@@ -32,7 +32,10 @@ if (!$due) {
 $paid_stmt = $pdo->prepare("SELECT SUM(amount_paid) as total FROM payments WHERE member_due_id = ? AND status = 'verified'");
 $paid_stmt->execute([$member_due_id]);
 $already_paid = round((float)($paid_stmt->fetch()['total'] ?? 0), 2);
-$remaining = round((float)$due['amount'] - $already_paid, 2);
+$discount = round((float)($due['discount_amount'] ?? 0), 2);
+$otherObligations = round((float)($due['other_obligations'] ?? 0), 2);
+$effectiveTotal = max(0, round((float)$due['amount'] - $discount + $otherObligations, 2));
+$remaining = max(0, round($effectiveTotal - $already_paid, 2));
 
 // Check for existing pending payment
 $pendingStmt = $pdo->prepare("SELECT id FROM payments WHERE member_due_id = ? AND status = 'pending' LIMIT 1");
@@ -49,7 +52,7 @@ $paymentCountStmt = $pdo->prepare("
 $paymentCountStmt->execute([$member_due_id]);
 $verifiedPayments = (int)$paymentCountStmt->fetchColumn();
 
-$halfAmount = round($due['amount'] / 2, 2);
+$halfAmount = round($effectiveTotal / 2, 2);
 
 // Load QR codes
 $qrcodes = $pdo->query("SELECT * FROM qr_codes")->fetchAll();

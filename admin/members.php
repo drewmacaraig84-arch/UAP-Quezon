@@ -105,14 +105,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     $amount = (float)($_POST['amount'] ?? 0);
     $due_date = trim($_POST['due_date'] ?? '');
     $term = trim($_POST['term'] ?? '');
+    $discount_amount = (float)($_POST['discount_amount'] ?? 0);
+    $other_obligations = (float)($_POST['other_obligations'] ?? 0);
+    $due_period = trim($_POST['due_period'] ?? '');
 
-    $stmt = $pdo->prepare("UPDATE member_dues SET custom_title=?, custom_description=?, custom_amount=?, custom_due_date=?, custom_term=? WHERE id=?");
+    $stmt = $pdo->prepare("UPDATE member_dues SET custom_title=?, custom_description=?, custom_amount=?, custom_due_date=?, custom_term=?, discount_amount=?, other_obligations=?, due_period=? WHERE id=?");
     $stmt->execute([
         $title !== '' ? $title : null,
         $description !== '' ? $description : null,
         $amount > 0 ? $amount : null,
         $due_date !== '' ? $due_date : null,
         $term !== '' ? $term : null,
+        $discount_amount,
+        $other_obligations,
+        $due_period !== '' ? $due_period : null,
         $member_due_id,
     ]);
 
@@ -216,6 +222,7 @@ if ($selected_member_id) {
     if ($selected_member) {
         $dues_stmt = $pdo->prepare("
             SELECT md.id, md.user_id, md.status, md.total_paid, md.payment_type, md.installment_months,
+                   md.discount_amount, md.other_obligations, md.due_period,
                    d.id as due_id, d.title as base_title, d.description as base_description, d.amount as base_amount, d.due_date as base_due_date, d.term as base_term,
                    md.custom_title, md.custom_description, md.custom_amount, md.custom_due_date, md.custom_term,
                    COALESCE(md.custom_title, d.title) AS title,
@@ -242,7 +249,7 @@ if ($selected_member_id) {
     }
 }
 
-$page_title = 'Chapter Members • UAP Mindoro Chapter';
+$page_title = 'Chapter Members • UAP Quezon Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -327,6 +334,15 @@ include __DIR__ . '/../includes/header.php';
           <?php elseif ($standing['is_good']): ?>
             <span class="badge-pill badge-paid" style="font-size: 10px;"><?php echo icon('good_members', '', 10); ?> Good Standing</span>
           <?php endif; ?>
+          <?php
+            $mAtt = get_or_create_member_attendance($pdo, $m['id']);
+            $ac = $mAtt['computed'];
+          ?>
+          <a href="attendance.php?edit_member_id=<?php echo $m['id']; ?>" style="text-decoration:none;">
+            <span class="badge" style="background: <?php echo $ac['badge_bg']; ?>; color: <?php echo $ac['badge_color']; ?>; border: 1px solid <?php echo $ac['badge_border']; ?>; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
+              <?php echo $ac['badge_label']; ?> (<?php echo $ac['total_attended']; ?>)
+            </span>
+          </a>
         </td>
         <td><code><?php echo htmlspecialchars($m['id_number']); ?></code></td>
         <td>
@@ -376,6 +392,9 @@ include __DIR__ . '/../includes/header.php';
           <a class="btn btn-sm btn-secondary" href="members.php?member_id=<?php echo $m['id']; ?>#member-dues-panel" style="display:inline-flex;align-items:center;gap:4px;margin-right:4px;">
             <?php echo icon('dues', '', 12); ?> <span>Dues</span>
           </a>
+          <a class="btn btn-sm btn-secondary" href="attendance.php?edit_member_id=<?php echo $m['id']; ?>#edit-attendance-panel" style="display:inline-flex;align-items:center;gap:4px;margin-right:4px;">
+            <?php echo icon('check', '', 12); ?> <span>Attendance</span>
+          </a>
           <a class="btn btn-sm btn-secondary" href="account_manager.php?search=<?php echo urlencode($m['id_number']); ?>" style="display:inline-flex;align-items:center;gap:4px;margin-right:4px;">
             <?php echo icon('edit', '', 12); ?> <span>Edit</span>
           </a>
@@ -419,10 +438,13 @@ include __DIR__ . '/../includes/header.php';
     <input type="hidden" name="member_id" value="<?php echo $selected_member['id']; ?>">
     <div class="grid-2" style="gap: 14px;">
       <div class="field"><label>Due Title</label><input name="title" required value="<?php echo htmlspecialchars($editing_member_due['title'] ?? ''); ?>"></div>
-      <div class="field"><label>Description</label><input name="description" value="<?php echo htmlspecialchars($editing_member_due['description'] ?? ''); ?>"></div>
-      <div class="field"><label>Amount (₱)</label><input type="number" step="0.01" name="amount" required value="<?php echo htmlspecialchars($editing_member_due['amount'] ?? ''); ?>"></div>
+      <div class="field"><label>Due Period (e.g. FY 2026 - 2027)</label><input name="due_period" placeholder="e.g. FY 2026 - 2027" value="<?php echo htmlspecialchars($editing_member_due['due_period'] ?? ''); ?>"></div>
+      <div class="field"><label>Base Due Amount (₱)</label><input type="number" step="0.01" name="amount" required value="<?php echo htmlspecialchars($editing_member_due['amount'] ?? ''); ?>"></div>
+      <div class="field"><label>Discount Amount (₱)</label><input type="number" step="0.01" name="discount_amount" value="<?php echo htmlspecialchars($editing_member_due['discount_amount'] ?? '0.00'); ?>"></div>
+      <div class="field"><label>Other Obligations (₱)</label><input type="number" step="0.01" name="other_obligations" value="<?php echo htmlspecialchars($editing_member_due['other_obligations'] ?? '0.00'); ?>"></div>
       <div class="field"><label>Due Date</label><input type="date" name="due_date" value="<?php echo htmlspecialchars($editing_member_due['due_date'] ?? ''); ?>"></div>
       <div class="field"><label>Term</label><input name="term" value="<?php echo htmlspecialchars($editing_member_due['term'] ?? ''); ?>"></div>
+      <div class="field"><label>Description</label><input name="description" value="<?php echo htmlspecialchars($editing_member_due['description'] ?? ''); ?>"></div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
       <button class="btn btn-sm" type="submit" style="display:inline-flex;align-items:center;gap:4px;">

@@ -1,5 +1,5 @@
 /**
- * UAP Mindoro Website — SVG Icon Library
+ * UAP Quezon Website — SVG Icon Library
  * All icons use clean stroke-based vector paths.
  * Default: 24x24, strokeWidth=1.75, currentColor
  */

@@ -50,7 +50,7 @@ export default function Sponsors() {
           </h1>
           <div className="section-divider reveal" style={{ margin: '20px auto 24px' }} />
           <p className="body-lg muted reveal" style={{ maxWidth: 680, margin: '0 auto' }}>
-            Empowering architectural innovation in Mindoro through strong collaborations
+            Empowering architectural innovation in Quezon through strong collaborations
             with industry-leading material manufacturers, suppliers, and allied professional organizations.
           </p>
 
@@ -152,7 +152,7 @@ export default function Sponsors() {
                       <h3 className="sponsor-card-title">{sponsor.name}</h3>
                       <p className="sponsor-card-desc">
                         {sponsor.description ||
-                          'Official industry partner collaborating with UAP Mindoro Chapter to promote excellence and quality construction.'}
+                          'Official industry partner collaborating with UAP Quezon Chapter to promote excellence and quality construction.'}
                       </p>
 
                       {isPlatinum && productCount > 0 && (
@@ -229,7 +229,7 @@ export default function Sponsors() {
               </div>
               <h4 className="benefit-title">Architect Access</h4>
               <p className="benefit-desc">
-                Direct engagement with licensed architects, design principals, and project leaders across Oriental and Occidental Mindoro.
+                Direct engagement with licensed architects, design principals, and project leaders across Oriental and Occidental Quezon.
               </p>
             </div>
 
@@ -256,7 +256,7 @@ export default function Sponsors() {
 
           {/* Become a Partner CTA */}
           <div className="partner-cta-box reveal-pop text-center" style={{ marginTop: '50px' }}>
-            <h3 className="heading-1">Ready to Collaborate with Mindoro Architects?</h3>
+            <h3 className="heading-1">Ready to Collaborate with Quezon Architects?</h3>
             <p className="muted" style={{ maxWidth: 540, margin: '12px auto 24px' }}>
               Connect with our Chapter Secretariat to receive our corporate sponsorship packages and event calendars.
             </p>

@@ -1,5 +1,5 @@
 <?php
-$page_title = $page_title ?? 'UAP Mindoro Chapter Portal';
+$page_title = $page_title ?? 'UAP Quezon Chapter Portal';
 require_once __DIR__ . '/icons.php';
 ?>
 <!DOCTYPE html>
@@ -30,40 +30,49 @@ require_once __DIR__ . '/icons.php';
         return in_array($current_script, $pages, true) ? ' active' : '';
     };
 
-    $pending_approvals_count = 0;
-    $pending_payments_count = 0;
-    $pending_directory_count = 0;
-    $pending_inquiries_count = 0;
-    $pending_approvals = [];
-    $pending_payments = [];
-    $pending_directory_apps = [];
-    $pending_inquiries = [];
-
-    if ($_SESSION['role'] === 'admin') {
-        try {
-            $pending_approvals = $pdo->query("SELECT id, name, id_number, created_at FROM users WHERE role = 'member' AND status = 'pending' ORDER BY created_at DESC LIMIT 5")->fetchAll();
-            $pending_approvals_count = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'member' AND status = 'pending'")->fetchColumn();
-
-            $pending_payments = $pdo->query("SELECT p.id, p.submitted_at, u.name, u.id_number, d.title FROM payments p JOIN member_dues md ON p.member_due_id = md.id JOIN users u ON md.user_id = u.id JOIN dues d ON md.due_id = d.id WHERE p.status = 'pending' ORDER BY p.submitted_at DESC LIMIT 5")->fetchAll();
-            $pending_payments_count = (int)$pdo->query("SELECT COUNT(*) FROM payments p JOIN member_dues md ON p.member_due_id = md.id JOIN users u ON md.user_id = u.id WHERE p.status = 'pending'")->fetchColumn();
-
-            $pending_directory_apps = $pdo->query("SELECT da.id, u.name, u.id_number, da.created_at FROM directory_applications da JOIN users u ON da.user_id = u.id WHERE da.status = 'pending_fee' ORDER BY da.created_at DESC LIMIT 5")->fetchAll();
-            $pending_directory_count = (int)$pdo->query("SELECT COUNT(*) FROM directory_applications da JOIN users u ON da.user_id = u.id WHERE da.status = 'pending_fee'")->fetchColumn();
-
-            $pending_inquiries = $pdo->query("SELECT id, name, email, subject, created_at FROM contact_inquiries WHERE status = 'unread' ORDER BY created_at DESC LIMIT 5")->fetchAll();
-            $pending_inquiries_count = (int)$pdo->query("SELECT COUNT(*) FROM contact_inquiries WHERE status = 'unread'")->fetchColumn();
-        } catch (Throwable $e) {}
-    }
-    $total_notifications = $pending_approvals_count + $pending_payments_count + $pending_directory_count + $pending_inquiries_count;
-
-    $logo_path = function_exists('get_site_logo') ? get_site_logo($pdo) : 'public/logo.jpg';
-    $logo_src = BASE_URL . '/' . htmlspecialchars(ltrim($logo_path ?: 'public/logo.jpg', '/'));
     $user_name = $_SESSION['name'] ?? 'User';
     $user_role = $_SESSION['role'] ?? 'member';
     $user_initials = strtoupper(substr($user_name, 0, 1) . substr(strrchr($user_name, ' ') ?: $user_name, 1, 1));
     if (strlen($user_initials) < 2) {
         $user_initials = strtoupper(substr($user_name, 0, 2));
     }
+
+    $pending_approvals_count = 0;
+    $pending_payments_count = 0;
+    $pending_directory_count = 0;
+    $pending_inquiries_count = 0;
+    $unresolved_crash_count = 0;
+    $soft_deleted_count = 0;
+
+    $pending_approvals = [];
+    $pending_payments = [];
+    $pending_directory_apps = [];
+    $pending_inquiries = [];
+
+    if (in_array($user_role, ['admin', 'super_admin'], true)) {
+        try {
+            $pending_approvals = $pdo->query("SELECT id, name, id_number, created_at FROM users WHERE role = 'member' AND status = 'pending' AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 5")->fetchAll();
+            $pending_approvals_count = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'member' AND status = 'pending' AND deleted_at IS NULL")->fetchColumn();
+
+            $pending_payments = $pdo->query("SELECT p.id, p.submitted_at, u.name, u.id_number, d.title FROM payments p JOIN member_dues md ON p.member_due_id = md.id JOIN users u ON md.user_id = u.id JOIN dues d ON md.due_id = d.id WHERE p.status = 'pending' AND p.deleted_at IS NULL ORDER BY p.submitted_at DESC LIMIT 5")->fetchAll();
+            $pending_payments_count = (int)$pdo->query("SELECT COUNT(*) FROM payments p JOIN member_dues md ON p.member_due_id = md.id JOIN users u ON md.user_id = u.id WHERE p.status = 'pending' AND p.deleted_at IS NULL")->fetchColumn();
+
+            $pending_directory_apps = $pdo->query("SELECT da.id, u.name, u.id_number, da.created_at FROM directory_applications da JOIN users u ON da.user_id = u.id WHERE da.status = 'pending_fee' AND da.deleted_at IS NULL ORDER BY da.created_at DESC LIMIT 5")->fetchAll();
+            $pending_directory_count = (int)$pdo->query("SELECT COUNT(*) FROM directory_applications da JOIN users u ON da.user_id = u.id WHERE da.status = 'pending_fee' AND da.deleted_at IS NULL")->fetchColumn();
+
+            $pending_inquiries = $pdo->query("SELECT id, name, email, subject, created_at FROM contact_inquiries WHERE status = 'unread' AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 5")->fetchAll();
+            $pending_inquiries_count = (int)$pdo->query("SELECT COUNT(*) FROM contact_inquiries WHERE status = 'unread' AND deleted_at IS NULL")->fetchColumn();
+
+            if ($user_role === 'super_admin') {
+                $unresolved_crash_count = (int)$pdo->query("SELECT COUNT(*) FROM system_crash_logs WHERE is_resolved = 0")->fetchColumn();
+                $soft_deleted_count = (int)$pdo->query("SELECT COUNT(*) FROM soft_deleted_files WHERE is_restored = 0")->fetchColumn();
+            }
+        } catch (Throwable $e) {}
+    }
+    $total_notifications = $pending_approvals_count + $pending_payments_count + $pending_directory_count + $pending_inquiries_count;
+
+    $logo_path = function_exists('get_site_logo') ? get_site_logo($pdo) : 'public/logo.jpg';
+    $logo_src = BASE_URL . '/' . htmlspecialchars(ltrim($logo_path ?: 'public/logo.jpg', '/'));
 
     // Fetch user profile photo
     $user_id_current = (int)($_SESSION['user_id'] ?? 0);
@@ -74,7 +83,6 @@ require_once __DIR__ . '/icons.php';
             $uStmt->execute([$user_id_current]);
             $user_photo_path = $uStmt->fetchColumn();
 
-            // Fallback for members: if users.profile_photo is empty, check website_members.photo_path
             if (!$user_photo_path) {
                 $wmStmt = $pdo->prepare("SELECT photo_path FROM website_members WHERE user_id = ?");
                 $wmStmt->execute([$user_id_current]);
@@ -89,16 +97,50 @@ require_once __DIR__ . '/icons.php';
   <nav id="sidebarNav">
     <div class="nav-brand">
       <div class="nav-brand-img-wrap">
-        <img src="<?php echo $logo_src; ?>" alt="UAP Logo" onerror="if(this.src.indexOf('public/logo.jpg')===-1)this.src='<?php echo BASE_URL; ?>/public/logo.jpg';">
+        <img src="<?php echo $logo_src; ?>" alt="UAP Quezon Logo" onerror="if(this.src.indexOf('public/logo.jpg')===-1)this.src='<?php echo BASE_URL; ?>/public/logo.jpg';">
       </div>
       <div class="nav-brand-text">
-        <span class="nav-brand-title">UAP Mindoro</span>
-        <span class="nav-brand-sub"><?php echo $user_role === 'admin' ? 'Admin Portal' : 'Member Portal'; ?></span>
+        <span class="nav-brand-title">UAP Quezon</span>
+        <span class="nav-brand-sub"><?php echo $user_role === 'super_admin' ? 'Super Admin Engine' : ($user_role === 'admin' ? 'Admin Portal' : 'Member Portal'); ?></span>
       </div>
     </div>
 
     <div class="nav-links" id="sidebarLinks">
-      <?php if ($user_role === 'admin'): ?>
+      <?php if (in_array($user_role, ['admin', 'super_admin'], true)): ?>
+        <?php if ($user_role === 'super_admin'): ?>
+          <div class="nav-category" style="color: #fbbf24; display: flex; align-items: center; gap: 6px;">
+            <?php echo icon('shield', '', 12); ?> Super Admin Engine
+          </div>
+          <div class="nav-section">
+            <a class="nav-item<?php echo $nav_active('system_health.php'); ?>" href="<?php echo BASE_URL; ?>/admin/system_health.php">
+              <span class="nav-icon"><?php echo icon('activity'); ?></span>
+              <span>System Health</span>
+            </a>
+            <a class="nav-item<?php echo $nav_active('crash_logs.php'); ?>" href="<?php echo BASE_URL; ?>/admin/crash_logs.php">
+              <span class="nav-icon" style="<?php echo $unresolved_crash_count > 0 ? 'color: #ef4444;' : ''; ?>"><?php echo icon('terminal'); ?></span>
+              <span>Crash Logs</span>
+              <?php if ($unresolved_crash_count > 0): ?>
+                <span class="nav-badge" style="background: #ef4444; color: #fff; font-weight: 800;"><?php echo $unresolved_crash_count; ?></span>
+              <?php endif; ?>
+            </a>
+            <a class="nav-item<?php echo $nav_active('soft_deleted_files.php'); ?>" href="<?php echo BASE_URL; ?>/admin/soft_deleted_files.php">
+              <span class="nav-icon"><?php echo icon('archive'); ?></span>
+              <span>Trash &amp; Soft Deletes</span>
+              <?php if ($soft_deleted_count > 0): ?>
+                <span class="nav-badge" style="background: rgba(245,158,11,0.25); color: #fbbf24;"><?php echo $soft_deleted_count; ?></span>
+              <?php endif; ?>
+            </a>
+            <a class="nav-item<?php echo $nav_active('audit_logs.php'); ?>" href="<?php echo BASE_URL; ?>/admin/audit_logs.php">
+              <span class="nav-icon"><?php echo icon('shield_check'); ?></span>
+              <span>Audit Trail</span>
+            </a>
+            <a class="nav-item<?php echo $nav_active('database_backup.php'); ?>" href="<?php echo BASE_URL; ?>/admin/database_backup.php">
+              <span class="nav-icon"><?php echo icon('database'); ?></span>
+              <span>DB Backup &amp; Tools</span>
+            </a>
+          </div>
+        <?php endif; ?>
+
         <div class="nav-category">Overview</div>
         <div class="nav-section">
           <a class="nav-item<?php echo $nav_active('dashboard.php'); ?>" href="<?php echo BASE_URL; ?>/admin/dashboard.php">
@@ -143,6 +185,10 @@ require_once __DIR__ . '/icons.php';
             <span class="nav-icon"><?php echo icon('good_members'); ?></span>
             <span>Good Standing</span>
           </a>
+          <a class="nav-item<?php echo $nav_active('attendance.php'); ?>" href="<?php echo BASE_URL; ?>/admin/attendance.php">
+            <span class="nav-icon"><?php echo icon('check'); ?></span>
+            <span>Attendance Manager</span>
+          </a>
           <a class="nav-item<?php echo $nav_active('website_directory.php'); ?>" href="<?php echo BASE_URL; ?>/admin/website_directory.php">
             <span class="nav-icon"><?php echo icon('website_directory'); ?></span>
             <span>Website Directory</span>
@@ -167,20 +213,28 @@ require_once __DIR__ . '/icons.php';
           </a>
           <a class="nav-item<?php echo $nav_active('account_manager.php'); ?>" href="<?php echo BASE_URL; ?>/admin/account_manager.php">
             <span class="nav-icon"><?php echo icon('account_manager'); ?></span>
-            <span>Edit Accounts</span>
+            <span>Account Manager</span>
           </a>
           <a class="nav-item<?php echo $nav_active(['settings.php', 'change_password.php']); ?>" href="<?php echo BASE_URL; ?>/admin/settings.php">
             <span class="nav-icon"><?php echo icon('settings'); ?></span>
-            <span>Settings &amp; Website</span>
+            <span>Settings &amp; Chapter</span>
           </a>
         </div>
 
       <?php else: ?>
         <div class="nav-category">Member Portal</div>
         <div class="nav-section">
-          <a class="nav-item<?php echo $nav_active(['dashboard.php', 'pay.php']); ?>" href="<?php echo BASE_URL; ?>/member/dashboard.php">
+          <a class="nav-item<?php echo $nav_active('dashboard.php'); ?>" href="<?php echo BASE_URL; ?>/member/dashboard.php">
+            <span class="nav-icon"><?php echo icon('dashboard'); ?></span>
+            <span>Dashboard</span>
+          </a>
+          <a class="nav-item<?php echo $nav_active('chapter_status.php'); ?>" href="<?php echo BASE_URL; ?>/member/chapter_status.php">
+            <span class="nav-icon"><?php echo icon('shield_check'); ?></span>
+            <span>My Chapter Status</span>
+          </a>
+          <a class="nav-item<?php echo $nav_active(['dues.php', 'pay.php']); ?>" href="<?php echo BASE_URL; ?>/member/dues.php">
             <span class="nav-icon"><?php echo icon('payments'); ?></span>
-            <span>My Dues &amp; Pay</span>
+            <span>My Dues &amp; Obligations</span>
           </a>
           <a class="nav-item<?php echo $nav_active('website_directory.php'); ?>" href="<?php echo BASE_URL; ?>/member/website_directory.php">
             <span class="nav-icon"><?php echo icon('website_directory'); ?></span>
@@ -189,6 +243,10 @@ require_once __DIR__ . '/icons.php';
           <a class="nav-item<?php echo $nav_active('history.php'); ?>" href="<?php echo BASE_URL; ?>/member/history.php">
             <span class="nav-icon"><?php echo icon('dues'); ?></span>
             <span>Payment History</span>
+          </a>
+          <a class="nav-item<?php echo $nav_active('profile.php'); ?>" href="<?php echo BASE_URL; ?>/member/profile.php">
+            <span class="nav-icon"><?php echo icon('user'); ?></span>
+            <span>My Profile</span>
           </a>
         </div>
       <?php endif; ?>
@@ -208,7 +266,13 @@ require_once __DIR__ . '/icons.php';
     </div>
 
     <div class="topbar-actions">
-      <?php if ($user_role === 'admin'): ?>
+      <?php if ($user_role === 'super_admin'): ?>
+        <a href="<?php echo BASE_URL; ?>/admin/system_health.php" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, rgba(229,138,19,0.2) 0%, rgba(21,128,61,0.2) 100%); border: 1px solid rgba(229,138,19,0.4); padding: 5px 12px; border-radius: 9999px; text-decoration: none; font-size: 11px; font-weight: 800; color: #fbbf24; letter-spacing: 0.06em;">
+          <?php echo icon('shield', '', 12); ?> SUPER ADMIN
+        </a>
+      <?php endif; ?>
+
+      <?php if (in_array($user_role, ['admin', 'super_admin'], true)): ?>
         <!-- Notification Bell -->
         <div class="notification-bell" id="notificationBell" tabindex="0">
           <?php echo icon('bell', '', 18); ?>
@@ -279,13 +343,24 @@ require_once __DIR__ . '/icons.php';
         <?php echo icon('arrow_right', '', 12); ?>
 
         <div class="user-menu">
-          <a href="<?php echo BASE_URL . ($user_role === 'admin' ? '/admin/profile.php' : '/member/profile.php'); ?>">
+          <a href="<?php echo BASE_URL . (in_array($user_role, ['admin', 'super_admin']) ? '/admin/profile.php' : '/member/profile.php'); ?>">
             <?php echo icon('user', '', 16); ?>
             <span>My Profile</span>
           </a>
           <div class="user-menu-divider"></div>
 
-          <?php if ($user_role === 'admin'): ?>
+          <?php if (in_array($user_role, ['admin', 'super_admin'])): ?>
+            <?php if ($user_role === 'super_admin'): ?>
+              <a href="<?php echo BASE_URL; ?>/admin/system_health.php">
+                <?php echo icon('activity', '', 16); ?>
+                <span>System Health</span>
+              </a>
+              <a href="<?php echo BASE_URL; ?>/admin/crash_logs.php">
+                <?php echo icon('terminal', '', 16); ?>
+                <span>Crash Logs</span>
+              </a>
+              <div class="user-menu-divider"></div>
+            <?php endif; ?>
             <a href="<?php echo BASE_URL; ?>/admin/settings.php">
               <?php echo icon('settings', '', 16); ?>
               <span>Portal Settings</span>

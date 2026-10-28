@@ -345,7 +345,7 @@ export default function SponsorDock() {
             </>
           ) : (
             /* Empty state */
-            <Link to="/partners" className="sponsor-rail-empty-link" title="Partner with UAP Mindoro Chapter">
+            <Link to="/partners" className="sponsor-rail-empty-link" title="Partner with UAP Quezon Chapter">
               <div className="sponsor-rail-empty-icon"><IconHandshake size={28} /></div>
               <span className="sponsor-rail-empty-text">Partner with Us</span>
               <span className="sponsor-rail-empty-sub">Showcase your brand on our official chapter portal</span>
@@ -408,7 +408,7 @@ export default function SponsorDock() {
             <div className="sponsor-mobile-empty">
               <Link to="/partners" className="sponsor-mobile-empty-link">
                 <IconHandshake size={16} />
-                <span>Partner with UAP Mindoro &bull; Inquire for Partnership</span>
+                <span>Partner with UAP Quezon &bull; Inquire for Partnership</span>
               </Link>
             </div>
           )}

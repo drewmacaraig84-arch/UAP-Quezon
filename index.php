@@ -6,7 +6,7 @@
 require_once __DIR__ . '/includes/config.php';
 
 if (isset($_SESSION['user_id']) && !isset($_GET['home'])) {
-    if ($_SESSION['role'] === 'admin') {
+    if (in_array($_SESSION['role'] ?? '', ['admin', 'super_admin'], true)) {
         header('Location: ' . BASE_URL . '/admin/dashboard.php');
         exit;
     } else {

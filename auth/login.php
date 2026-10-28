@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id_number = trim($_POST['id_number'] ?? '');
         $password = $_POST['password'] ?? '';
 
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE id_number = ?");
-        $stmt->execute([$id_number]);
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE id_number = ? OR (prc_number = ? AND prc_number IS NOT NULL AND prc_number != '') LIMIT 1");
+        $stmt->execute([$id_number, $id_number]);
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
@@ -38,7 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['name'] = $user['name'];
                 $_SESSION['role'] = $user['role'];
-                header('Location: ' . BASE_URL . ($user['role'] === 'admin' ? '/admin/dashboard.php' : '/member/dashboard.php'));
+                if (function_exists('audit_log')) {
+                    audit_log('LOGIN_SUCCESS', 'AUTH', "Logged in as {$user['role']}", $user['id']);
+                }
+                header('Location: ' . BASE_URL . (in_array($user['role'], ['admin', 'super_admin']) ? '/admin/dashboard.php' : '/member/dashboard.php'));
                 exit;
             }
         } else {
@@ -49,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$page_title = 'Portal Login • UAP Mindoro Chapter';
+$page_title = 'Portal Login • UAP Quezon Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -66,11 +69,11 @@ include __DIR__ . '/../includes/header.php';
     <div class="auth-hero-panel">
       <div>
         <div class="auth-logo-badge">
-          <img src="<?php echo BASE_URL; ?>/public/logo.jpg" alt="UAP Mindoro Chapter Logo" onerror="if(this.src.indexOf('uploads/logo.jpg')===-1)this.src='<?php echo BASE_URL; ?>/uploads/logo.jpg';">
+          <img src="<?php echo BASE_URL; ?>/public/logo.jpg" alt="UAP Quezon Chapter Logo" onerror="if(this.src.indexOf('uploads/logo.jpg')===-1)this.src='<?php echo BASE_URL; ?>/uploads/logo.jpg';">
         </div>
         <p class="eyebrow" style="color: #fbbf24; margin-bottom: 6px;">OFFICIAL CHAPTER PORTAL</p>
         <h2 class="auth-hero-title">United Architects of the Philippines</h2>
-        <p class="auth-hero-sub">Mindoro Chapter &bull; Centralized financial administration, dues tracking, and member compliance system.</p>
+        <p class="auth-hero-sub">Quezon Chapter &bull; Centralized financial administration, dues tracking, and member compliance system.</p>
 
         <div class="auth-feature-list">
           <div class="auth-feature-item">
@@ -95,7 +98,7 @@ include __DIR__ . '/../includes/header.php';
       </div>
 
       <div style="margin-top: 36px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: #64748b;">
-        &copy; <?php echo date('Y'); ?> UAP Mindoro Chapter &bull; Portal &amp; Management
+        &copy; <?php echo date('Y'); ?> UAP Quezon Chapter &bull; Portal &amp; Management
       </div>
     </div>
 
@@ -130,10 +133,10 @@ include __DIR__ . '/../includes/header.php';
         <?php echo csrf_field(); ?>
         
         <div class="field">
-          <label>PRC ID Number / Username</label>
+          <label>PRC License # / Username</label>
           <div class="input-icon-wrap">
             <span class="input-leading-icon"><?php echo icon('user', '', 18); ?></span>
-            <input type="text" name="id_number" required autofocus placeholder="e.g. ADMIN or PRC ID" value="<?php echo htmlspecialchars($_POST['id_number'] ?? ''); ?>">
+            <input type="text" name="id_number" required autofocus placeholder="Enter PRC License # or Username" value="<?php echo htmlspecialchars($_POST['id_number'] ?? ''); ?>">
           </div>
         </div>
 

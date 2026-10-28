@@ -88,14 +88,14 @@ $recentTransactions = $pdo->query("
     LIMIT 5
 ")->fetchAll();
 
-$page_title = 'Executive Dashboard • UAP Mindoro Chapter';
+$page_title = 'Executive Dashboard • UAP Quezon Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 
 <!-- EXECUTIVE HERO SECTION -->
 <div class="page-hero">
   <div>
-    <p class="eyebrow">UAP Mindoro Chapter &bull; Admin Management Portal</p>
+    <p class="eyebrow">UAP Quezon Chapter &bull; Admin Management Portal</p>
     <h1>Executive Dashboard</h1>
     <p class="page-subtitle">Live overview of chapter collections, member compliance, pending verification queues, and active dues.</p>
   </div>
@@ -103,6 +103,40 @@ include __DIR__ . '/../includes/header.php';
     <?php echo icon('zap', '', 14); ?> <span>Command Center</span>
   </div>
 </div>
+
+<?php if (($_SESSION['role'] ?? '') === 'super_admin'): ?>
+  <!-- SUPER ADMIN QUICK HUD -->
+  <div style="background: linear-gradient(135deg, rgba(229,138,19,0.12) 0%, rgba(21,128,61,0.12) 100%); border: 1px solid rgba(229,138,19,0.35); border-radius: 14px; padding: 18px 22px; margin-bottom: 24px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(229,138,19,0.2); color: #fbbf24; display: flex; align-items: center; justify-content: center;">
+        <?php echo icon('shield', '', 22); ?>
+      </div>
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <strong style="color: #ffffff; font-size: 15px;">Super Admin Telemetry Hub</strong>
+          <span style="font-size: 11px; background: #15803d; color: #ffffff; font-weight: 800; padding: 2px 8px; border-radius: 999px;">ACTIVE</span>
+        </div>
+        <p style="margin: 2px 0 0; font-size: 13px; color: var(--text-secondary);">
+          System health watchdog, unhandled crash log capture, and soft-delete file recovery are active.
+        </p>
+      </div>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <a href="<?php echo BASE_URL; ?>/admin/system_health.php" class="btn btn-sm btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+        <?php echo icon('activity', '', 13); ?> System Health
+      </a>
+      <a href="<?php echo BASE_URL; ?>/admin/crash_logs.php" class="btn btn-sm btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; border-color: rgba(239,68,68,0.3); color: #f87171;">
+        <?php echo icon('terminal', '', 13); ?> Crash Logs (<?php echo $unresolved_crash_count; ?>)
+      </a>
+      <a href="<?php echo BASE_URL; ?>/admin/soft_deleted_files.php" class="btn btn-sm btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+        <?php echo icon('archive', '', 13); ?> Trash Bin (<?php echo $soft_deleted_count; ?>)
+      </a>
+      <a href="<?php echo BASE_URL; ?>/admin/database_backup.php" class="btn btn-sm btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+        <?php echo icon('database', '', 13); ?> DB Backup
+      </a>
+    </div>
+  </div>
+<?php endif; ?>
 
 <!-- TOP KPI METRIC CARDS -->
 <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">

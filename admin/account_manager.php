@@ -10,7 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = (int)($_POST['user_id'] ?? 0);
     $action = $_POST['action'] ?? '';
 
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? AND role = 'member'");
+    $isSuper = is_super_admin();
+    $sqlTarget = $isSuper ? "SELECT * FROM users WHERE id = ? AND deleted_at IS NULL" : "SELECT * FROM users WHERE id = ? AND role = 'member' AND deleted_at IS NULL";
+    $stmt = $pdo->prepare($sqlTarget);
     $stmt->execute([$user_id]);
     $target = $stmt->fetch();
 
@@ -19,6 +21,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'update_info') {
         $name = trim($_POST['name'] ?? '');
         $id_number = trim($_POST['id_number'] ?? '');
+        $prc_number = trim($_POST['prc_number'] ?? '') ?: $id_number;
+        $email = trim($_POST['email'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
+        $gender = trim($_POST['gender'] ?? '');
+        $birth_date = !empty($_POST['birth_date']) ? $_POST['birth_date'] : null;
+        $civil_status = trim($_POST['civil_status'] ?? '');
+        $address = trim($_POST['address'] ?? '');
         $status = $_POST['status'] ?? 'pending';
         $goodStandingOverride = $_POST['good_standing_override'] ?? 'auto';
         if (!in_array($goodStandingOverride, ['auto', 'revoked', 'granted'], true)) {
@@ -41,7 +50,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($removePhoto && !empty($photoPath)) {
                     $fileOnDisk = __DIR__ . '/../' . ltrim($photoPath, '/');
                     if (file_exists($fileOnDisk) && !is_dir($fileOnDisk)) {
-                        @unlink($fileOnDisk);
+                        if (function_exists('soft_delete_file')) {
+                            soft_delete_file($photoPath, 'users', $user_id, 'Photo removed by admin');
+                        } else {
+                            @unlink($fileOnDisk);
+                        }
                     }
                     $photoPath = null;
                     $pdo->prepare("UPDATE website_members SET photo_path = NULL WHERE user_id = ?")->execute([$user_id]);
@@ -75,9 +88,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if (empty($error)) {
-                    ensure_user_profile_photo_column($pdo);
-                    $stmt = $pdo->prepare("UPDATE users SET name = ?, id_number = ?, status = ?, profile_photo = ?, good_standing_override = ?, good_standing_reason = ?, good_standing_updated_at = NOW() WHERE id = ?");
-                    $stmt->execute([$name, $id_number, $status, $photoPath, $goodStandingOverride, $goodStandingReason !== '' ? $goodStandingReason : null, $user_id]);
+                    // Compute Age dynamically
+                    $computedAge = null;
+                    if (!empty($birth_date)) {
+                        try {
+                            $dob = new DateTime($birth_date);
+                            $today = new DateTime();
+                            $computedAge = $dob->diff($today)->y;
+                        } catch (Exception $e) {
+                            $computedAge = null;
+                        }
+                    }
+
+                    $stmt = $pdo->prepare("
+                        UPDATE users 
+                        SET name = ?, id_number = ?, prc_number = ?, email = ?, phone = ?, gender = ?, birth_date = ?, age = ?, civil_status = ?, address = ?,
+                            status = ?, profile_photo = ?, good_standing_override = ?, good_standing_reason = ?, good_standing_updated_at = NOW() 
+                        WHERE id = ?
+                    ");
+                    $stmt->execute([
+                        $name,
+                        $id_number,
+                        $prc_number,
+                        $email ?: null,
+                        $phone ?: null,
+                        $gender ?: null,
+                        $birth_date ?: null,
+                        $computedAge,
+                        $civil_status ?: null,
+                        $address ?: null,
+                        $status,
+                        $photoPath,
+                        $goodStandingOverride,
+                        $goodStandingReason !== '' ? $goodStandingReason : null,
+                        $user_id
+                    ]);
 
                     // Sync name and company/link with website_members
                     $companyName = trim($_POST['company_name'] ?? '');
@@ -90,11 +135,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $wmCheck = $pdo->prepare("SELECT id FROM website_members WHERE user_id = ?");
                     $wmCheck->execute([$user_id]);
                     if ($wmCheck->fetch()) {
-                        $pdo->prepare("UPDATE website_members SET name = ?, company_name = ?, link_url = ?, link_type = ? WHERE user_id = ?")
-                            ->execute([$name, $companyName !== '' ? $companyName : null, $linkUrl !== '' ? $linkUrl : null, $linkType, $user_id]);
+                        $pdo->prepare("UPDATE website_members SET name = ?, prc_number = ?, company_name = ?, link_url = ?, link_type = ? WHERE user_id = ?")
+                            ->execute([$name, $prc_number, $companyName !== '' ? $companyName : null, $linkUrl !== '' ? $linkUrl : null, $linkType, $user_id]);
                     }
 
-                    $success = 'Account details, profile photo, and directory settings updated successfully.';
+                    if ($isSuper && isset($_POST['role'])) {
+                        $newRole = $_POST['role'];
+                        if (in_array($newRole, ['member', 'admin', 'super_admin'], true)) {
+                            $pdo->prepare("UPDATE users SET role = ? WHERE id = ?")->execute([$newRole, $user_id]);
+                        }
+                    }
+                    $success = 'Account details, demographics, profile photo, and directory settings updated successfully.';
                 }
             }
         }
@@ -108,6 +159,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$hash, $user_id]);
             $success = 'Password reset successfully for ' . htmlspecialchars($target['name']) . '.';
         }
+    } elseif ($action === 'delete_account') {
+        if ($user_id === (int)$_SESSION['user_id']) {
+            $error = 'You cannot delete your own account.';
+        } else {
+            if (!empty($target['profile_photo']) && function_exists('soft_delete_file')) {
+                soft_delete_file($target['profile_photo'], 'users', $user_id, 'Account deleted');
+            }
+            if (function_exists('soft_delete_record')) {
+                soft_delete_record('users', $user_id, 'Account deleted via manager');
+            } else {
+                $pdo->prepare("UPDATE users SET deleted_at = NOW() WHERE id = ?")->execute([$user_id]);
+            }
+            $success = 'Account for ' . htmlspecialchars($target['name']) . ' safely moved to Trash Bin.';
+        }
     }
 }
 
@@ -117,10 +182,10 @@ if ($search) {
     $stmt = $pdo->prepare("SELECT u.*, wm.photo_path as wm_photo_path, wm.role_title, wm.specialty, wm.company_name, wm.link_url, wm.link_type 
                           FROM users u 
                           LEFT JOIN website_members wm ON wm.user_id = u.id 
-                          WHERE u.role = 'member' AND (u.name LIKE ? OR u.id_number LIKE ? OR wm.company_name LIKE ?) 
+                          WHERE u.role = 'member' AND (u.name LIKE ? OR u.id_number LIKE ? OR u.prc_number LIKE ? OR u.email LIKE ? OR wm.company_name LIKE ?) 
                           ORDER BY u.name ASC");
     $like = "%$search%";
-    $stmt->execute([$like, $like, $like]);
+    $stmt->execute([$like, $like, $like, $like, $like]);
 } else {
     $stmt = $pdo->query("SELECT u.*, wm.photo_path as wm_photo_path, wm.role_title, wm.specialty, wm.company_name, wm.link_url, wm.link_type 
                         FROM users u 
@@ -130,7 +195,7 @@ if ($search) {
 }
 $members = $stmt->fetchAll();
 
-$page_title = 'Edit Member Accounts • UAP Mindoro Chapter';
+$page_title = 'Edit Member Accounts • UAP Quezon Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -138,7 +203,7 @@ include __DIR__ . '/../includes/header.php';
   <div>
     <p class="eyebrow">USER ADMINISTRATION</p>
     <h1>Member Account Manager</h1>
-    <p class="page-subtitle">Edit member credentials, update profile pictures, change registration status, or reset passwords.</p>
+    <p class="page-subtitle">Edit member credentials, demographics, profile pictures, good standing status, or reset passwords.</p>
   </div>
   <div class="hero-badge">
     <?php echo icon('account_manager', '', 14); ?> <span><?php echo count($members); ?> Accounts</span>
@@ -147,19 +212,10 @@ include __DIR__ . '/../includes/header.php';
 
 <div class="card" style="margin-bottom: 24px;">
   <form method="get" style="display:flex; gap:10px; flex-wrap: wrap;">
-    <div style="flex:1; min-width: 260px; position: relative;">
-      <input name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search by member name or PRC ID No..." style="padding-left: 36px;">
-      <div style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);">
-        <?php echo icon('search', '', 16); ?>
-      </div>
-    </div>
-    <button class="btn btn-sm" type="submit" style="display: inline-flex; align-items: center; gap: 6px;">
-      <?php echo icon('search', '', 14); ?> <span>Search</span>
-    </button>
+    <input type="text" name="search" placeholder="Search by name, PRC #, email, or firm..." value="<?php echo htmlspecialchars($search); ?>" style="flex:1; min-width:240px;">
+    <button class="btn btn-sm btn-primary" type="submit"><?php echo icon('search', '', 14); ?> <span>Search</span></button>
     <?php if ($search): ?>
-      <a href="account_manager.php" class="btn btn-sm btn-secondary" style="display: inline-flex; align-items: center; gap: 4px;">
-        <?php echo icon('x', '', 14); ?> <span>Clear</span>
-      </a>
+      <a class="btn btn-sm btn-secondary" href="account_manager.php"><?php echo icon('x', '', 14); ?> <span>Clear</span></a>
     <?php endif; ?>
   </form>
 
@@ -212,7 +268,7 @@ include __DIR__ . '/../includes/header.php';
           <div>
             <h2 style="font-size: 16px; margin: 0; display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;">
               <span><?php echo htmlspecialchars($m['name']); ?></span>
-              <span class="muted" style="font-size: 13px; font-weight: 500;">(PRC: <?php echo htmlspecialchars($m['id_number']); ?>)</span>
+              <span class="muted" style="font-size: 13px; font-weight: 500;">(PRC: <?php echo htmlspecialchars($m['prc_number'] ?: $m['id_number']); ?>)</span>
             </h2>
             <?php if (!empty($m['specialty'])): ?>
               <div style="font-size: 12px; color: var(--accent-primary); margin-top: 2px;">
@@ -237,20 +293,74 @@ include __DIR__ . '/../includes/header.php';
       </div>
 
       <div class="grid-2" style="gap: 20px;">
-        <!-- Edit info + status + photo + good standing -->
-        <form method="post" enctype="multipart/form-data" style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color);">
+        <!-- Edit info + demographics + status + photo -->
+        <form method="post" enctype="multipart/form-data" style="background: var(--bg-secondary); padding: 18px; border-radius: 12px; border: 1px solid var(--border-color);">
           <?php echo csrf_field(); ?>
           <input type="hidden" name="user_id" value="<?php echo $m['id']; ?>">
           <input type="hidden" name="action" value="update_info">
           
           <div class="field" style="margin-bottom: 10px;">
-            <label>Full Name</label>
+            <label>Full Legal Name <span style="color:#ef4444;">*</span></label>
             <input name="name" value="<?php echo htmlspecialchars($m['name']); ?>" required>
           </div>
-          <div class="field" style="margin-bottom: 10px;">
-            <label>PRC ID No.</label>
-            <input name="id_number" value="<?php echo htmlspecialchars($m['id_number']); ?>" required>
+
+          <div class="grid-2" style="gap: 10px; margin-bottom: 10px;">
+            <div class="field">
+              <label>PRC ID No. / Username <span style="color:#ef4444;">*</span></label>
+              <input name="id_number" value="<?php echo htmlspecialchars($m['id_number']); ?>" required>
+            </div>
+            <div class="field">
+              <label>PRC License #</label>
+              <input name="prc_number" value="<?php echo htmlspecialchars($m['prc_number'] ?: $m['id_number']); ?>" placeholder="e.g. 0089452">
+            </div>
           </div>
+
+          <!-- Demographics Row -->
+          <div class="grid-2" style="gap: 10px; margin-bottom: 10px;">
+            <div class="field">
+              <label>Gender</label>
+              <select name="gender">
+                <option value="">Select Gender</option>
+                <option value="Male" <?php echo ($m['gender'] ?? '') === 'Male' ? 'selected' : ''; ?>>Male</option>
+                <option value="Female" <?php echo ($m['gender'] ?? '') === 'Female' ? 'selected' : ''; ?>>Female</option>
+                <option value="Prefer not to say" <?php echo ($m['gender'] ?? '') === 'Prefer not to say' ? 'selected' : ''; ?>>Prefer not to say</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Civil Status</label>
+              <select name="civil_status">
+                <option value="">Select Civil Status</option>
+                <option value="Single" <?php echo ($m['civil_status'] ?? '') === 'Single' ? 'selected' : ''; ?>>Single</option>
+                <option value="Married" <?php echo ($m['civil_status'] ?? '') === 'Married' ? 'selected' : ''; ?>>Married</option>
+                <option value="Widowed" <?php echo ($m['civil_status'] ?? '') === 'Widowed' ? 'selected' : ''; ?>>Widowed</option>
+                <option value="Separated" <?php echo ($m['civil_status'] ?? '') === 'Separated' ? 'selected' : ''; ?>>Separated</option>
+                <option value="Divorced" <?php echo ($m['civil_status'] ?? '') === 'Divorced' ? 'selected' : ''; ?>>Divorced</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Contact Row -->
+          <div class="grid-2" style="gap: 10px; margin-bottom: 10px;">
+            <div class="field">
+              <label>Birth Date</label>
+              <input type="date" name="birth_date" value="<?php echo htmlspecialchars($m['birth_date'] ?? ''); ?>">
+            </div>
+            <div class="field">
+              <label>Mobile Number</label>
+              <input type="tel" name="phone" value="<?php echo htmlspecialchars($m['phone'] ?? ''); ?>" placeholder="+63 9XX XXX XXXX">
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom: 10px;">
+            <label>Email Address</label>
+            <input type="email" name="email" value="<?php echo htmlspecialchars($m['email'] ?? ''); ?>" placeholder="architect@example.com">
+          </div>
+
+          <div class="field" style="margin-bottom: 10px;">
+            <label>Complete Address</label>
+            <textarea name="address" rows="2" style="width:100%; resize:vertical;"><?php echo htmlspecialchars($m['address'] ?? ''); ?></textarea>
+          </div>
+
           <div class="grid-2" style="gap: 10px; margin-bottom: 10px;">
             <div class="field">
               <label>Account Status</label>
@@ -269,10 +379,12 @@ include __DIR__ . '/../includes/header.php';
               </select>
             </div>
           </div>
+
           <div class="field" style="margin-bottom: 10px;">
             <label>Standing Reason / Admin Note</label>
             <input name="good_standing_reason" value="<?php echo htmlspecialchars($m['good_standing_reason'] ?? ''); ?>" placeholder="Optional reason (e.g. Disciplinary hold, Ethics review)...">
           </div>
+
           <div class="grid-2" style="gap: 10px; margin-bottom: 10px;">
             <div class="field">
               <label>Company / Firm Name</label>
@@ -283,21 +395,9 @@ include __DIR__ . '/../includes/header.php';
               <input name="link_url" value="<?php echo htmlspecialchars($m['link_url'] ?? ''); ?>" placeholder="https://facebook.com/..., https://yourfirm.com">
             </div>
           </div>
-          <div class="field" style="margin-bottom: 10px;">
-            <label>Link Platform / Icon Type</label>
-            <?php $curType = $m['link_type'] ?? 'auto'; ?>
-            <select name="link_type">
-              <option value="auto" <?php echo $curType === 'auto' ? 'selected' : ''; ?>>Auto-Detect Icon from URL</option>
-              <option value="facebook" <?php echo $curType === 'facebook' ? 'selected' : ''; ?>>Facebook</option>
-              <option value="instagram" <?php echo $curType === 'instagram' ? 'selected' : ''; ?>>Instagram</option>
-              <option value="linkedin" <?php echo $curType === 'linkedin' ? 'selected' : ''; ?>>LinkedIn</option>
-              <option value="youtube" <?php echo $curType === 'youtube' ? 'selected' : ''; ?>>YouTube</option>
-              <option value="telegram" <?php echo $curType === 'telegram' ? 'selected' : ''; ?>>Telegram</option>
-              <option value="website" <?php echo $curType === 'website' ? 'selected' : ''; ?>>Official Website / Portfolio</option>
-            </select>
-          </div>
+
           <div class="field" style="margin-bottom: 14px;">
-            <label>Update Profile Picture</label>
+            <label>1x1 Profile Picture / Architect Portrait</label>
             <input type="file" name="member_photo" accept="image/png, image/jpeg, image/webp" style="padding: 6px;">
             <?php if ($photoUrl): ?>
               <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #ef4444; margin-top: 6px; cursor: pointer;">
@@ -306,30 +406,57 @@ include __DIR__ . '/../includes/header.php';
               </label>
             <?php endif; ?>
           </div>
-          <button class="btn btn-sm" type="submit" style="display: inline-flex; align-items: center; gap: 4px;">
-            <?php echo icon('check', '', 12); ?> <span>Save Details</span>
+
+          <button class="btn btn-sm btn-primary" type="submit" style="display: inline-flex; align-items: center; gap: 4px; font-weight: 700;">
+            <?php echo icon('check', '', 12); ?> <span>Save Member Details</span>
           </button>
         </form>
 
-        <!-- Reset password -->
-        <form method="post" style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column;"
-              data-confirm="Reset password for <?php echo htmlspecialchars($m['name']); ?>?"
-              data-confirm-title="Reset Member Password"
-              data-confirm-btn="Reset Password"
-              data-confirm-class="btn-danger">
-          <?php echo csrf_field(); ?>
-          <input type="hidden" name="user_id" value="<?php echo $m['id']; ?>">
-          <input type="hidden" name="action" value="reset_password">
-          
-          <div class="field" style="margin-bottom: 14px; flex-grow: 1;">
-            <label>Set Direct Password</label>
-            <input type="text" name="new_password" placeholder="Enter new password..." required>
-            <p class="muted" style="margin-top:6px; font-size: 11.5px;">Sets the password directly. Provide this to the member so they can log in.</p>
-          </div>
-          <button class="btn btn-sm btn-danger" type="submit" style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; margin-top: auto;">
-            <?php echo icon('key', '', 12); ?> <span>Reset Password</span>
-          </button>
-        </form>
+        <!-- Right Side: Reset Password & Soft Delete -->
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <!-- Reset password -->
+          <form method="post" style="background: var(--bg-secondary); padding: 18px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column;"
+                data-confirm="Reset password for <?php echo htmlspecialchars($m['name']); ?>?"
+                data-confirm-title="Reset Member Password"
+                data-confirm-btn="Reset Password"
+                data-confirm-class="btn-danger">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="user_id" value="<?php echo $m['id']; ?>">
+            <input type="hidden" name="action" value="reset_password">
+            
+            <h3 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+              <?php echo icon('key', '', 14); ?> Reset Credentials
+            </h3>
+            <div class="field" style="margin-bottom: 14px;">
+              <label>Set Temporary Password</label>
+              <input type="password" name="new_password" placeholder="Min. 4 characters" required minlength="4">
+            </div>
+            <button class="btn btn-sm btn-secondary" type="submit" style="display: inline-flex; align-items: center; gap: 4px;">
+              <?php echo icon('key', '', 12); ?> <span>Reset Password</span>
+            </button>
+          </form>
+
+          <!-- Account Delete -->
+          <form method="post" style="background: rgba(239,68,68,0.04); padding: 18px; border-radius: 12px; border: 1px dashed rgba(239,68,68,0.3);"
+                data-confirm="Move account for <?php echo htmlspecialchars($m['name']); ?> to Trash Bin? It can be restored by Super Admin."
+                data-confirm-title="Move Account to Trash"
+                data-confirm-btn="Move to Trash"
+                data-confirm-class="btn-danger">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="user_id" value="<?php echo $m['id']; ?>">
+            <input type="hidden" name="action" value="delete_account">
+            
+            <h3 style="font-size: 14px; font-weight: 700; color: #ef4444; margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
+              <?php echo icon('trash', '', 14); ?> Delete Account
+            </h3>
+            <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px 0;">
+              Moves this member to the Super Admin Trash quarantine.
+            </p>
+            <button class="btn btn-sm btn-danger" type="submit" style="display: inline-flex; align-items: center; gap: 4px;">
+              <?php echo icon('trash', '', 12); ?> <span>Delete Account</span>
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   <?php endforeach; ?>

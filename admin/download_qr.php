@@ -29,7 +29,7 @@ if (!file_exists($fullPath)) {
 }
 
 $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $wm['name'] ?: 'Member');
-$downloadFilename = "UAP-Mindoro-QR-{$safeName}.png";
+$downloadFilename = "UAP-Quezon-QR-{$safeName}.png";
 
 header('Content-Description: File Transfer');
 header('Content-Type: image/png');

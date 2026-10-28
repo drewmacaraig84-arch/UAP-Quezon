@@ -76,7 +76,7 @@ try {
                     $u = $uData->fetch();
                     if ($u) {
                         $pdo->prepare("INSERT INTO website_members (user_id, name, id_number, role_title, specialty, location, photo_path, is_published) 
-                                       VALUES (?, ?, ?, 'Architect', 'General Practice', 'Mindoro', ?, 1)")
+                                       VALUES (?, ?, ?, 'Architect', 'General Practice', 'Quezon', ?, 1)")
                             ->execute([$daUser, $u['name'], $u['id_number'], $u['profile_photo'] ?: null]);
                     }
                 } else {

@@ -17,7 +17,7 @@ export default function Footer() {
           <div className="footer-logo-wrap">
             <img 
               src={logoSrc} 
-              alt="UAP Mindoro" 
+              alt="UAP Quezon" 
               onError={(e) => {
                 if (!e.currentTarget.src.endsWith('/logo.jpg')) {
                   e.currentTarget.src = '/logo.jpg';
@@ -26,9 +26,9 @@ export default function Footer() {
             />
           </div>
           <p className="footer-brand-name">United Architects<br/>of the Philippines</p>
-          <p className="footer-brand-sub">Mindoro Chapter</p>
+          <p className="footer-brand-sub">Quezon Chapter</p>
           <p className="footer-desc">
-            Promoting architectural excellence, professional integrity, and sustainable development across Oriental and Occidental Mindoro since 2016.
+            Promoting architectural excellence, professional integrity, and sustainable development across Oriental and Occidental Quezon since 2016.
           </p>
         </div>
 
@@ -60,7 +60,7 @@ export default function Footer() {
       </div>
 
       <div className="footer-bottom container-wide">
-        <p>&copy; {year} <strong>United Architects of the Philippines</strong> — Mindoro Chapter</p>
+        <p>&copy; {year} <strong>United Architects of the Philippines</strong> — Quezon Chapter</p>
         <p className="footer-credit">
           Designed &amp; Developed by <strong>Aries King Nieto</strong> and{' '}
           <a

@@ -12,6 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("UPDATE users SET status = ? WHERE id = ? AND role = 'member'");
         $stmt->execute([$new_status, $user_id]);
 
+        if (function_exists('audit_log')) {
+            audit_log('MEMBER_REGISTRATION_' . strtoupper($action), 'MEMBERS', "Registration $action for user ID #$user_id", $_SESSION['user_id']);
+        }
+
         if (function_exists('set_flash')) {
             set_flash('success', 'Member registration ' . ($action === 'approve' ? 'approved' : 'rejected') . ' successfully.');
         }
@@ -22,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $pending = $pdo->query("SELECT * FROM users WHERE role = 'member' AND status = 'pending' ORDER BY created_at ASC")->fetchAll();
 
-$page_title = 'Pending Member Approvals';
+$page_title = 'Pending Member Approvals • UAP Quezon Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -30,7 +34,7 @@ include __DIR__ . '/../includes/header.php';
   <div>
     <p class="eyebrow">MEMBERSHIP VETTING</p>
     <h1>Member Registration Approvals</h1>
-    <p class="page-subtitle">Review, verify, and approve new chapter member registration applications.</p>
+    <p class="page-subtitle">Review, verify professional PRC credentials, demographics, and approve new chapter member registrations.</p>
   </div>
   <div class="hero-badge">
     <?php echo icon('approvals', '', 14); ?> <span><?php echo count($pending); ?> Pending</span>
@@ -51,23 +55,63 @@ include __DIR__ . '/../includes/header.php';
       <table>
         <thead>
           <tr>
-            <th>Applicant Name</th>
-            <th>PRC ID Number</th>
-            <th>Application Date</th>
+            <th>Applicant &amp; PRC Details</th>
+            <th>Demographics</th>
+            <th>Contact &amp; Address</th>
+            <th>Compliance</th>
             <th style="text-align: right;">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($pending as $p): ?>
+          <?php foreach ($pending as $p): 
+            $dob = $p['birth_date'] ? date('M d, Y', strtotime($p['birth_date'])) : null;
+            $ageDisplay = $p['age'] ? $p['age'] . ' yrs' : ($dob ? (date_diff(date_create($p['birth_date']), date_create('today'))->y . ' yrs') : '—');
+          ?>
             <tr>
               <td>
-                <strong style="font-size: 14px;"><?php echo htmlspecialchars($p['name']); ?></strong>
+                <strong style="font-size: 14px; color: var(--text-primary); display: block;"><?php echo htmlspecialchars($p['name']); ?></strong>
+                <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+                  <span class="badge" style="font-size: 11px; background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
+                    PRC #<?php echo htmlspecialchars($p['prc_number'] ?: $p['id_number']); ?>
+                  </span>
+                  <span class="muted" style="font-size: 11px;">Registered: <?php echo date('M d, Y', strtotime($p['created_at'])); ?></span>
+                </div>
               </td>
-              <td><code><?php echo htmlspecialchars($p['id_number']); ?></code></td>
-              <td><span class="muted" style="font-size: 12px;"><?php echo htmlspecialchars(date('F d, Y - h:i A', strtotime($p['created_at']))); ?></span></td>
+              <td>
+                <div style="font-size: 12.5px; line-height: 1.5;">
+                  <div><span class="muted">Gender:</span> <strong><?php echo htmlspecialchars($p['gender'] ?: '—'); ?></strong></div>
+                  <div><span class="muted">Age/DOB:</span> <strong><?php echo $ageDisplay; ?></strong> <?php if ($dob): ?><span class="muted">(<?php echo $dob; ?>)</span><?php endif; ?></div>
+                  <div><span class="muted">Civil Status:</span> <strong><?php echo htmlspecialchars($p['civil_status'] ?: '—'); ?></strong></div>
+                </div>
+              </td>
+              <td>
+                <div style="font-size: 12.5px; line-height: 1.5;">
+                  <div><span class="muted">Mobile:</span> <strong><?php echo htmlspecialchars($p['phone'] ?: '—'); ?></strong></div>
+                  <div><span class="muted">Email:</span> <strong><?php echo htmlspecialchars($p['email'] ?: '—'); ?></strong></div>
+                  <?php if (!empty($p['address'])): ?>
+                    <div style="font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; max-width: 250px;">
+                      <?php echo htmlspecialchars($p['address']); ?>
+                    </div>
+                  <?php endif; ?>
+                </div>
+              </td>
+              <td>
+                <?php if (!empty($p['terms_accepted']) || !empty($p['privacy_accepted'])): ?>
+                  <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid #10b981; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                    <?php echo icon('check', '', 11); ?> Policies Agreed
+                  </span>
+                  <?php if (!empty($p['terms_accepted_at'])): ?>
+                    <div class="muted" style="font-size: 10.5px; margin-top: 2px;">
+                      <?php echo date('M d, Y', strtotime($p['terms_accepted_at'])); ?>
+                    </div>
+                  <?php endif; ?>
+                <?php else: ?>
+                  <span class="muted" style="font-size: 11.5px;">Standard</span>
+                <?php endif; ?>
+              </td>
               <td style="white-space: nowrap; text-align: right;">
                 <form method="post" class="inline" style="display:inline-block;margin-right:4px;"
-                      data-confirm="Approve registration for <?php echo htmlspecialchars($p['name']); ?>?"
+                      data-confirm="Approve registration for <?php echo htmlspecialchars($p['name']); ?>? Member will be granted portal access."
                       data-confirm-title="Approve Member Registration"
                       data-confirm-btn="Approve"
                       data-confirm-class="btn-success">

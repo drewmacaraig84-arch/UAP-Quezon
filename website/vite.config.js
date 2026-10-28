@@ -7,47 +7,41 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost/UAP-MC/website',
+        target: 'http://localhost/UAP-Quezon/website',
         changeOrigin: true,
         secure: false,
       },
       '/auth': {
-        target: 'http://localhost/UAP-MC',
+        target: 'http://localhost/UAP-Quezon',
         changeOrigin: true,
         secure: false,
       },
       '/admin': {
-        target: 'http://localhost/UAP-MC',
+        target: 'http://localhost/UAP-Quezon',
         changeOrigin: true,
         secure: false,
       },
       '/member': {
-        target: 'http://localhost/UAP-MC',
+        target: 'http://localhost/UAP-Quezon',
         changeOrigin: true,
         secure: false,
       },
       '/includes': {
-        target: 'http://localhost/UAP-MC',
+        target: 'http://localhost/UAP-Quezon',
         changeOrigin: true,
         secure: false,
       },
       '/uploads': {
-        target: 'http://localhost/UAP-MC',
+        target: 'http://localhost/UAP-Quezon',
         changeOrigin: true,
         secure: false,
       },
       '/public': {
-        target: 'http://localhost/UAP-MC',
+        target: 'http://localhost/UAP-Quezon',
         changeOrigin: true,
         secure: false,
       },
-      // Backward compatibility for legacy /UAP-MINDORO and /UAP-MC absolute links
-      '/UAP-MINDORO': {
-        target: 'http://localhost',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/UAP-MC': {
+      '/UAP-Quezon': {
         target: 'http://localhost',
         changeOrigin: true,
         secure: false,
@@ -58,4 +52,3 @@ export default defineConfig({
     outDir: 'dist',
   },
 });
-

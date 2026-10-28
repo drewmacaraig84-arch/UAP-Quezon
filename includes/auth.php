@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/attendance_helper.php';
 
 function ensure_user_profile_photo_column($pdo) {
     static $checked = false;
@@ -95,8 +96,20 @@ function require_login() {
 
 function require_admin() {
     require_login();
-    if ($_SESSION['role'] !== 'admin') {
+    if (!in_array($_SESSION['role'] ?? '', ['admin', 'super_admin'], true)) {
         header('Location: ' . BASE_URL . '/member/dashboard.php');
+        exit;
+    }
+}
+
+function require_super_admin() {
+    require_login();
+    if (($_SESSION['role'] ?? '') !== 'super_admin') {
+        if (($_SESSION['role'] ?? '') === 'member') {
+            header('Location: ' . BASE_URL . '/member/dashboard.php');
+            exit;
+        }
+        header('Location: ' . BASE_URL . '/admin/dashboard.php');
         exit;
     }
 }

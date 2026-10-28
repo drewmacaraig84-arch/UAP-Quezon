@@ -1,139 +1,147 @@
-# Architecture Org Dues System
+# UAP Quezon Chapter Management Portal & Super Admin Hub
 
-A simple PHP + MySQL website for tracking membership dues with manual payment verification (GCash, Maya, Card, Online Banking).
+A modern PHP + MySQL management portal and public architectural website designed for the **United Architects of the Philippines (UAP) - Quezon Chapter**, featuring a dedicated **Super Admin Suite** (System Health, Crash Logs, Soft Deleted Files Quarantine, Audit Trail, and 1-Click Database Backups).
 
-## What's included
+---
 
-- Member registration/login
-- Member dashboard: view unpaid/pending/paid dues, submit payment with proof upload
-- Admin dashboard: verify/reject pending payments
-- Auto-generated official receipts (sequential numbering: ORG-2026-00001)
-- Members overview (paid/unpaid status per member)
-- Reports page + CSV export (opens directly in Excel)
+## 🎨 Visual Identity & Color Palette
 
-## How payment verification works
+Derived directly from the official **UAP Quezon Chapter Logo**:
+- **Radiant Sunset Gold / Amber**: `#F59E0B` / `#E58A13` (Top arch, sun, architectural highlights)
+- **Quezon Mountain Emerald Green**: `#15803D` / `#16A34A` / `#22C55E` (Mt. Banahaw ridges and lush Quezon slopes)
+- **Architectural Charcoal & Slate**: `#0B1120` / `#111827` / `#1E293B` (Ionic column fluting, surfaces, cards)
+- **Crisp Mountain White**: `#FFFFFF` (Separators, typography, badges)
+- **Signature Gradient**: `linear-gradient(135deg, #E58A13 0%, #15803D 100%)`
 
-This uses **manual verification**, not a live payment gateway (no PayMongo/Xendit needed):
+---
 
-1. Member selects a payment method, enters their reference/transaction number, and uploads a screenshot of their GCash/Maya/bank transfer.
-2. This goes into a "Pending" queue.
-3. Admin manually checks the actual GCash/Maya/bank account, then clicks Approve or Reject.
-4. On approval, the system automatically marks the due as paid and generates an official receipt.
+## ⚡ Default Login Credentials
 
-## Setup Instructions
+| Role | PRC ID / ID Number | Default Password | Initial Destination |
+| :--- | :--- | :--- | :--- |
+| **Super Admin** | `SUPERADMIN01` | `admin123` | [System Health & Admin Dashboard](http://localhost/UAP-Quezon/admin/dashboard.php) |
+| **Chapter Admin** | `ADMIN001` | `admin123` | [Admin Dashboard](http://localhost/UAP-Quezon/admin/dashboard.php) |
+| **Member Architect** | `UAPQ-2026-001` | `admin123` | [Member Dues & Receipts](http://localhost/UAP-Quezon/member/dashboard.php) |
 
-### 1. Requirements
-- PHP 7.4+ with PDO MySQL extension (any shared hosting like Hostinger, InfinityFree, or XAMPP locally works)
-- MySQL database
+---
 
-### 2. Database setup
-1. Create a MySQL database (e.g. `dues_system`).
-2. Import `schema.sql` into it (via phpMyAdmin: Import tab, or `mysql -u root -p dues_system < schema.sql`).
-3. This creates all tables and one default admin account:
-   - Email: `admin@org.com`
-   - Password: `admin123`
-   - **Change this password immediately after first login** — there's no "change password" UI yet, so for now update it directly in the database, or update it via a quick PHP password_hash() snippet.
+## 🛡️ Super Admin Architecture & Capabilities
 
-### 3. Configure database connection
-Open `includes/config.php` and edit these lines to match your hosting/database credentials:
+1. **System Health & Diagnostic Telemetry** (`admin/system_health.php`):
+   - Real-time Health Score (`100%`)
+   - CPU and Memory allocated, Peak Memory, Execution time limits
+   - Live Database latency ping (ms), MySQL version, table-by-table storage breakdown
+   - Disk space utilization (Total, Free, Used)
+   - Storage breakdown for `uploads/`, `uploads/trash/` (quarantine), and `logs/`
+   - Core PHP extension verification (PDO, PDO MySQL, GD, OpenSSL, cURL, Fileinfo)
+   - One-click MySQL table optimization and index rebuild
 
-```php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'dues_system');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+2. **Automated System Crash & Error Logs** (`admin/crash_logs.php`):
+   - Custom global error & exception watchdog (`includes/logger.php`)
+   - Traps fatal errors, uncaught exceptions, and database errors (`PDOException`)
+   - Logs timestamp, severity (`CRITICAL`, `ERROR`, `WARNING`, `INFO`), exception class, file path, line number, full stack trace, HTTP method, URL, client IP, and authenticated user ID
+   - Super Admin UI with filtering by severity, status, search, and CSV export
+   - One-click error resolution notes and "Trigger Test Crash" tool
+
+3. **Soft-Deleted Files & Quarantine Hub** (`admin/soft_deleted_files.php`):
+   - Non-destructive deletion workflow (`includes/soft_delete.php`)
+   - When an avatar, payment proof, or document is removed, it is quarantined to `uploads/trash/` with metadata instead of permanent loss
+   - Soft-deleted database entities across `users`, `dues`, `payments`, `news_announcements`, and `sponsors`
+   - One-click file and database record restoration
+   - One-click permanent purge / Empty Trash action
+
+4. **Forensic Audit Trail** (`admin/audit_logs.php`):
+   - Chronological logging of administrative actions, login attempts, payment verifications, and system optimizations
+   - Filterable by Category (`AUTH`, `PAYMENTS`, `MEMBERS`, `STORAGE`, `SYSTEM`, `MAINTENANCE`)
+   - Export audit logs to CSV for board reporting
+
+5. **Disaster Recovery & Database Backups** (`admin/database_backup.php`):
+   - 1-Click full SQL database dump generation and download (`.sql`)
+   - Optimization tools per table to eliminate overhead
+
+---
+
+## 🏛️ Public Architectural Website & Flow
+
+- **Homepage** (`public/homepage.php`):
+  - Hero banner with UAP Quezon branding and Mt. Banahaw narrative
+  - Live chapter member directory with search and PRC registration badges
+  - Chapter news and events from MySQL database
+  - Chapter milestones timeline (1984 chartering to present)
+  - Corporate partners and sponsors dock
+  - Direct inquiry submission form connected to `contact_inquiries`
+- **Member Portal** (`member/`):
+  - View unpaid, pending, and partial dues
+  - Submit proof of payment (GCash, Maya, Bank Transfer)
+  - Generate and print sequential official receipts (`UAPQ-2026-XXXXX`)
+  - Manage directory profile and credentials
+- **Admin Portal** (`admin/`):
+  - Verify and approve/reject pending payment proofs
+  - Approve new member registrations
+  - Configure dues packages, QR codes, announcements, and chapter settings
+
+---
+
+## 📁 System Folder Structure
+
 ```
-
-### 4. Upload files
-Upload the entire `dues-system` folder contents to your web host's public folder (e.g. `public_html`, or `htdocs` for local XAMPP).
-
-Make sure the `uploads/` folder is writable (chmod 755 or 777 depending on host) — this is where payment proof screenshots get stored.
-
-### 5. Test it
-- Visit your site URL → redirects to login
-- Log in as admin (admin@org.com / admin123)
-- Go to "Dues" → create a due item (e.g. "1st Sem Dues", ₱500)
-- Register a test member account
-- Log in as that member → you'll see the due, click "Pay Now", fill the form, upload any test image
-- Log back in as admin → "Pending Payments" → Approve it
-- Member can now view their receipt under "Payment History"
-
-## Local testing with XAMPP (recommended before deploying)
-
-1. Install XAMPP, start Apache + MySQL
-2. Copy this folder into `htdocs/dues-system`
-3. Open phpMyAdmin (localhost/phpmyadmin), create database `dues_system`, import schema.sql
-4. Visit `localhost/dues-system` in your browser
-
-## Things to add later if there's time
-
-- Change password feature for admin/members
-- Email notifications when a payment is approved/rejected
-- "Forgot password" flow
-- Filtering/search on the Members and Reports pages
-- PDF receipts instead of HTML print view (optional — current print view works fine via browser's Print to PDF)
-- If the org later gets DTI/SEC registration, this can be upgraded to live PayMongo/Xendit gateway integration — the database schema already has a `method` field ready for that transition.
-
-## File structure
-
+UAP-Quezon/
+├── index.php                      (Central router)
+├── schema.sql                     (Full MySQL database schema & seed data)
+│
+├── public/                        (Public website & assets)
+│   ├── homepage.php               (Quezon architectural homepage)
+│   ├── logo.jpg                   (Official UAP Quezon logo)
+│   └── member_profile.php         (Public member profile view)
+│
+├── admin/                         (Admin & Super Admin Hub)
+│   ├── dashboard.php              (Executive command center & Super Admin HUD)
+│   ├── system_health.php          (★ Super Admin: Server, DB & storage health)
+│   ├── crash_logs.php             (★ Super Admin: Live exception & error tracker)
+│   ├── soft_deleted_files.php     (★ Super Admin: Trash bin quarantine & recovery)
+│   ├── audit_logs.php             (★ Super Admin: Compliance activity log)
+│   ├── database_backup.php        (★ Super Admin: 1-Click SQL dump & optimization)
+│   ├── account_manager.php        (Account manager & role assignments)
+│   ├── approvals.php              (Member registration verification)
+│   ├── payments.php               (Dues payment proof verification)
+│   ├── dues.php                   (Dues packages configuration)
+│   ├── members.php                (Chapter directory)
+│   ├── reports.php                (Financial reporting & CSV export)
+│   ├── qr_codes.php               (Payment QR codes)
+│   └── settings.php               (Chapter branding & website CMS)
+│
+├── member/                        (Member Self-Service)
+│   ├── dashboard.php              (Assigned dues & payment status)
+│   ├── pay.php                    (Payment submission with proof upload)
+│   ├── history.php                (Payment history & official receipt viewer)
+│   ├── website_directory.php      (Directory listing application & profile)
+│   └── profile.php                (Profile photo & personal info)
+│
+├── auth/                          (Authentication)
+│   ├── login.php                  (PRC ID & password login)
+│   ├── register.php               (New architect registration)
+│   └── logout.php                 (Session termination)
+│
+├── includes/                      (Shared Core Services)
+│   ├── config.php                 (Database connection, base URLs, helpers)
+│   ├── auth.php                   (Authentication guards: member, admin, super_admin)
+│   ├── logger.php                 (★ Real-time exception & error logger)
+│   ├── soft_delete.php            (★ Quarantine file & soft delete service)
+│   ├── header.php                 (Adaptive navbar with Super Admin Engine)
+│   ├── footer.php                 (Portal footer)
+│   ├── theme.css                  (Design system with Quezon Gold & Mountain Green)
+│   ├── icons.php                  (Scalable vector SVG icons)
+│   ├── csrf.php                   (Security CSRF protection)
+│   └── dues_service.php           (Receipt generator & balance calculations)
+│
+├── uploads/                       (Media Storage)
+│   ├── trash/                     (★ Quarantined soft-deleted files)
+│   ├── proofs/                    (GCash/Bank payment receipts)
+│   ├── avatars/                   (Member profile photos)
+│   ├── qr_codes/                  (Payment QR images)
+│   ├── news/                      (Event announcement photos)
+│   └── sponsors/                  (Partner logos)
+│
+└── logs/                          (Diagnostics)
+    └── crash.log                  (Physical system error & crash log file)
 ```
-UAP-MC/
-├── index.php              (central router — redirects based on login state)
-│
-├── auth/                  (Authentication pages — login, register, logout)
-│   ├── login.php
-│   ├── register.php
-│   └── logout.php
-│
-├── public/                (Public website pages)
-│   └── homepage.php       (public homepage for non-logged-in users)
-│
-├── member/                (Member dashboard and pages)
-│   ├── dashboard.php
-│   ├── pay.php
-│   └── history.php
-│
-├── admin/                 (Admin dashboard and management)
-│   ├── dashboard.php
-│   ├── verify.php
-│   ├── approvals.php
-│   ├── members.php
-│   ├── dues.php
-│   ├── reports.php
-│   ├── export_csv.php
-│   ├── settings.php
-│   ├── qr_codes.php
-│   ├── account_manager.php
-│   └── change_password.php
-│
-├── includes/              (Shared resources)
-│   ├── config.php         (DB credentials — edit this)
-│   ├── auth.php           (login guards & auth functions)
-│   ├── header.php         (header template)
-│   ├── footer.php         (footer template)
-│   └── theme.css
-│
-├── database/              (Database setup & migrations)
-│   ├── migrate.php
-│   ├── seed.php
-│   ├── setup.php
-│   ├── migrations/
-│   │   └── 001_create_initial_schema.sql
-│   └── seeds/
-│       └── 001_admin_seed.sql
-│
-├── receipt.php            (printable receipt — used by member/admin)
-├── schema.sql             (main database schema)
-├── stress-test.php        (testing utility)
-├── cookies.txt            (configuration/cache)
-│
-├── uploads/               (payment proof images — must be writable)
-├── images/                (static images)
-├── query/                 (helper scripts)
-│
-└── README.md              (this file)
-```
-
-### Backward Compatibility
-
-The old root-level files (`login.php`, `register.php`, `logout.php`, `public_homepage.php`) are preserved as redirects to the new locations. This ensures any external links or bookmarks continue to work.

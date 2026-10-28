@@ -1,16 +1,73 @@
 </div>
 <footer class="footer" style="padding: 24px 28px; border-top: 1px solid var(--border-color); color: var(--text-secondary); font-size: 13px; margin-top: 40px;">
-    <div style="max-width: 1380px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-        <div>
-            &copy; <?php echo date('Y'); ?> <strong>United Architects of the Philippines &bull; Mindoro Chapter</strong>
+    <div style="max-width: 1380px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+            <div>
+              &copy; <?php echo date('Y'); ?> <strong>United Architects of the Philippines &bull; Quezon Chapter</strong>
+            </div>
+            <div style="font-size: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+              <a href="<?php echo BASE_URL; ?>/public/privacy_policy.php" style="color: var(--text-secondary); text-decoration: none;">Privacy Policy</a>
+              <span>&bull;</span>
+              <a href="<?php echo BASE_URL; ?>/public/terms_of_agreement.php" style="color: var(--text-secondary); text-decoration: none;">Terms of Agreement</a>
+              <span>&bull;</span>
+              <a href="<?php echo BASE_URL; ?>/public/cookie_policy.php" style="color: var(--text-secondary); text-decoration: none;">Cookie Policy</a>
+            </div>
         </div>
-        <div style="font-size: 12px; color: var(--text-secondary);">
-            UAP-MC Portal &bull; Designed &amp; Developed by <strong>Aries King Nieto</strong> and <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; text-underline-offset: 2px;"><strong>Drew Macaraig</strong></a>
+        <div style="font-size: 12px; color: var(--text-secondary); text-align: right;">
+            UAP-Quezon Portal &bull; Designed &amp; Developed by <strong>Aries King Nieto</strong> and <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; text-underline-offset: 2px;"><strong>Drew Macaraig</strong></a>
         </div>
     </div>
 </footer>
 
+<!-- Floating Cookie Consent Banner -->
+<div id="uapCookieBanner" style="display: none; position: fixed; bottom: 20px; right: 20px; max-width: 420px; width: calc(100% - 40px); background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(12px); border: 1px solid rgba(245,158,11,0.35); border-radius: 14px; padding: 18px 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); z-index: 99990; color: #f8fafc;">
+  <div style="display: flex; align-items: flex-start; gap: 12px;">
+    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(245,158,11,0.18); color: #f59e0b; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px;">
+      🍪
+    </div>
+    <div style="flex: 1;">
+      <strong style="font-size: 13.5px; display: block; margin-bottom: 4px; color: #fbbf24;">Cookie &amp; Privacy Notice</strong>
+      <p style="margin: 0 0 12px 0; font-size: 12px; line-height: 1.45; color: #cbd5e1;">
+        We use essential cookies to maintain secure sessions and protect financial transactions. By continuing, you agree to our 
+        <a href="<?php echo BASE_URL; ?>/public/cookie_policy.php" style="color: #fbbf24; text-decoration: underline;">Cookie Policy</a> and 
+        <a href="<?php echo BASE_URL; ?>/public/privacy_policy.php" style="color: #fbbf24; text-decoration: underline;">Privacy Terms</a>.
+      </p>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" onclick="acceptUapCookies()" class="btn btn-sm btn-primary" style="font-size: 11.5px; padding: 6px 14px; font-weight: 700;">
+          Accept All
+        </button>
+        <button type="button" onclick="dismissUapCookies()" class="btn btn-sm btn-secondary" style="font-size: 11.5px; padding: 6px 12px;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+// ================= COOKIE CONSENT =================
+document.addEventListener('DOMContentLoaded', function() {
+  const consent = localStorage.getItem('uap_cookie_consent');
+  if (!consent) {
+    const banner = document.getElementById('uapCookieBanner');
+    if (banner) {
+      setTimeout(() => { banner.style.display = 'block'; }, 1000);
+    }
+  }
+});
+
+function acceptUapCookies() {
+  localStorage.setItem('uap_cookie_consent', 'accepted');
+  const banner = document.getElementById('uapCookieBanner');
+  if (banner) banner.style.display = 'none';
+}
+
+function dismissUapCookies() {
+  sessionStorage.setItem('uap_cookie_banner_dismissed', '1');
+  const banner = document.getElementById('uapCookieBanner');
+  if (banner) banner.style.display = 'none';
+}
+
 // ================= THEME MANAGEMENT =================
 function toggleTheme() {
   const html = document.getElementById('htmlElement');
@@ -98,46 +155,28 @@ let pendingConfirmAction = null;
 
 function showConfirmModal(event, targetAction, options = {}) {
   if (event && event.preventDefault) event.preventDefault();
-  
-  const title = options.title || 'Confirm Action';
-  const message = options.message || 'Are you sure you want to proceed?';
-  const confirmText = options.confirmText || 'Confirm';
-  const btnClass = options.btnClass || 'btn-success';
-
-  document.getElementById('uapConfirmTitle').textContent = title;
-  document.getElementById('uapConfirmMessage').textContent = message;
-
-  const okBtn = document.getElementById('uapConfirmOkBtn');
-  okBtn.textContent = confirmText;
-  okBtn.className = 'btn btn-sm ' + btnClass;
-  
-  const iconContainer = document.getElementById('uapConfirmIcon');
-  if (iconContainer) {
-    if (btnClass.includes('btn-danger')) {
-      iconContainer.style.background = 'rgba(239, 68, 68, 0.15)';
-      iconContainer.style.color = '#ef4444';
-    } else {
-      iconContainer.style.background = 'rgba(245, 158, 11, 0.15)';
-      iconContainer.style.color = 'var(--accent-primary, #f59e0b)';
-    }
-  }
-
-  if (typeof targetAction === 'function') {
-    pendingConfirmAction = targetAction;
-  } else if (targetAction && targetAction.tagName === 'FORM') {
-    pendingConfirmAction = () => targetAction.submit();
-  } else {
-    pendingConfirmAction = null;
-  }
+  pendingConfirmAction = targetAction;
 
   const modal = document.getElementById('uapConfirmModal');
-  if (modal) modal.style.display = 'flex';
-  return false;
+  const title = document.getElementById('uapConfirmTitle');
+  const message = document.getElementById('uapConfirmMessage');
+  const okBtn = document.getElementById('uapConfirmOkBtn');
+
+  if (modal && title && message && okBtn) {
+    title.textContent = options.title || 'Confirm Action';
+    message.textContent = options.message || 'Are you sure you want to proceed?';
+    okBtn.textContent = options.confirmText || 'Confirm';
+
+    okBtn.className = 'btn btn-sm ' + (options.btnClass || 'btn-success');
+    modal.style.display = 'flex';
+  }
 }
 
 function closeUapConfirmModal() {
   const modal = document.getElementById('uapConfirmModal');
-  if (modal) modal.style.display = 'none';
+  if (modal) {
+    modal.style.display = 'none';
+  }
   pendingConfirmAction = null;
 }
 
@@ -145,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const okBtn = document.getElementById('uapConfirmOkBtn');
   if (okBtn) {
     okBtn.addEventListener('click', function() {
-      if (pendingConfirmAction) {
+      if (typeof pendingConfirmAction === 'function') {
         const action = pendingConfirmAction;
         closeUapConfirmModal();
         action();

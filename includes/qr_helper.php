@@ -1,6 +1,6 @@
 <?php
 /**
- * UAP Mindoro Chapter - Pure PHP QR Code Generation Engine
+ * UAP Quezon Chapter - Pure PHP QR Code Generation Engine
  * Generates crisp, high-resolution QR codes encoding member website profile URLs
  * Compatible with PHP 8.0+ and GD extension without external dependencies.
  */
@@ -32,7 +32,7 @@ class ChapterQRCode {
         $apiUrl = "https://api.qrserver.com/v1/create-qr-code/?size={$size}x{$size}&margin=15&format=png&data={$encoded}";
         
         $context = stream_context_create([
-            'http' => ['timeout' => 4, 'user_agent' => 'UAPMindoro/1.0'],
+            'http' => ['timeout' => 4, 'user_agent' => 'UAPQuezon/1.0'],
             'ssl'  => ['verify_peer' => false, 'verify_peer_name' => false]
         ]);
         

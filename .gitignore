@@ -26,3 +26,7 @@ members_page.html
 members_response.html
 stress-test.php
 
+
+# Runtime Logs
+logs/*
+!logs/.gitkeep

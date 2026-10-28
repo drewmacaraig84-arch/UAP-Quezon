@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$page_title = 'My Profile • UAP Mindoro Chapter';
+$page_title = 'My Profile • UAP Quezon Chapter';
 include __DIR__ . '/../includes/header.php';
 
 $avatarUrl = !empty($user['profile_photo']) ? BASE_URL . '/' . ltrim($user['profile_photo'], '/') : null;

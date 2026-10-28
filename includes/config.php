@@ -89,7 +89,7 @@ if (!defined('DB_PORT')) {
     define('DB_PORT', $urlPort ?? (int) $env(['DB_PORT', 'MYSQLPORT', 'MYSQL_PORT'], 3306));
 }
 if (!defined('DB_NAME')) {
-    define('DB_NAME', $urlName ?? $env(['DB_NAME', 'MYSQLDATABASE', 'MYSQL_DATABASE'], 'dues_system'));
+    define('DB_NAME', $urlName ?? $env(['DB_NAME', 'MYSQLDATABASE', 'MYSQL_DATABASE'], 'uap_quezon'));
 }
 if (!defined('DB_USER')) {
     define('DB_USER', $urlUser ?? $env(['DB_USER', 'MYSQLUSER', 'MYSQL_USER'], 'root'));
@@ -369,7 +369,7 @@ function get_public_base_url() {
         
         // In local development (Laragon)
         if (str_contains($host, 'localhost') || str_contains($host, '127.0.0.1')) {
-            $base = defined('BASE_URL') && BASE_URL !== '' ? BASE_URL : (str_contains($_SERVER['REQUEST_URI'] ?? '', '/UAP-MC') ? '/UAP-MC' : '');
+            $base = defined('BASE_URL') && BASE_URL !== '' ? BASE_URL : (str_contains($_SERVER['REQUEST_URI'] ?? '', '/UAP-Quezon') ? '/UAP-Quezon' : '');
             return rtrim($proto . $host . $base, '/');
         }
         
@@ -392,7 +392,7 @@ function get_public_base_url() {
         return 'https://uapmc-production.up.railway.app';
     }
     
-    return 'http://localhost/UAP-MC';
+    return 'http://localhost/UAP-Quezon';
 }
 
 /**
@@ -465,5 +465,34 @@ function media_url($path, $fallback = '') {
 require_once __DIR__ . '/csrf.php';
 require_once __DIR__ . '/flash.php';
 require_once __DIR__ . '/dues_service.php';
+require_once __DIR__ . '/logger.php';
+require_once __DIR__ . '/soft_delete.php';
+
+if (!function_exists('is_super_admin')) {
+    function is_super_admin() {
+        return isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin';
+    }
+}
+
+if (!function_exists('is_admin_or_super')) {
+    function is_admin_or_super() {
+        return isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'super_admin'], true);
+    }
+}
+
+if (!function_exists('get_site_setting')) {
+    function get_site_setting(PDO $pdo, $key, $default = '') {
+        try {
+            $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = ? LIMIT 1");
+            $stmt->execute([$key]);
+            $val = $stmt->fetchColumn();
+            return ($val !== false && $val !== null) ? $val : $default;
+        } catch (Throwable $e) {
+            return $default;
+        }
+    }
+}
+
+
 
 

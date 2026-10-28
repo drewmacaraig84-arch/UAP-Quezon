@@ -113,7 +113,7 @@ export default function SponsorDetail() {
 
               <p className="sponsor-detail-bio">
                 {sponsor.description ||
-                  `${sponsor.name} is an esteemed corporate partner collaborating with the United Architects of the Philippines Mindoro Chapter, supporting architectural practice, quality construction, and regional development.`}
+                  `${sponsor.name} is an esteemed corporate partner collaborating with the United Architects of the Philippines Quezon Chapter, supporting architectural practice, quality construction, and regional development.`}
               </p>
 
               <div className="sponsor-detail-cta-row">
@@ -237,10 +237,10 @@ export default function SponsorDetail() {
             </div>
             <div>
               <h3 className="heading-1" style={{ marginBottom: 6 }}>
-                Architectural Partnerships with UAP Mindoro
+                Architectural Partnerships with UAP Quezon
               </h3>
               <p className="muted" style={{ fontSize: '0.92rem', lineHeight: 1.6, margin: 0 }}>
-                Corporate sponsors and industry partners work closely with the chapter to host technical seminars, CPD product masterclasses, and promote sustainable construction standards throughout Oriental and Occidental Mindoro.
+                Corporate sponsors and industry partners work closely with the chapter to host technical seminars, CPD product masterclasses, and promote sustainable construction standards throughout Oriental and Occidental Quezon.
               </p>
             </div>
           </div>

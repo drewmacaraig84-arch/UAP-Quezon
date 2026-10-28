@@ -453,9 +453,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 $settings_rows = $pdo->query("SELECT setting_key, setting_value FROM site_settings")->fetchAll(PDO::FETCH_KEY_PAIR);
 $logo_val = $settings_rows['logo'] ?? null;
 $about_us_val = $settings_rows['about_us'] ?? '';
-$org_name_val = $settings_rows['org_name'] ?? 'United Architects of the Philippines - Mindoro Chapter';
-$contact_address_val = $settings_rows['contact_address'] ?? 'Calapan City, Oriental Mindoro, Philippines 5200';
-$contact_email_val = $settings_rows['contact_email'] ?? 'uapmindoro@gmail.com';
+$org_name_val = $settings_rows['org_name'] ?? 'United Architects of the Philippines - Quezon Chapter';
+$contact_address_val = $settings_rows['contact_address'] ?? 'Calapan City, Oriental Quezon, Philippines 5200';
+$contact_email_val = $settings_rows['contact_email'] ?? 'uapQuezon@gmail.com';
 $contact_phone_val = $settings_rows['contact_phone'] ?? '+63 (0) XXXX XXXX';
 $office_hours_weekdays_val = $settings_rows['office_hours_weekdays'] ?? '9:00 AM – 5:00 PM';
 $office_hours_saturday_val = $settings_rows['office_hours_saturday'] ?? '9:00 AM – 12:00 PM';
@@ -611,7 +611,7 @@ function switchSettingsTab(tabId, btn) {
         </div>
         <h2 style="font-size: 16px; margin: 0;">Chapter Logo &amp; Seal</h2>
       </div>
-      <p class="muted" style="margin-bottom: 16px; font-size: 13px;">Upload the official UAP Mindoro Chapter seal. Used on navigation headers, login portals, and receipts.</p>
+      <p class="muted" style="margin-bottom: 16px; font-size: 13px;">Upload the official UAP Quezon Chapter seal. Used on navigation headers, login portals, and receipts.</p>
       
       <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 20px; padding: 14px; background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color);">
         <div style="width: 80px; height: 80px; border-radius: 4px; background: #fff; padding: 1px; border: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); flex-shrink: 0;">
@@ -655,7 +655,7 @@ function switchSettingsTab(tabId, btn) {
         <input type="hidden" name="action" value="update_info">
         <div class="field" style="margin-bottom: 16px;">
           <label>Organization Name</label>
-          <input type="text" name="org_name" value="<?php echo htmlspecialchars($org_name_val); ?>" required placeholder="e.g. United Architects of the Philippines - Mindoro Chapter">
+          <input type="text" name="org_name" value="<?php echo htmlspecialchars($org_name_val); ?>" required placeholder="e.g. United Architects of the Philippines - Quezon Chapter">
         </div>
         <button class="btn btn-sm" type="submit" style="display: inline-flex; align-items: center; gap: 6px;">
           <?php echo icon('check', '', 14); ?> <span>Save Organization Title</span>
@@ -786,12 +786,12 @@ function switchSettingsTab(tabId, btn) {
         </h3>
         <div class="field" style="margin-bottom: 14px;">
           <label style="font-size: 12px;">Secretariat Physical Address / Location</label>
-          <input type="text" name="contact_address" value="<?php echo htmlspecialchars($contact_address_val); ?>" placeholder="e.g. Calapan City, Oriental Mindoro, Philippines 5200" required>
+          <input type="text" name="contact_address" value="<?php echo htmlspecialchars($contact_address_val); ?>" placeholder="e.g. Calapan City, Oriental Quezon, Philippines 5200" required>
         </div>
         <div class="grid-2" style="gap: 14px;">
           <div class="field" style="margin: 0;">
             <label style="font-size: 12px;">Official Secretariat Email Address</label>
-            <input type="email" name="contact_email" value="<?php echo htmlspecialchars($contact_email_val); ?>" placeholder="e.g. uapmindoro@gmail.com" required>
+            <input type="email" name="contact_email" value="<?php echo htmlspecialchars($contact_email_val); ?>" placeholder="e.g. uapQuezon@gmail.com" required>
           </div>
           <div class="field" style="margin: 0;">
             <label style="font-size: 12px;">Contact Number / Hotline</label>
@@ -1216,7 +1216,7 @@ function switchSettingsTab(tabId, btn) {
       <div class="grid-2" style="gap: 14px; margin-bottom: 14px;">
         <div class="field" style="margin: 0;">
           <label>News Headline / Title *</label>
-          <input type="text" name="news_title" placeholder="e.g. UAP Mindoro Chapter General Assembly 2026" required>
+          <input type="text" name="news_title" placeholder="e.g. UAP Quezon Chapter General Assembly 2026" required>
         </div>
         <div class="field" style="margin: 0;">
           <label>Date of Event / Publication *</label>

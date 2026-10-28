@@ -14,7 +14,7 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const { data: settings } = useApi('/api/settings.php');
-  const orgName = settings?.org_name || 'UAP Mindoro';
+  const orgName = settings?.org_name || 'UAP Quezon';
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [badgeErrors, setBadgeErrors] = useState({});
