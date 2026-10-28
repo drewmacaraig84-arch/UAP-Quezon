@@ -8,6 +8,57 @@
  * - 3 to 6 meetings / events attended => PARTIALLY ACTIVE (Amber badge)
  */
 
+if (!function_exists('ensure_member_attendance_table')) {
+    function ensure_member_attendance_table(PDO $pdo) {
+        static $checked = false;
+        if ($checked || !$pdo) return;
+        $checked = true;
+        try {
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS member_attendance (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    fiscal_year VARCHAR(20) NOT NULL DEFAULT '2026-2027',
+                    month_july VARCHAR(20) NOT NULL DEFAULT 'absent',
+                    month_august VARCHAR(20) NOT NULL DEFAULT 'absent',
+                    month_september VARCHAR(20) NOT NULL DEFAULT 'absent',
+                    month_october VARCHAR(20) NOT NULL DEFAULT 'absent',
+                    month_november VARCHAR(20) NOT NULL DEFAULT 'absent',
+                    month_december VARCHAR(20) NOT NULL DEFAULT 'absent',
+                    month_january VARCHAR(20) NOT NULL DEFAULT 'absent',
+                    month_february VARCHAR(20) NOT NULL DEFAULT 'absent',
+                    month_march VARCHAR(20) NOT NULL DEFAULT 'absent',
+                    month_april VARCHAR(20) NOT NULL DEFAULT 'absent',
+                    month_may VARCHAR(20) NOT NULL DEFAULT 'absent',
+                    month_june VARCHAR(20) NOT NULL DEFAULT 'absent',
+                    event_induction TINYINT(1) NOT NULL DEFAULT 0,
+                    event_anniversary TINYINT(1) NOT NULL DEFAULT 0,
+                    event_christmas_party TINYINT(1) NOT NULL DEFAULT 0,
+                    event_wad TINYINT(1) NOT NULL DEFAULT 0,
+                    event_nca TINYINT(1) NOT NULL DEFAULT 0,
+                    event_pafnam TINYINT(1) NOT NULL DEFAULT 0,
+                    event_natcon TINYINT(1) NOT NULL DEFAULT 0,
+                    event_summer_outing TINYINT(1) NOT NULL DEFAULT 0,
+                    event_csr TINYINT(1) NOT NULL DEFAULT 0,
+                    total_f2f INT NOT NULL DEFAULT 0,
+                    total_zoom INT NOT NULL DEFAULT 0,
+                    total_attended INT NOT NULL DEFAULT 0,
+                    activity_status ENUM('active','inactive','probationary') NOT NULL DEFAULT 'inactive',
+                    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE KEY uniq_user_fy (user_id, fiscal_year),
+                    KEY idx_user_id (user_id),
+                    KEY idx_activity_status (activity_status)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ");
+        } catch (Throwable $e) {}
+    }
+}
+
+if (isset($pdo) && $pdo instanceof PDO) {
+    ensure_member_attendance_table($pdo);
+}
+
 if (!function_exists('get_active_fiscal_year')) {
     function get_active_fiscal_year(): string {
         return '2026-2027';

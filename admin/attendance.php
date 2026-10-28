@@ -2,6 +2,9 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_admin();
 
+if (isset($pdo)) {
+    ensure_member_attendance_table($pdo);
+}
 $fy = get_active_fiscal_year();
 $error = '';
 $success = '';

@@ -12,6 +12,7 @@
 -- USE uap_quezon;
 
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS member_attendance;
 DROP TABLE IF EXISTS audit_logs;
 DROP TABLE IF EXISTS soft_deleted_files;
 DROP TABLE IF EXISTS system_crash_logs;
@@ -334,6 +335,44 @@ CREATE TABLE audit_logs (
     INDEX idx_audit_user (user_id),
     INDEX idx_audit_created (created_at),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 17. MEMBER ATTENDANCE & ACTIVITY STATUS
+CREATE TABLE member_attendance (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    fiscal_year VARCHAR(20) NOT NULL DEFAULT '2026-2027',
+    month_july VARCHAR(20) NOT NULL DEFAULT 'absent',
+    month_august VARCHAR(20) NOT NULL DEFAULT 'absent',
+    month_september VARCHAR(20) NOT NULL DEFAULT 'absent',
+    month_october VARCHAR(20) NOT NULL DEFAULT 'absent',
+    month_november VARCHAR(20) NOT NULL DEFAULT 'absent',
+    month_december VARCHAR(20) NOT NULL DEFAULT 'absent',
+    month_january VARCHAR(20) NOT NULL DEFAULT 'absent',
+    month_february VARCHAR(20) NOT NULL DEFAULT 'absent',
+    month_march VARCHAR(20) NOT NULL DEFAULT 'absent',
+    month_april VARCHAR(20) NOT NULL DEFAULT 'absent',
+    month_may VARCHAR(20) NOT NULL DEFAULT 'absent',
+    month_june VARCHAR(20) NOT NULL DEFAULT 'absent',
+    event_induction TINYINT(1) NOT NULL DEFAULT 0,
+    event_anniversary TINYINT(1) NOT NULL DEFAULT 0,
+    event_christmas_party TINYINT(1) NOT NULL DEFAULT 0,
+    event_wad TINYINT(1) NOT NULL DEFAULT 0,
+    event_nca TINYINT(1) NOT NULL DEFAULT 0,
+    event_pafnam TINYINT(1) NOT NULL DEFAULT 0,
+    event_natcon TINYINT(1) NOT NULL DEFAULT 0,
+    event_summer_outing TINYINT(1) NOT NULL DEFAULT 0,
+    event_csr TINYINT(1) NOT NULL DEFAULT 0,
+    total_f2f INT NOT NULL DEFAULT 0,
+    total_zoom INT NOT NULL DEFAULT 0,
+    total_attended INT NOT NULL DEFAULT 0,
+    activity_status ENUM('active','inactive','probationary') NOT NULL DEFAULT 'inactive',
+    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_user_fy (user_id, fiscal_year),
+    INDEX idx_user_id (user_id),
+    INDEX idx_activity_status (activity_status),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ====================================================================
