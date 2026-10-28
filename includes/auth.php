@@ -48,6 +48,14 @@ function ensure_user_profile_photo_column($pdo) {
             if (!$colNewsImg) {
                 $pdo->exec("ALTER TABLE news_announcements ADD COLUMN image_path VARCHAR(255) NULL AFTER summary");
             }
+            $colNewsActive = $pdo->query("SHOW COLUMNS FROM news_announcements LIKE 'is_active'")->fetch();
+            if (!$colNewsActive) {
+                $pdo->exec("ALTER TABLE news_announcements ADD COLUMN is_active TINYINT(1) DEFAULT 1 AFTER is_published");
+            }
+            $colNewsDate = $pdo->query("SHOW COLUMNS FROM news_announcements LIKE 'date_posted'")->fetch();
+            if (!$colNewsDate) {
+                $pdo->exec("ALTER TABLE news_announcements ADD COLUMN date_posted VARCHAR(50) NULL AFTER date_display");
+            }
         }
 
         $daTableCheck = $pdo->query("SHOW TABLES LIKE 'directory_applications'")->fetch();
