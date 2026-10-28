@@ -127,7 +127,10 @@ include __DIR__ . '/../includes/header.php';
       </div>
 
       <div style="margin-top: 36px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: #64748b;">
-        &copy; <?php echo date('Y'); ?> UAP Quezon Chapter &bull; Portal &amp; Management
+        <div>&copy; <?php echo date('Y'); ?> UAP Quezon Chapter &bull; Portal &amp; Management</div>
+        <div style="margin-top: 5px; font-size: 11.5px;">
+          Designed &amp; Developed by <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: #fbbf24; font-weight: 600; text-decoration: underline; text-underline-offset: 2px;">Drew Macaraig</a>
+        </div>
       </div>
     </div>
 

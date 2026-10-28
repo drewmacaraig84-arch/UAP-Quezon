@@ -14,7 +14,7 @@
             </div>
         </div>
         <div style="font-size: 12px; color: var(--text-secondary); text-align: right;">
-            UAP-Quezon Portal &bull; Designed &amp; Developed by <strong>Aries King Nieto</strong> and <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; text-underline-offset: 2px;"><strong>Drew Macaraig</strong></a>
+            Designed &amp; Developed by <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: var(--accent-primary, #f59e0b); font-weight: 700; text-decoration: underline; text-underline-offset: 2px;">Drew Macaraig</a>
         </div>
     </div>
 </footer>

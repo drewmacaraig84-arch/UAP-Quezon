@@ -1209,7 +1209,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             <div>
                 &copy; <?php echo date('Y'); ?> United Architects of the Philippines - Quezon Chapter. All rights reserved.
                 <div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-muted);">
-                    Developed by <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: var(--quezon-gold); font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">Drew Macaraig</a>
+                    Designed &amp; Developed by <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: var(--quezon-gold); font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">Drew Macaraig</a>
                 </div>
             </div>
             <div style="color: var(--quezon-green-light); font-weight: 600;">Area B • Quezon Province</div>

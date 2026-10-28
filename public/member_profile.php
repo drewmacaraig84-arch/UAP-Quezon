@@ -803,13 +803,18 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
             <div class="footer-col">
                 <h4>Contact Us</h4>
                 <div class="contact-details">
-                    <p style="display:flex; align-items:center; gap:6px;"><?php echo icon('map_pin', '', 14); ?> <strong>Address:</strong> Calapan City, Oriental Quezon, Philippines</p>
-                    <p style="display:flex; align-items:center; gap:6px;"><?php echo icon('mail', '', 14); ?> <strong>Email:</strong> uapQuezonchapter@gmail.com</p>
+                    <p style="display:flex; align-items:center; gap:6px;"><?php echo icon('map_pin', '', 14); ?> <strong>Address:</strong> Lucena City, Quezon Province, Philippines</p>
+                    <p style="display:flex; align-items:center; gap:6px;"><?php echo icon('mail', '', 14); ?> <strong>Email:</strong> quezon@united-architects.ph</p>
                 </div>
             </div>
         </div>
         <div class="copyright">
-            &copy; <?php echo date('Y'); ?> United Architects of the Philippines - Quezon Chapter. All rights reserved.
+            <div>
+                &copy; <?php echo date('Y'); ?> United Architects of the Philippines - Quezon Chapter. All rights reserved.
+                <div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-muted, #94a3b8);">
+                    Designed &amp; Developed by <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: var(--quezon-gold, #f59e0b); font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">Drew Macaraig</a>
+                </div>
+            </div>
         </div>
     </footer>
 
