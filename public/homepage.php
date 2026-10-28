@@ -57,12 +57,15 @@ try {
     $sponsors = $pdo->query("SELECT * FROM sponsors WHERE is_active = 1 AND deleted_at IS NULL ORDER BY display_order ASC LIMIT 8")->fetchAll();
 } catch (Exception $e) {}
 
-// Fetch about us from database
+// Fetch about us and contact details from database
 $aboutUsText = get_site_setting(
     $pdo, 
     'about_us', 
     'The United Architects of the Philippines (UAP) Quezon Chapter unites registered and licensed architects across Quezon Province. We stand committed to architectural excellence, environmental stewardship of Mt. Banahaw and the Quezon coastline, heritage preservation, and sustainable community development.'
 );
+$contactEmail = get_site_setting($pdo, 'contact_email', 'quezon@united-architects.ph');
+$contactPhone = get_site_setting($pdo, 'contact_phone', '+63 917 555 UAPQ');
+$contactAddress = get_site_setting($pdo, 'contact_address', 'Lucena City, Quezon Province, Philippines');
 
 // Fetch news from database
 $newsItems = [];
@@ -647,7 +650,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             max-width: 1300px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
+            grid-template-columns: 2fr 1fr 1.25fr;
             gap: 3rem;
             margin-bottom: 3rem;
         }
@@ -1017,13 +1020,30 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             </div>
 
             <div class="footer-col">
-                <h4>Administration</h4>
+                <h4>Contact UAP-QC</h4>
                 <ul>
-                    <li><a href="<?php echo BASE_URL; ?>/auth/login.php">Officer Login</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>/admin/system_health.php">Super Admin Telemetry</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>/admin/crash_logs.php">Crash Logs Monitor</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>/admin/soft_deleted_files.php">Trash Bin Quarantine</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>/admin/database_backup.php">Database Backup Tool</a></li>
+                    <li style="display: flex; align-items: flex-start; gap: 8px; color: var(--text-muted); font-size: 0.88rem; line-height: 1.4;">
+                        <span style="color: var(--quezon-gold); flex-shrink: 0; margin-top: 2px;"><?php echo icon('map_pin', '', 15); ?></span>
+                        <span><?php echo htmlspecialchars($contactAddress); ?></span>
+                    </li>
+                    <li style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem;">
+                        <span style="color: var(--quezon-gold); flex-shrink: 0;"><?php echo icon('mail', '', 15); ?></span>
+                        <a href="mailto:<?php echo htmlspecialchars($contactEmail); ?>" style="color: var(--text-muted); text-decoration: none; word-break: break-all;"><?php echo htmlspecialchars($contactEmail); ?></a>
+                    </li>
+                    <li style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem;">
+                        <span style="color: var(--quezon-gold); flex-shrink: 0;"><?php echo icon('phone', '', 15); ?></span>
+                        <a href="tel:<?php echo htmlspecialchars(preg_replace('/[^0-9+]/', '', $contactPhone)); ?>" style="color: var(--text-muted); text-decoration: none;"><?php echo htmlspecialchars($contactPhone); ?></a>
+                    </li>
+                    <li style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 0.88rem;">
+                        <span style="color: var(--quezon-gold); flex-shrink: 0;"><?php echo icon('clock', '', 15); ?></span>
+                        <span>Mon &ndash; Fri &bull; 9:00 AM &ndash; 5:00 PM</span>
+                    </li>
+                    <li style="margin-top: 6px;">
+                        <a href="#contact" style="display: inline-flex; align-items: center; gap: 6px; color: var(--quezon-green-light); font-weight: 700; font-size: 0.85rem; text-decoration: none;">
+                            <span>Message Chapter Secretariat</span>
+                            <?php echo icon('arrow_right', '', 13); ?>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
