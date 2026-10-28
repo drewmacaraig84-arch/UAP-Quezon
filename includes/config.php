@@ -304,21 +304,19 @@ try {
 } catch (PDOException $e) {
     $pdoError = $e->getMessage();
     
-    // Auto-discover database on shared hosts like InfinityFree if name differed
+    // Auto-discover candidate database names on shared hosts like InfinityFree if name or casing differed
     if (str_contains($e->getMessage(), '1044') || str_contains($e->getMessage(), '1049') || (int)$e->getCode() === 1044 || (int)$e->getCode() === 1049) {
-        try {
-            $rootPdo = new PDO("mysql:host=" . DB_HOST . $dbPortStr . ";charset=utf8mb4", DB_USER, DB_PASS);
-            $dbs = $rootPdo->query("SHOW DATABASES")->fetchAll(PDO::FETCH_COLUMN);
-            $foundDb = null;
-            foreach ($dbs as $d) {
-                if ($d !== 'information_schema' && $d !== 'test' && str_starts_with($d, DB_USER)) {
-                    $foundDb = $d;
-                    break;
-                }
-            }
-            if ($foundDb) {
+        $candidateDbs = array_unique([
+            'if0_43293362_Uap_qc',
+            'if0_43293362_uap_qc',
+            (defined('DB_USER') ? DB_USER : '') . '_Uap_qc',
+            (defined('DB_USER') ? DB_USER : '') . '_uap_qc'
+        ]);
+        foreach ($candidateDbs as $cand) {
+            if (!$cand || $cand === DB_NAME) continue;
+            try {
                 $pdo = new PDO(
-                    "mysql:host=" . DB_HOST . $dbPortStr . ";dbname=" . $foundDb . ";charset=utf8mb4",
+                    "mysql:host=" . DB_HOST . $dbPortStr . ";dbname=" . $cand . ";charset=utf8mb4",
                     DB_USER,
                     DB_PASS,
                     [
@@ -329,8 +327,9 @@ try {
                     ]
                 );
                 $pdoError = null;
-            }
-        } catch (Throwable $ignore) {}
+                break;
+            } catch (Throwable $eCand) {}
+        }
     }
 
     if ($pdo === null) {

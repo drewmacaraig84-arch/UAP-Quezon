@@ -764,17 +764,6 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             The official digital hub of the United Architects of the Philippines - Quezon Chapter. Uniting registered architects across Lucena City, Tayabas, Sariaya, and the four legislative districts of Quezon Province.
         </p>
 
-        <div class="hero-buttons">
-            <a href="#directory" class="btn-primary-quezon">
-                <?php echo icon('members', '', 16); ?>
-                <span>Browse Chapter Directory</span>
-            </a>
-            <a href="<?php echo BASE_URL; ?>/auth/login.php" class="btn-outline-quezon">
-                <?php echo icon('wallet', '', 16); ?>
-                <span>Pay Dues &amp; Access Receipts</span>
-            </a>
-        </div>
-
         <!-- STATS -->
         <div class="stats-bar">
             <div class="stat-item">
