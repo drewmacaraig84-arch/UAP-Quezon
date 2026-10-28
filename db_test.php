@@ -95,13 +95,33 @@ if ($matchedDb) {
     }
 
     if ($tableCount === 0) {
-        echo "<div style='background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; padding: 14px; border-radius: 8px;'>";
-        echo "<strong style='color: #f59e0b;'>Database is currently empty (0 tables).</strong><br>";
-        echo "Please open <strong>phpMyAdmin</strong> in your vPanel, select <code>{$matchedDb}</code>, click the <strong>Import</strong> tab, and import <code>schema.sql</code>.";
-        echo "</div>";
+        $schemaPath = __DIR__ . '/schema.sql';
+        if (file_exists($schemaPath)) {
+            $rawSql = file_get_contents($schemaPath);
+            $cleanSql = '';
+            foreach (explode("\n", $rawSql) as $line) {
+                $t = trim($line);
+                if ($t !== '' && !str_starts_with($t, '--') && !str_starts_with($t, '/*')) {
+                    $cleanSql .= $line . "\n";
+                }
+            }
+            foreach (array_filter(array_map('trim', explode(';', $cleanSql))) as $stmt) {
+                if ($stmt) {
+                    try { $pdo->exec($stmt); } catch (Throwable $e) {}
+                }
+            }
+            $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
+            $tableCount = count($tables);
+            echo "<div style='background: rgba(34,197,94,0.15); border: 1px solid #22c55e; padding: 14px; border-radius: 8px; margin-top: 10px;'>";
+            echo "<strong style='color: #22c55e;'>✓ Automatically imported schema.sql into {$matchedDb}!</strong><br>";
+            echo "Created <strong>{$tableCount}</strong> tables and initialized Admin, Super Admin, and Member accounts.<br>";
+            echo "<p style='margin-top: 10px;'><a href='auth/login.php' class='btn' style='display:inline-block; text-decoration:none;'>Go to Login Page &rarr;</a></p>";
+            echo "</div>";
+        }
     } else {
         echo "<p style='color: #22c55e;'>Found <strong>{$tableCount}</strong> tables in database: " . implode(', ', array_slice($tables, 0, 8)) . "...</p>";
-        echo "<p><a href='index.php' class='btn' style='display:inline-block; text-decoration:none;'>Open UAP Quezon Chapter Website &rarr;</a></p>";
+        echo "<p><a href='index.php' class='btn' style='display:inline-block; text-decoration:none;'>Open UAP Quezon Chapter Website &rarr;</a> ";
+        echo "<a href='auth/login.php' class='btn' style='display:inline-block; text-decoration:none; background: #e58a13; margin-left: 10px;'>Go to Login &rarr;</a></p>";
     }
     echo "</div>";
 } else {

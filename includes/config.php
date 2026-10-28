@@ -357,6 +357,33 @@ try {
     }
 }
 
+// Auto-initialize tables from schema.sql if database exists but tables haven't been created yet
+if ($pdo instanceof PDO) {
+    try {
+        $userCheck = $pdo->query("SHOW TABLES LIKE 'users'")->fetch();
+        if (!$userCheck) {
+            $schemaPath = dirname(__DIR__) . '/schema.sql';
+            if (file_exists($schemaPath)) {
+                $rawSql = file_get_contents($schemaPath);
+                $cleanSql = '';
+                foreach (explode("\n", $rawSql) as $line) {
+                    $t = trim($line);
+                    if ($t !== '' && !str_starts_with($t, '--') && !str_starts_with($t, '/*')) {
+                        $cleanSql .= $line . "\n";
+                    }
+                }
+                foreach (array_filter(array_map('trim', explode(';', $cleanSql))) as $stmt) {
+                    if ($stmt) {
+                        try {
+                            $pdo->exec($stmt);
+                        } catch (Throwable $ignoreStmt) {}
+                    }
+                }
+            }
+        }
+    } catch (Throwable $ignoreSchema) {}
+}
+
 if (session_status() === PHP_SESSION_NONE && php_sapi_name() !== 'cli') {
     @session_start();
 }

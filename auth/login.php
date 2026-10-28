@@ -23,9 +23,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id_number = trim($_POST['id_number'] ?? '');
         $password = $_POST['password'] ?? '';
 
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE id_number = ? OR (prc_number = ? AND prc_number IS NOT NULL AND prc_number != '') LIMIT 1");
-        $stmt->execute([$id_number, $id_number]);
-        $user = $stmt->fetch();
+        try {
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE id_number = ? OR (prc_number = ? AND prc_number IS NOT NULL AND prc_number != '') LIMIT 1");
+            $stmt->execute([$id_number, $id_number]);
+            $user = $stmt->fetch();
+        } catch (PDOException $e) {
+            // Auto-initialize tables from schema.sql if tables do not exist yet
+            if (str_contains($e->getMessage(), '1146') || (int)$e->getCode() === 1146) {
+                $schemaFile = __DIR__ . '/../schema.sql';
+                if (file_exists($schemaFile)) {
+                    $rawSql = file_get_contents($schemaFile);
+                    $cleanSql = '';
+                    foreach (explode("\n", $rawSql) as $line) {
+                        $t = trim($line);
+                        if ($t !== '' && !str_starts_with($t, '--') && !str_starts_with($t, '/*')) {
+                            $cleanSql .= $line . "\n";
+                        }
+                    }
+                    foreach (array_filter(array_map('trim', explode(';', $cleanSql))) as $sqlStmt) {
+                        if ($sqlStmt) {
+                            try { $pdo->exec($sqlStmt); } catch (Throwable $eIgnore) {}
+                        }
+                    }
+                    $stmt = $pdo->prepare("SELECT * FROM users WHERE id_number = ? OR (prc_number = ? AND prc_number IS NOT NULL AND prc_number != '') LIMIT 1");
+                    $stmt->execute([$id_number, $id_number]);
+                    $user = $stmt->fetch();
+                } else {
+                    throw $e;
+                }
+            } else {
+                throw $e;
+            }
+        }
 
         if ($user && password_verify($password, $user['password'])) {
             unset($_SESSION[$rateKey], $_SESSION[$rateKey . '_time']);
