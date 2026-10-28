@@ -82,7 +82,7 @@ include __DIR__ . '/../includes/header.php';
     </button>
   </div>
 
-  <div class="auth-card-modern" style="max-width: 1060px; grid-template-columns: 360px 1fr; margin: 0 auto;">
+  <div class="auth-card-modern register-card" style="max-width: 1060px; margin: 0 auto;">
     <!-- LEFT BRANDING & HERO PANEL -->
     <div class="auth-hero-panel" style="position: sticky; top: 30px; height: fit-content; min-height: 100%;">
       <div>
@@ -150,7 +150,7 @@ include __DIR__ . '/../includes/header.php';
           Section 1: Architectural Identity
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div class="form-row-2">
           <div class="field" style="margin: 0;">
             <label>Full Legal Name <span style="color:#ef4444;">*</span></label>
             <div class="input-icon-wrap">
@@ -172,7 +172,7 @@ include __DIR__ . '/../includes/header.php';
           Section 2: Member Demographic Details
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div class="form-row-2">
           <div class="field" style="margin: 0;">
             <label>Gender</label>
             <select name="gender" class="form-control" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg, #0f172a); color: var(--text-primary);">
@@ -196,7 +196,7 @@ include __DIR__ . '/../includes/header.php';
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div class="form-row-2">
           <div class="field" style="margin: 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
               <label style="margin: 0;">Birth Date</label>
@@ -231,7 +231,7 @@ include __DIR__ . '/../includes/header.php';
           Section 3: Security &amp; Credentials
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+        <div class="form-row-2" style="margin-bottom: 18px;">
           <div class="field" style="margin: 0;">
             <label>Create Password <span style="color:#ef4444;">*</span></label>
             <div class="input-icon-wrap">

@@ -411,8 +411,19 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         }
 
         /* DIRECTORY TABLE */
+        .directory-table-wrap {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 12px;
+            border: 1px solid var(--quezon-border);
+            margin-top: 10px;
+        }
+
         .directory-table {
             width: 100%;
+            min-width: 620px;
             border-collapse: collapse;
             font-size: 0.9rem;
         }
@@ -707,11 +718,148 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             color: var(--text-muted);
         }
 
+        .about-features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 2rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 9px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--quezon-border);
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+
+        .mobile-menu-btn:hover, .mobile-menu-btn:active {
+            background: rgba(229, 138, 19, 0.15);
+            border-color: var(--quezon-gold);
+            color: var(--quezon-gold);
+        }
+
+        .mobile-nav-drawer {
+            display: none;
+            background: #090e1a;
+            border-bottom: 2px solid var(--quezon-gold);
+            padding: 1rem 1.25rem 1.5rem;
+            box-shadow: 0 16px 35px rgba(0,0,0,0.6);
+        }
+
+        .mobile-nav-drawer.open {
+            display: block;
+            animation: mobileSlideDown 0.22s ease-out;
+        }
+
+        @keyframes mobileSlideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mobile-nav-drawer ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mobile-nav-drawer a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.92rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-nav-drawer a:hover, .mobile-nav-drawer a:active {
+            color: var(--quezon-gold);
+            border-color: var(--quezon-border-gold);
+            background: rgba(229, 138, 19, 0.1);
+        }
+
+        .mobile-portal-item {
+            margin-top: 6px;
+            padding-top: 10px;
+            border-top: 1px solid var(--quezon-border);
+        }
+
+        .btn-mobile-portal {
+            background: var(--gradient-brand) !important;
+            color: #ffffff !important;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(229, 138, 19, 0.35);
+        }
+
+        /* RESPONSIVE BREAKPOINTS (Tablets & Mobile Devices) */
         @media (max-width: 960px) {
             .content-grid { grid-template-columns: 1fr; }
-            .stats-bar { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
-            .footer-container { grid-template-columns: 1fr; }
-            header nav { display: none; }
+            .stats-bar { grid-template-columns: repeat(3, 1fr); gap: 1rem; padding: 1.5rem; }
+            .footer-container { grid-template-columns: 1fr; gap: 2.2rem; }
+            .desktop-nav { display: none; }
+            .mobile-menu-btn { display: inline-flex; }
+            .about-features-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+        }
+
+        @media (max-width: 768px) {
+            .header-container { padding: 0.8rem 1.25rem; }
+            .hero { padding: 4.5rem 1.25rem 3.5rem; }
+            .stats-bar { grid-template-columns: 1fr; gap: 1rem; padding: 1.2rem; margin-top: 2rem; }
+            .page-container { padding: 2.5rem 1.25rem; }
+            .section-box { padding: 1.6rem 1.25rem; }
+            .copyright { flex-direction: column; align-items: flex-start; gap: 10px; text-align: left; }
+            .milestone-item { padding: 12px; }
+        }
+
+        @media (max-width: 540px) {
+            .header-container { padding: 0.65rem 0.9rem; gap: 0.6rem; }
+            .brand-logo { gap: 10px; }
+            .brand-logo img { height: 38px; }
+            .brand-title { font-size: 0.98rem; }
+            .brand-sub { display: none; }
+            .btn-portal { padding: 0.5rem 0.85rem; font-size: 0.75rem; gap: 4px; }
+            .btn-portal span { display: none; }
+            .btn-portal::after { content: 'Portal'; }
+            .hero { padding: 3.2rem 1rem 2.2rem; }
+            .hero h1 { font-size: 1.85rem; }
+            .hero p.lead { font-size: 0.92rem; }
+            .hero-badge { font-size: 0.72rem; padding: 4px 10px; }
+            .section-box { padding: 1.35rem 1rem; border-radius: 14px; margin-bottom: 1.8rem; }
+            .section-box::before { left: 1rem; right: 1rem; }
+            .section-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .section-header h2 { font-size: 1.3rem; }
+            .about-features-grid { grid-template-columns: 1fr; }
+            .news-card { padding: 1.2rem 1rem; }
+            .sidebar-box { padding: 1.35rem 1rem; border-radius: 14px; }
+            footer { padding: 3rem 1rem 2rem; }
+            .form-control { font-size: 16px; } /* Prevents iOS auto-zoom on input focus */
+        }
+
+        @media (max-width: 380px) {
+            .header-container { padding: 0.5rem 0.75rem; }
+            .brand-title { font-size: 0.9rem; }
+            .mobile-menu-btn { width: 36px; height: 36px; }
+            .hero h1 { font-size: 1.65rem; }
+            .stat-value { font-size: 1.8rem; }
         }
     </style>
 </head>
@@ -730,7 +878,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 </div>
             </div>
 
-            <nav>
+            <nav class="desktop-nav">
                 <ul>
                     <li><a href="#about">About</a></li>
                     <li><a href="#directory">Architects</a></li>
@@ -740,12 +888,32 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 </ul>
             </nav>
 
-            <div>
+            <div class="header-actions">
                 <a href="<?php echo BASE_URL; ?>/auth/login.php" class="btn-portal">
                     <?php echo icon('shield_check', '', 14); ?>
                     <span>Portal Login</span>
                 </a>
+                <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation menu" onclick="toggleMobileMenu()">
+                    <?php echo icon('dashboard', '', 20); ?>
+                </button>
             </div>
+        </div>
+
+        <!-- Mobile Navigation Drawer -->
+        <div class="mobile-nav-drawer" id="mobileNavDrawer">
+            <ul>
+                <li><a href="#about" onclick="closeMobileMenu()"><?php echo icon('landmark', '', 16); ?> <span>About Chapter</span></a></li>
+                <li><a href="#directory" onclick="closeMobileMenu()"><?php echo icon('members', '', 16); ?> <span>Architect Directory</span></a></li>
+                <li><a href="#news" onclick="closeMobileMenu()"><?php echo icon('newspaper', '', 16); ?> <span>News &amp; Events</span></a></li>
+                <li><a href="#milestones" onclick="closeMobileMenu()"><?php echo icon('clock', '', 16); ?> <span>Milestones</span></a></li>
+                <li><a href="#contact" onclick="closeMobileMenu()"><?php echo icon('mail', '', 16); ?> <span>Contact Us</span></a></li>
+                <li class="mobile-portal-item">
+                    <a href="<?php echo BASE_URL; ?>/auth/login.php" class="btn-mobile-portal">
+                        <?php echo icon('shield_check', '', 16); ?>
+                        <span>Sign In to Member Portal</span>
+                    </a>
+                </li>
+            </ul>
         </div>
     </header>
 
@@ -804,7 +972,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                             <p style="font-size: 0.88rem;">Quezon Chapter architects are updating their digital profiles and good standing records.</p>
                         </div>
                     <?php else: ?>
-                        <div style="overflow-x: auto;">
+                        <div class="directory-table-wrap">
                             <table class="directory-table">
                                 <thead>
                                     <tr>
@@ -845,7 +1013,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                         <p><?php echo nl2br(htmlspecialchars($aboutUsText)); ?></p>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 2rem;">
+                    <div class="about-features-grid">
                         <div style="background: var(--quezon-card-inner); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--quezon-border);">
                             <div style="color: var(--quezon-gold); margin-bottom: 8px;"><?php echo icon('building', '', 22); ?></div>
                             <h4 style="color: #ffffff; margin-bottom: 4px; font-size: 0.95rem;">Heritage Advocacy</h4>
@@ -1047,5 +1215,28 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             <div style="color: var(--quezon-green-light); font-weight: 600;">Area B • Quezon Province</div>
         </div>
     </footer>
+    <script>
+    function toggleMobileMenu() {
+        const drawer = document.getElementById('mobileNavDrawer');
+        if (drawer) {
+            drawer.classList.toggle('open');
+        }
+    }
+    function closeMobileMenu() {
+        const drawer = document.getElementById('mobileNavDrawer');
+        if (drawer) {
+            drawer.classList.remove('open');
+        }
+    }
+    document.addEventListener('click', function(e) {
+        const drawer = document.getElementById('mobileNavDrawer');
+        const btn = document.getElementById('mobileMenuBtn');
+        if (drawer && drawer.classList.contains('open')) {
+            if (!drawer.contains(e.target) && !btn.contains(e.target)) {
+                drawer.classList.remove('open');
+            }
+        }
+    });
+    </script>
 </body>
 </html>
