@@ -116,14 +116,25 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             --font-heading: 'Space Grotesk', sans-serif;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *, *:before, *:after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
 
         body {
             background-color: var(--quezon-dark);
             color: var(--text-light);
             font-family: var(--font-family);
             line-height: 1.6;
+            width: 100%;
+            max-width: 100vw;
             overflow-x: hidden;
+            position: relative;
+            box-sizing: border-box;
         }
 
         a { color: inherit; text-decoration: none; }
@@ -223,6 +234,10 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             background: radial-gradient(circle at 50% 20%, rgba(229, 138, 19, 0.12) 0%, rgba(21, 128, 61, 0.08) 50%, var(--quezon-dark) 80%);
             border-bottom: 1px solid var(--quezon-border);
             text-align: center;
+            width: 100%;
+            max-width: 100vw;
+            box-sizing: border-box;
+            overflow-x: hidden;
         }
 
         .hero-badge {
@@ -322,15 +337,17 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         /* STATS BAR */
         .stats-bar {
             max-width: 1100px;
+            width: 100%;
             margin: 3.5rem auto 0;
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 1.5rem;
             padding: 1.8rem 2rem;
             background: rgba(19, 29, 51, 0.65);
             backdrop-filter: blur(10px);
             border: 1px solid var(--quezon-border);
             border-radius: 16px;
+            box-sizing: border-box;
         }
 
         .stat-item {
@@ -356,15 +373,26 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         /* MAIN CONTENT LAYOUT */
         .page-container {
             max-width: 1300px;
+            width: 100%;
             margin: 0 auto;
             padding: 4rem 2rem;
+            box-sizing: border-box;
         }
 
         .content-grid {
             display: grid;
-            grid-template-columns: 2.4fr 1fr;
+            grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr);
             gap: 2.5rem;
             align-items: start;
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
+        main, aside {
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         /* SECTIONS */
@@ -376,6 +404,10 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             margin-bottom: 2.5rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.25);
             position: relative;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
         }
 
         .section-box::before {
@@ -423,7 +455,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 
         .directory-table {
             width: 100%;
-            min-width: 620px;
+            min-width: 580px;
             border-collapse: collapse;
             font-size: 0.9rem;
         }
@@ -462,7 +494,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         /* NEWS CARDS */
         .news-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
             gap: 1.5rem;
         }
 
@@ -655,15 +687,21 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             background: #080d19;
             border-top: 1px solid var(--quezon-border);
             padding: 4rem 2rem 2rem;
+            width: 100%;
+            max-width: 100vw;
+            box-sizing: border-box;
+            overflow-x: hidden;
         }
 
         .footer-container {
             max-width: 1300px;
+            width: 100%;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: 2fr 1fr 1.25fr;
+            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.25fr);
             gap: 3rem;
             margin-bottom: 3rem;
+            box-sizing: border-box;
         }
 
         .footer-brand {
@@ -812,54 +850,65 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 
         /* RESPONSIVE BREAKPOINTS (Tablets & Mobile Devices) */
         @media (max-width: 960px) {
-            .content-grid { grid-template-columns: 1fr; }
-            .stats-bar { grid-template-columns: repeat(3, 1fr); gap: 1rem; padding: 1.5rem; }
-            .footer-container { grid-template-columns: 1fr; gap: 2.2rem; }
+            .content-grid { grid-template-columns: minmax(0, 1fr); }
+            .stats-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding: 1.5rem; }
+            .footer-container { grid-template-columns: minmax(0, 1fr); gap: 2.2rem; }
             .desktop-nav { display: none; }
             .mobile-menu-btn { display: inline-flex; }
-            .about-features-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+            .about-features-grid { grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); }
         }
 
         @media (max-width: 768px) {
-            .header-container { padding: 0.8rem 1.25rem; }
-            .hero { padding: 4.5rem 1.25rem 3.5rem; }
-            .stats-bar { grid-template-columns: 1fr; gap: 1rem; padding: 1.2rem; margin-top: 2rem; }
-            .page-container { padding: 2.5rem 1.25rem; }
-            .section-box { padding: 1.6rem 1.25rem; }
+            .header-container { padding: 0.8rem 1rem; }
+            .hero { padding: 4rem 1rem 3rem; }
+            .hero h1 { font-size: clamp(1.65rem, 6vw, 2.4rem); line-height: 1.2; }
+            .hero p.lead { font-size: 0.95rem; margin-bottom: 1.8rem; }
+            .stats-bar { grid-template-columns: minmax(0, 1fr); gap: 1rem; padding: 1.2rem; margin-top: 2rem; }
+            .page-container { padding: 2rem 1rem; }
+            .section-box { padding: 1.5rem 1.1rem; border-radius: 14px; margin-bottom: 1.8rem; }
+            .section-box::before { left: 1rem; right: 1rem; }
+            .sidebar-box { padding: 1.5rem 1.1rem; border-radius: 14px; margin-bottom: 1.8rem; }
             .copyright { flex-direction: column; align-items: flex-start; gap: 10px; text-align: left; }
             .milestone-item { padding: 12px; }
+            footer { padding: 3rem 1rem 2rem; }
+            .table-scroll-hint { display: flex !important; }
         }
 
         @media (max-width: 540px) {
-            .header-container { padding: 0.65rem 0.9rem; gap: 0.6rem; }
-            .brand-logo { gap: 10px; }
-            .brand-logo img { height: 38px; }
-            .brand-title { font-size: 0.98rem; }
+            .header-container { padding: 0.65rem 0.85rem; gap: 0.5rem; }
+            .brand-logo { gap: 8px; }
+            .brand-logo img { height: 36px; }
+            .brand-title { font-size: 0.95rem; }
             .brand-sub { display: none; }
-            .btn-portal { padding: 0.5rem 0.85rem; font-size: 0.75rem; gap: 4px; }
+            .btn-portal { padding: 0.45rem 0.75rem; font-size: 0.75rem; gap: 4px; }
             .btn-portal span { display: none; }
             .btn-portal::after { content: 'Portal'; }
-            .hero { padding: 3.2rem 1rem 2.2rem; }
-            .hero h1 { font-size: 1.85rem; }
-            .hero p.lead { font-size: 0.92rem; }
-            .hero-badge { font-size: 0.72rem; padding: 4px 10px; }
-            .section-box { padding: 1.35rem 1rem; border-radius: 14px; margin-bottom: 1.8rem; }
-            .section-box::before { left: 1rem; right: 1rem; }
+            .hero { padding: 3rem 0.85rem 2rem; }
+            .hero h1 { font-size: 1.65rem; }
+            .hero p.lead { font-size: 0.88rem; }
+            .hero-badge { font-size: 0.7rem; padding: 4px 10px; }
+            .page-container { padding: 1.5rem 0.75rem; }
+            .section-box { padding: 1.2rem 0.85rem; border-radius: 12px; margin-bottom: 1.5rem; }
+            .section-box::before { left: 0.85rem; right: 0.85rem; }
             .section-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-            .section-header h2 { font-size: 1.3rem; }
-            .about-features-grid { grid-template-columns: 1fr; }
-            .news-card { padding: 1.2rem 1rem; }
-            .sidebar-box { padding: 1.35rem 1rem; border-radius: 14px; }
-            footer { padding: 3rem 1rem 2rem; }
+            .section-header h2 { font-size: 1.2rem; }
+            .about-features-grid { grid-template-columns: minmax(0, 1fr); }
+            .news-grid { grid-template-columns: minmax(0, 1fr); }
+            .news-card { padding: 1.1rem 0.85rem; }
+            .sidebar-box { padding: 1.2rem 0.85rem; border-radius: 12px; }
+            footer { padding: 2.5rem 0.85rem 1.8rem; }
             .form-control { font-size: 16px; } /* Prevents iOS auto-zoom on input focus */
+            .stat-value { font-size: 1.8rem; }
         }
 
         @media (max-width: 380px) {
-            .header-container { padding: 0.5rem 0.75rem; }
-            .brand-title { font-size: 0.9rem; }
-            .mobile-menu-btn { width: 36px; height: 36px; }
-            .hero h1 { font-size: 1.65rem; }
-            .stat-value { font-size: 1.8rem; }
+            .header-container { padding: 0.5rem 0.65rem; }
+            .brand-logo img { height: 32px; }
+            .brand-title { font-size: 0.85rem; }
+            .mobile-menu-btn { width: 34px; height: 34px; }
+            .btn-portal { padding: 0.4rem 0.6rem; font-size: 0.7rem; }
+            .hero h1 { font-size: 1.45rem; }
+            .stat-value { font-size: 1.6rem; }
         }
     </style>
 </head>
@@ -972,6 +1021,12 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                             <p style="font-size: 0.88rem;">Quezon Chapter architects are updating their digital profiles and good standing records.</p>
                         </div>
                     <?php else: ?>
+                        <div class="table-scroll-hint" style="display: none; align-items: center; justify-content: space-between; background: rgba(229,138,19,0.08); border: 1px dashed var(--quezon-border-gold); padding: 7px 12px; border-radius: 8px; font-size: 11.5px; color: var(--quezon-gold); margin-bottom: 8px;">
+                            <span style="display: flex; align-items: center; gap: 6px;">
+                                <?php echo icon('members', '', 14); ?> <span>Scroll table horizontally for full credentials</span>
+                            </span>
+                            <span style="font-weight: 700; letter-spacing: 2px;">&larr;&rarr;</span>
+                        </div>
                         <div class="directory-table-wrap">
                             <table class="directory-table">
                                 <thead>

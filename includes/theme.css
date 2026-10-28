@@ -123,7 +123,13 @@ html[data-theme="dark"] {
 }
 
 /* ================= Global Reset & Typography ================= */
-* {
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+
+html {
+  max-width: 100vw;
+  overflow-x: hidden;
   box-sizing: border-box;
 }
 
@@ -133,11 +139,15 @@ body {
   color: var(--app-text);
   margin: 0;
   min-height: 100vh;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
   line-height: 1.55;
   padding-left: 260px;
   padding-top: 76px;
   transition: background 0.25s ease, color 0.25s ease;
   -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
 }
 
 body[data-auth="false"] {
@@ -604,10 +614,13 @@ nav::-webkit-scrollbar-thumb {
 }
 
 /* ================= Content Container & Cards ================= */
-.container {
+.container, .content-wrapper {
   max-width: 1380px;
   margin: 0 auto;
   padding: 28px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .page-hero {
@@ -1165,14 +1178,20 @@ tr:hover td {
 
 @media (max-width: 900px) {
   body {
-    padding-left: 0;
+    padding-left: 0 !important;
+    padding-top: 64px !important;
   }
   .topbar {
-    left: 0;
+    left: 0 !important;
+    padding: 0 16px;
+    height: 64px;
+    z-index: 100;
   }
   nav {
     transform: translateX(-100%);
     transition: transform 0.25s ease;
+    z-index: 200;
+    box-shadow: 0 0 35px rgba(0,0,0,0.5);
   }
   nav.open {
     transform: translateX(0);
@@ -1189,56 +1208,117 @@ tr:hover td {
     color: var(--text-primary);
     cursor: pointer;
   }
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 190;
+  }
+  .sidebar-backdrop.active {
+    display: block;
+  }
 }
 
 .form-row-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 14px;
 }
 
 @media (max-width: 900px) {
   .register-card {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
   .register-card .auth-hero-panel {
     position: static !important;
-    padding: 30px 24px !important;
+    padding: 28px 20px !important;
   }
   .register-card .auth-form-panel {
-    padding: 30px 24px !important;
+    padding: 28px 20px !important;
   }
 }
 
 @media (max-width: 768px) {
   .auth-card-modern {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
   .auth-hero-panel {
-    padding: 32px 24px;
+    padding: 28px 18px;
     border-right: 0;
     border-bottom: 1px solid var(--border-color);
   }
   .auth-form-panel {
-    padding: 32px 24px;
+    padding: 28px 18px;
   }
   .form-row-2 {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: 12px;
+  }
+  .container, .content-wrapper {
+    padding: 16px 12px;
+  }
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+    font-size: 16px !important; /* Prevents auto-zoom on iOS devices */
   }
 }
 
 @media (max-width: 640px) {
   .grid-2 {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px;
   }
-  .container {
-    padding: 16px;
+  .card {
+    padding: 16px 12px;
+    border-radius: 12px;
   }
   .page-hero {
     flex-direction: column;
     align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .page-hero h1 {
+    font-size: 1.35rem !important;
+  }
+  .topbar {
+    padding: 0 10px;
+    height: 58px;
+  }
+  body {
+    padding-top: 58px !important;
+  }
+  .topbar-search {
+    display: none;
+  }
+  .topbar-actions {
+    gap: 8px;
+  }
+  .user-info {
+    display: none;
+  }
+  .user-chip {
+    padding: 3px 6px 3px 3px;
+    gap: 4px;
+  }
+  .notification-dropdown {
+    width: calc(100vw - 20px) !important;
+    right: -40px !important;
+    max-width: 320px;
+  }
+  .footer {
+    padding: 16px 12px !important;
+    text-align: center;
+  }
+  .footer > div {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center !important;
+  }
+  .footer div {
+    text-align: center !important;
   }
 }
 
@@ -1329,3 +1409,51 @@ tr:hover td {
 }
 
 
+
+/* ==========================================================================
+   UNIVERSAL RESPONSIVE GUARDS (TABLETS & MOBILE PHONES)
+   ========================================================================== */
+.card, .content-wrapper, .container, main, section {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Modals & Dialogs responsiveness */
+[id*="Modal"] > div, .modal-content, .modal-dialog {
+  max-width: 95vw !important;
+  max-height: 90vh !important;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  /* Tables inside cards automatically scroll smoothly without layout overflow */
+  .card > table,
+  div:not(.table-shell) > table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .auth-page {
+    padding: 24px 12px !important;
+  }
+
+  [id*="Modal"] > div, .modal-content, .modal-dialog {
+    width: 95vw !important;
+    margin: 10px auto !important;
+    padding: 16px 14px !important;
+    border-radius: 14px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 16px 8px !important;
+  }
+  .page-title {
+    font-size: 1.25rem !important;
+  }
+}

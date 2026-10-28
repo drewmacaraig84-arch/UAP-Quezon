@@ -145,9 +145,20 @@ document.addEventListener('DOMContentLoaded', function() {
 // ================= MOBILE NAVIGATION =================
 function toggleMobileMenu() {
   const nav = document.getElementById('sidebarNav');
+  const backdrop = document.getElementById('sidebarBackdrop');
   if (nav) {
-    nav.classList.toggle('open');
+    const isOpen = nav.classList.toggle('open');
+    if (backdrop) backdrop.classList.toggle('active', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
   }
+}
+
+function closeMobileNav() {
+  const nav = document.getElementById('sidebarNav');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (nav) nav.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('active');
+  document.body.style.overflow = '';
 }
 
 // ================= GLOBAL CONFIRMATION MODAL =================

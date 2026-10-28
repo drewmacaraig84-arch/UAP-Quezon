@@ -81,7 +81,14 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
             --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *, *:before, *:after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
 
         body {
             background-color: var(--bg-black);
@@ -89,8 +96,13 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
             font-family: var(--font-family);
             line-height: 1.6;
             min-height: 100vh;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+            position: relative;
             display: flex;
             flex-direction: column;
+            box-sizing: border-box;
         }
 
         a { color: inherit; text-decoration: none; }
@@ -217,201 +229,6 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
             padding: 2rem;
             margin-bottom: 1.8rem;
         }
-
-        .section-heading {
-            border-left: 4px solid var(--accent-yellow);
-            padding-left: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .section-heading h2 {
-            font-size: 1.35rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #ffffff;
-        }
-
-        .profile-hero-card {
-            background: linear-gradient(135deg, #141c28 0%, #0e141e 100%);
-            border: 1px solid rgba(245, 184, 0, 0.35);
-            border-radius: 12px;
-            padding: 28px 32px;
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            margin-bottom: 1.8rem;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
-        }
-
-        .profile-avatar-circle {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #f5b800, #b45309);
-            color: #000000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: 900;
-            flex-shrink: 0;
-            box-shadow: 0 6px 20px rgba(245, 184, 0, 0.3);
-        }
-
-        .profile-hero-info h1 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            color: #ffffff;
-            margin-bottom: 4px;
-            line-height: 1.2;
-        }
-
-        .profile-hero-info .role-tag {
-            color: var(--accent-yellow);
-            font-size: 1.15rem;
-            font-weight: 700;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.2rem;
-        }
-
-        .info-cell {
-            background: var(--bg-inner-card);
-            border: 1px solid var(--border-dark);
-            border-radius: 6px;
-            padding: 16px 18px;
-        }
-
-        .info-cell label {
-            display: block;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 4px;
-            font-weight: 700;
-        }
-
-        .info-cell span {
-            font-size: 1.05rem;
-            color: #ffffff;
-            font-weight: 600;
-            word-break: break-word;
-        }
-
-        .content-box {
-            background: var(--bg-inner-card);
-            border-left: 3px solid var(--accent-yellow);
-            border-radius: 0 6px 6px 0;
-            padding: 18px 22px;
-            color: #d1d5db;
-            font-size: 0.98rem;
-            line-height: 1.75;
-        }
-
-        .qr-wrapper {
-            background: #ffffff;
-            padding: 12px;
-            border-radius: 10px;
-            display: inline-block;
-            margin: 12px 0;
-        }
-
-        .qr-wrapper img {
-            max-width: 160px;
-            max-height: 160px;
-            object-fit: contain;
-            display: block;
-        }
-
-        footer {
-            background-color: #000000;
-            border-top: 1px solid var(--border-dark);
-            padding: 3rem 2rem 1.5rem;
-            width: 100%;
-        }
-
-        .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .footer-col h1 {
-            font-size: 1.1rem;
-            color: var(--accent-yellow);
-            margin-bottom: 1rem;
-        }
-
-        .footer-col h4 {
-            color: var(--text-light);
-            font-size: 0.95rem;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .contact-details p {
-            color: var(--text-muted);
-            font-size: 0.88rem;
-            margin-bottom: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .contact-details strong { color: var(--text-light); }
-
-        .copyright {
-            text-align: center;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border-dark);
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        @media (max-width: 768px) {
-            nav ul { display: none; }
-            .header-container { padding: 0.8rem 1rem; }
-            .main-container { padding: 1.5rem 1rem 3rem; }
-            .profile-hero-card { flex-direction: column; text-align: center; padding: 20px 16px; }
-            .profile-hero-info h1 { font-size: 1.6rem; }
-            .profile-hero-info .role-tag { font-size: 1rem; }
-            .dark-card { padding: 1.2rem; }
-            .info-grid { grid-template-columns: 1fr; }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- STICKY HEADER -->
-    <header>
-        <div class="header-container">
-            <div class="brand-logo">
-                <a href="<?php echo BASE_URL; ?>/index.php" style="display:flex;align-items:center;gap:14px;text-decoration:none;">
-                    <img src="<?php echo BASE_URL; ?>/public/logo.jpg" alt="UAP Quezon Logo" onerror="if(this.src.indexOf('uploads/logo.jpg')===-1)this.src='<?php echo BASE_URL; ?>/uploads/logo.jpg';">
-                    <div class="brand-title">UAP-<span>Quezon Chapter</span></div>
-                </a>
-            </div>
-
-            <div class="header-actions">
-                <nav>
-                    <ul>
-                        <li><a href="<?php echo BASE_URL; ?>/index.php#home">Home</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>/index.php#members">Members</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>/index.php#about">About</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>/index.php#news">News</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>/index.php#contact">Contact</a></li>
-                    </ul>
-                </nav>
-}
 
         .section-heading {
             border-left: 4px solid var(--accent-yellow);

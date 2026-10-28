@@ -253,6 +253,9 @@ require_once __DIR__ . '/icons.php';
     </div>
   </nav>
 
+  <!-- MOBILE SIDEBAR BACKDROP -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileNav()"></div>
+
   <!-- TOPBAR HEADER -->
   <header class="topbar">
     <div style="display: flex; align-items: center; gap: 12px;">
