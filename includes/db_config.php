@@ -35,7 +35,7 @@ if ($isInfinityFree) {
         define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : 'xDdiuKOGkEJ4O');
     }
     if (!defined('DB_NAME')) {
-        define('DB_NAME', getenv('DB_NAME') ?: 'if0_43293362_uap_qc');
+        define('DB_NAME', getenv('DB_NAME') ?: 'if0_43293362_Uap_qc');
     }
     if (!defined('ENABLE_REDIS')) {
         define('ENABLE_REDIS', false);
