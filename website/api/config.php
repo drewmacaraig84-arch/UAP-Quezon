@@ -1,6 +1,6 @@
 <?php
-// Bridge to the shared uap_mc DB connection
-// This file is in website/api/ which is 2 levels up from uap_mc root
+// Bridge to the shared UAP-Quezon DB connection
+// This file is in website/api/ which is 2 levels up from the UAP-Quezon root
 $uapRoot = __DIR__ . '/../../includes/config.php';
 if (!file_exists($uapRoot)) {
     http_response_code(500);

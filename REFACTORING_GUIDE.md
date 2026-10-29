@@ -1,15 +1,15 @@
-# UAP-MC Application Architecture Refactoring
+# UAP-Quezon Application Architecture Refactoring
 
 ## Overview
 
-Your UAP-MC application has been refactored to separate concerns into distinct, well-organized sections while maintaining full integration. This improves maintainability, scalability, and makes the codebase more intuitive to navigate.
+Your UAP-Quezon application has been refactored to separate concerns into distinct, well-organized sections while maintaining full integration. This improves maintainability, scalability, and makes the codebase more intuitive to navigate.
 
 ## Architecture Changes
 
 ### New Directory Structure
 
 ```
-UAP-MC/
+UAP-Quezon/
 ├── index.php              ← Central entry point (router)
 ├── auth/                  ← Authentication module
 │   ├── login.php

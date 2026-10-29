@@ -1,6 +1,6 @@
 <?php
 /**
- * UAP-MC Application Router
+ * UAP-Quezon Application Router
  * Directs visitors to the React website by default, or logged-in users to their portal dashboard.
  */
 require_once __DIR__ . '/includes/config.php';
