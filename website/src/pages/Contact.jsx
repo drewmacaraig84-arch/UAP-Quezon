@@ -10,8 +10,8 @@ export default function Contact() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
 
-  const contactEmail = settings?.contact_email || 'uapQuezon@gmail.com';
-  const contactAddress = settings?.contact_address || 'Calapan City, Oriental Quezon, Philippines 5200';
+  const contactEmail = settings?.contact_email || 'quezon@united-architects.ph';
+  const contactAddress = settings?.contact_address || 'Lucena City, Quezon Province, Philippines';
   const contactPhone = settings?.contact_phone || '+63 (0) XXXX XXXX';
   const hoursWeekdays = settings?.office_hours_weekdays || '9:00 AM – 5:00 PM';
   const hoursSaturday = settings?.office_hours_saturday || '9:00 AM – 12:00 PM';

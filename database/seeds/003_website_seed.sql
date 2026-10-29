@@ -6,8 +6,8 @@
 -- SITE SETTINGS: Contact Info & Office Hours (safe upsert)
 -- ============================================================
 INSERT INTO site_settings (setting_key, setting_value) VALUES
-  ('contact_address',       'Calapan City, Oriental Mindoro, Philippines 5200'),
-  ('contact_email',         'uapmindoro@gmail.com'),
+  ('contact_address',       'Lucena City, Quezon Province, Philippines'),
+  ('contact_email',         'quezon@united-architects.ph'),
   ('contact_phone',         '+63 (0) XXXX XXXX'),
   ('office_hours_weekdays', '9:00 AM – 5:00 PM'),
   ('office_hours_saturday', '9:00 AM – 12:00 PM'),

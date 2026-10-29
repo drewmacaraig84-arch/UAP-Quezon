@@ -1,6 +1,6 @@
 <?php
 /**
- * STRESS TEST SUITE FOR UAP MINDORO DUES SYSTEM
+ * STRESS TEST SUITE FOR UAP QUEZON DUES SYSTEM
  * Tests: Load, Database, Payments, Edge Cases
  */
 
@@ -36,7 +36,7 @@ function log_test($name, $passed, $message = '') {
 }
 
 echo "\n" . color("=" . str_repeat("=", 78) . "=", 'blue') . "\n";
-echo color("  UAP MINDORO DUES SYSTEM - STRESS TEST SUITE", 'blue') . "\n";
+echo color("  UAP QUEZON DUES SYSTEM - STRESS TEST SUITE", 'blue') . "\n";
 echo color("=" . str_repeat("=", 78) . "=", 'blue') . "\n\n";
 
 // ========== TEST 1: Database Connection ==========

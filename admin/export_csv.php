@@ -17,7 +17,7 @@ $payments = $pdo->query("
 ")->fetchAll();
 
 header('Content-Type: text/csv');
-header('Content-Disposition: attachment; filename="uapmc_dues_report_' . date('Y-m-d') . '.csv"');
+header('Content-Disposition: attachment; filename="uapqc_dues_report_' . date('Y-m-d') . '.csv"');
 
 $out = fopen('php://output', 'w');
 fputcsv($out, ['Member Name', 'PRC ID No.', 'Due', 'Payment Type', 'Installment #', 'Amount Paid', 'Method', 'Reference #', 'Status', 'Receipt #', 'Submitted', 'Verified']);

@@ -234,7 +234,7 @@ try {
         $pdo->exec("
             INSERT INTO chapter_milestones (id, year, title, content, sort_order) VALUES
             (1, '2016', 'Chapter Founded',           'UAP Quezon Chapter established as IAPOA Chapter 121, bringing together registered architects across the Quezon provinces.', 1),
-            (2, '2018', 'Growing Membership',        'Membership expanded significantly with architects from Calapan City, Puerto Galera, and Occidental Quezon joining the chapter.', 2),
+            (2, '2018', 'Growing Membership',        'Membership expanded significantly with architects from Lucena City, Tayabas, Sariaya, and the four districts of Quezon Province joining the chapter.', 2),
             (3, '2020', 'Digital Transformation',    'Adopted digital systems for member management, dues processing, and chapter communications.', 3),
             (4, '2023', 'New Leadership',            'A new Board of Directors was elected, bringing fresh perspectives and initiatives for chapter growth.', 4),
             (5, '2024', 'Online Architect Directory','Launched the public Architect Directory to connect clients with verified UAP Quezon architects.', 5)

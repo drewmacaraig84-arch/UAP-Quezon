@@ -81,7 +81,7 @@ try {
 
     echo json_encode([
         'success' => true,
-        'message' => 'Thank you for reaching out! Your inquiry has been sent to the UAP Mindoro Chapter Secretariat. We will get back to you shortly.'
+        'message' => 'Thank you for reaching out! Your inquiry has been sent to the UAP Quezon Chapter Secretariat. We will get back to you shortly.'
     ]);
 } catch (Exception $e) {
     http_response_code(500);

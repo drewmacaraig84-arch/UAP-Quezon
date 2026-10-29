@@ -1,6 +1,6 @@
-# 🚀 Deploying UAP Mindoro to Railway
+# 🚀 Deploying UAP Quezon to Railway
 
-This guide walks you through deploying the complete **UAP Mindoro Chapter Platform** (React 18 + Vite Frontend, PHP REST API, Member & Admin Portal, and MySQL Database) to [Railway](https://railway.app).
+This guide walks you through deploying the complete **UAP Quezon Chapter Platform** (React 18 + Vite Frontend, PHP REST API, Member & Admin Portal, and MySQL Database) to [Railway](https://railway.app).
 
 ---
 
@@ -30,7 +30,7 @@ git push origin main
 
 1. Go to [Railway Dashboard](https://railway.app/dashboard).
 2. Click **"+ New Project"**.
-3. Select **"Deploy from GitHub repo"** and choose your `UAP-MINDORO` repository.
+3. Select **"Deploy from GitHub repo"** and choose your `UAP-Quezon` repository.
 
 ---
 
@@ -87,7 +87,7 @@ In Railway, containers use ephemeral storage by default (any uploaded files are 
 ### Step 6: Generate Your Public Domain
 
 1. In your Railway Web Service settings, go to the **"Networking"** tab (or **"Settings"** → **"Public Networking"**).
-2. Click **"Generate Domain"** (e.g. `uap-mindoro-production.up.railway.app`).
+2. Click **"Generate Domain"** (e.g. `uap-quezon-production.up.railway.app`).
 3. Open the domain in your browser!
 
 ---
@@ -109,7 +109,7 @@ If you have Docker Desktop installed locally, you can build and test the image:
 
 ```bash
 # Build image
-docker build -t uap-mindoro .
+docker build -t uap-quezon .
 
 # Run container
 docker run -p 8080:80 \
@@ -117,6 +117,6 @@ docker run -p 8080:80 \
   -e DB_NAME=dues_system \
   -e DB_USER=root \
   -e DB_PASS= \
-  uap-mindoro
+  uap-quezon
 ```
 Then visit `http://localhost:8080`.

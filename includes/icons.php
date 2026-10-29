@@ -1,6 +1,6 @@
 <?php
 /**
- * Modern SVG Icon System for UAP Mindoro Chapter Portal
+ * Modern SVG Icon System for UAP Quezon Chapter Portal
  * Crisp, scalable vector icons (Feather/Lucide style)
  */
 

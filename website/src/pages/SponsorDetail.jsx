@@ -240,7 +240,7 @@ export default function SponsorDetail() {
                 Architectural Partnerships with UAP Quezon
               </h3>
               <p className="muted" style={{ fontSize: '0.92rem', lineHeight: 1.6, margin: 0 }}>
-                Corporate sponsors and industry partners work closely with the chapter to host technical seminars, CPD product masterclasses, and promote sustainable construction standards throughout Oriental and Occidental Quezon.
+                Corporate sponsors and industry partners work closely with the chapter to host technical seminars, CPD product masterclasses, and promote sustainable construction standards throughout Quezon Province.
               </p>
             </div>
           </div>

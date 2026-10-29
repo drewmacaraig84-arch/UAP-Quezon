@@ -28,7 +28,7 @@ export default function Footer() {
           <p className="footer-brand-name">United Architects<br/>of the Philippines</p>
           <p className="footer-brand-sub">Quezon Chapter</p>
           <p className="footer-desc">
-            Promoting architectural excellence, professional integrity, and sustainable development across Oriental and Occidental Quezon since 2016.
+            Promoting architectural excellence, professional integrity, and sustainable development across Quezon Province since 2016.
           </p>
         </div>
 

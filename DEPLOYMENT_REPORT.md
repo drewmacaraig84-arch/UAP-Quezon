@@ -1,4 +1,4 @@
-# UAP Mindoro Dues System - Deployment Checklist & Test Report
+# UAP Quezon Dues System - Deployment Checklist & Test Report
 
 ## ✅ STRESS TEST RESULTS
 **Pass Rate: 100.0% (23/23 Tests)**  

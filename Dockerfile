@@ -1,5 +1,5 @@
 # ==============================================================================
-# Multi-Stage Dockerfile for UAP Mindoro Chapter (PHP Backend + React Frontend)
+# Multi-Stage Dockerfile for UAP Quezon Chapter (PHP Backend + React Frontend)
 # Optimized for Railway, Render, Fly.io, or standard Docker deployments
 # ==============================================================================
 

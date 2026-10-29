@@ -10,7 +10,7 @@ INSERT IGNORE INTO `dues` (`id`, `title`, `description`, `amount`, `due_date`, `
 (21, 'F.Y 24-25 : CHAPTER DUES', 'Annual Chapter Member Dues', '1500.00', '2026-07-31', 'F.Y 2024-2025', '2026-07-08 05:34:55'),
 (22, 'F.Y 24-25 : CHAPTER DUES', 'Annual Chapter Member Dues', '1000.00', '2026-07-31', 'F.Y 2024-2025', '2026-07-08 05:35:46'),
 (23, 'F.Y 25-26 : CHAPTER DUES', 'Annual Chapter Member Dues', '2000.00', '2026-07-31', 'F.Y 2025-2026', '2026-07-08 06:09:07'),
-(24, 'UAPMC BLAZER', 'Custom Made UAP Blazer', '3100.00', '2026-07-31', 'F.Y 2023-2024', '2026-07-08 06:14:37'),
+(24, 'UAPQC BLAZER', 'Custom Made UAP Blazer', '3100.00', '2026-07-31', 'F.Y 2023-2024', '2026-07-08 06:14:37'),
 (25, 'F.Y 25-26 : INDUCTION DUES', 'Induction of Officers and New Members Contribution', '1000.00', '2026-07-31', 'F.Y 2025-2026', '2026-07-08 06:20:09');
 
 INSERT IGNORE INTO `member_dues` (`id`, `user_id`, `due_id`, `status`, `created_at`, `payment_type`, `installment_months`, `total_paid`, `custom_title`, `custom_description`, `custom_amount`, `custom_due_date`, `custom_term`) VALUES

@@ -159,7 +159,7 @@ function generate_member_directory_qr(PDO $pdo, $websiteMemberId, $forceRegenera
     }
 
     // Public Profile URL with full scheme & domain
-    $publicBase = function_exists('get_public_base_url') ? get_public_base_url() : 'https://uapmc-production.up.railway.app';
+    $publicBase = function_exists('get_public_base_url') ? get_public_base_url() : 'https://uap-quezonchapter.page.gd';
     $profileUrl = rtrim($publicBase, '/') . '/profile/' . $websiteMemberId;
 
     $pngData = ChapterQRCode::generatePng($profileUrl, 500);

@@ -62,7 +62,7 @@ export default function Home() {
             <p className="hero-sub body-lg muted animate-fade-in-up">
               {settings?.about_us
                 ? settings.about_us.slice(0, 180) + (settings.about_us.length > 180 ? '...' : '')
-                : 'Promoting architectural excellence, professional integrity, and sustainable development across Oriental and Occidental Quezon.'}
+                : 'Promoting architectural excellence, professional integrity, and sustainable development across Quezon Province.'}
             </p>
             <div className="hero-actions animate-fade-in-up">
               <Link to="/directory" className="btn btn-gold">

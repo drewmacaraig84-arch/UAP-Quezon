@@ -454,8 +454,8 @@ $settings_rows = $pdo->query("SELECT setting_key, setting_value FROM site_settin
 $logo_val = $settings_rows['logo'] ?? null;
 $about_us_val = $settings_rows['about_us'] ?? '';
 $org_name_val = $settings_rows['org_name'] ?? 'United Architects of the Philippines - Quezon Chapter';
-$contact_address_val = $settings_rows['contact_address'] ?? 'Calapan City, Oriental Quezon, Philippines 5200';
-$contact_email_val = $settings_rows['contact_email'] ?? 'uapQuezon@gmail.com';
+$contact_address_val = $settings_rows['contact_address'] ?? 'Lucena City, Quezon Province, Philippines';
+$contact_email_val = $settings_rows['contact_email'] ?? 'quezon@united-architects.ph';
 $contact_phone_val = $settings_rows['contact_phone'] ?? '+63 (0) XXXX XXXX';
 $office_hours_weekdays_val = $settings_rows['office_hours_weekdays'] ?? '9:00 AM – 5:00 PM';
 $office_hours_saturday_val = $settings_rows['office_hours_saturday'] ?? '9:00 AM – 12:00 PM';
@@ -786,12 +786,12 @@ function switchSettingsTab(tabId, btn) {
         </h3>
         <div class="field" style="margin-bottom: 14px;">
           <label style="font-size: 12px;">Secretariat Physical Address / Location</label>
-          <input type="text" name="contact_address" value="<?php echo htmlspecialchars($contact_address_val); ?>" placeholder="e.g. Calapan City, Oriental Quezon, Philippines 5200" required>
+          <input type="text" name="contact_address" value="<?php echo htmlspecialchars($contact_address_val); ?>" placeholder="e.g. Lucena City, Quezon Province, Philippines" required>
         </div>
         <div class="grid-2" style="gap: 14px;">
           <div class="field" style="margin: 0;">
             <label style="font-size: 12px;">Official Secretariat Email Address</label>
-            <input type="email" name="contact_email" value="<?php echo htmlspecialchars($contact_email_val); ?>" placeholder="e.g. uapQuezon@gmail.com" required>
+            <input type="email" name="contact_email" value="<?php echo htmlspecialchars($contact_email_val); ?>" placeholder="e.g. quezon@united-architects.ph" required>
           </div>
           <div class="field" style="margin: 0;">
             <label style="font-size: 12px;">Contact Number / Hotline</label>

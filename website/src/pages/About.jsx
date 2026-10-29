@@ -4,7 +4,7 @@ import './About.css';
 
 const DEFAULT_MILESTONES = [
   { year: '2016', title: 'Chapter Founded', content: 'UAP Quezon Chapter established as IAPOA Chapter 121, bringing together registered architects across the Quezon provinces.' },
-  { year: '2018', title: 'Growing Membership', content: 'Membership expanded significantly with architects from Calapan City, Puerto Galera, and Occidental Quezon joining the chapter.' },
+  { year: '2018', title: 'Growing Membership', content: 'Membership expanded significantly with architects from Lucena City, Tayabas, Sariaya, and the four districts of Quezon Province joining the chapter.' },
   { year: '2020', title: 'Digital Transformation', content: 'Adopted digital systems for member management, dues processing, and chapter communications.' },
   { year: '2023', title: 'New Leadership', content: 'A new Board of Directors was elected, bringing fresh perspectives and initiatives for chapter growth.' },
   { year: '2024', title: 'Online Architect Directory', content: 'Launched the public Architect Directory to connect clients with verified UAP Quezon architects.' },
@@ -29,14 +29,14 @@ const MISSION = [
   {
     icon: <IconHandshake size={28} />,
     title: 'Community Engagement',
-    desc: "Serving local government units, communities, and organizations across Oriental and Occidental Quezon through pro-bono design assistance.",
+    desc: "Serving local government units, communities, and organizations across Quezon Province through pro-bono design assistance.",
   },
 ];
 
 export default function About() {
   const { data: settings } = useApi('/api/settings.php');
   const { data: milestonesData } = useApi('/api/milestones.php');
-  const aboutText = settings?.about_us || 'The United Architects of the Philippines — Quezon Chapter (IAPOA Chapter 121) is the official professional organization of licensed architects serving Oriental and Occidental Quezon.';
+  const aboutText = settings?.about_us || 'The United Architects of the Philippines — Quezon Chapter (IAPOA Chapter 121) is the official professional organization of licensed architects serving Quezon Province.';
   const rawTimeline = (milestonesData && milestonesData.length > 0) ? milestonesData : DEFAULT_MILESTONES;
   const timeline = rawTimeline.filter((item, index, self) =>
     index === self.findIndex((t) => (t.id ? t.id === item.id : (t.year === item.year && t.title === item.title)))

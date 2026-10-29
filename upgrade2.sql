@@ -1,5 +1,5 @@
 -- ====================================================================
--- UPGRADE SCRIPT #2 — UAP Mindoro Chapter rebrand + approval workflow
+-- UPGRADE SCRIPT #2 — UAP Quezon Chapter rebrand + approval workflow
 -- Run this on your EXISTING database (local XAMPP or InfinityFree).
 -- Safe to run even if you already ran the first upgrade.sql before.
 -- ====================================================================
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS site_settings (
     setting_value VARCHAR(255)
 );
 
--- 4. Pre-insert the UAP Mindoro Chapter logo
+-- 4. Pre-insert the UAP Quezon Chapter logo
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('logo', 'uploads/uap_logo.jpg');
 
 -- Done. New registrations from now on will default to 'pending' until

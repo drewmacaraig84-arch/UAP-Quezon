@@ -517,7 +517,7 @@ function is_local() {
 }
 
 /**
- * Returns absolute public URL scheme and host (e.g. https://uapmc-production.up.railway.app)
+ * Returns absolute public URL scheme and host (e.g. https://uap-quezonchapter.page.gd)
  * Used for generating scannable QR codes and full public link URLs.
  */
 function get_public_base_url() {
@@ -544,7 +544,7 @@ function get_public_base_url() {
             return rtrim($proto . $host . $base, '/');
         }
         
-        // In production (e.g. uapmc-production.up.railway.app)
+        // In production (e.g. uap-quezonchapter.page.gd)
         return rtrim($proto . $host, '/');
     }
 
@@ -558,9 +558,9 @@ function get_public_base_url() {
         return 'https://' . rtrim($railwayStatic, '/');
     }
     
-    // 4. Default hosted fallback for UAP Mindoro production
+    // 4. Default hosted fallback for UAP Quezon production
     if (defined('IS_HOSTED') && IS_HOSTED) {
-        return 'https://uapmc-production.up.railway.app';
+        return 'https://uap-quezonchapter.page.gd';
     }
     
     return 'http://localhost/UAP-Quezon';

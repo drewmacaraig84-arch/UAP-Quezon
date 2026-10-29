@@ -229,7 +229,7 @@ export default function Sponsors() {
               </div>
               <h4 className="benefit-title">Architect Access</h4>
               <p className="benefit-desc">
-                Direct engagement with licensed architects, design principals, and project leaders across Oriental and Occidental Quezon.
+                Direct engagement with licensed architects, design principals, and project leaders across Quezon Province.
               </p>
             </div>
 

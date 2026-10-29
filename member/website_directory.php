@@ -579,7 +579,7 @@ include __DIR__ . '/../includes/header.php';
           </div>
           <div class="field" style="margin: 0;">
             <label>Company / Office Address</label>
-            <input type="text" name="location" value="<?php echo htmlspecialchars($profile['location'] ?? ''); ?>" placeholder="e.g. Calapan City, Oriental Quezon" required>
+            <input type="text" name="location" value="<?php echo htmlspecialchars($profile['location'] ?? ''); ?>" placeholder="e.g. Lucena City, Quezon" required>
           </div>
         </div>
 
