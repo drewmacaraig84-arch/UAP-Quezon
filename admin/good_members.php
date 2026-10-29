@@ -102,7 +102,7 @@ if (!in_array($activeTab, ['certified', 'pending', 'revoked', 'all'], true)) {
     $activeTab = 'certified';
 }
 
-$page_title = 'Good Standing Roster & Compliance • UAP Quezon Chapter';
+$page_title = 'Good Standing Roster & Compliance • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 

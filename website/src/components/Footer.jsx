@@ -26,7 +26,7 @@ export default function Footer() {
             />
           </div>
           <p className="footer-brand-name">United Architects<br/>of the Philippines</p>
-          <p className="footer-brand-sub">Quezon Chapter</p>
+          <p className="footer-brand-sub">Quezon Province Chapter</p>
           <p className="footer-desc">
             Promoting architectural excellence, professional integrity, and sustainable development across Quezon Province since 2016.
           </p>
@@ -60,7 +60,7 @@ export default function Footer() {
       </div>
 
       <div className="footer-bottom container-wide">
-        <p>&copy; {year} <strong>United Architects of the Philippines</strong> — Quezon Chapter</p>
+        <p>&copy; {year} <strong>United Architects of the Philippines</strong> — Quezon Province Chapter</p>
         <p className="footer-credit">
           Designed &amp; Developed by <strong>Aries King Nieto</strong> and{' '}
           <a

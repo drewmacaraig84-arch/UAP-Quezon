@@ -138,7 +138,7 @@ if ($selectedMemberId > 0) {
     }
 }
 
-$page_title = 'Member Attendance Manager • UAP Quezon Chapter';
+$page_title = 'Member Attendance Manager • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 

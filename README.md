@@ -1,12 +1,12 @@
-# UAP Quezon Chapter Management Portal & Super Admin Hub
+# UAP Quezon Province Chapter Management Portal & Super Admin Hub
 
-A modern PHP + MySQL management portal and public architectural website designed for the **United Architects of the Philippines (UAP) - Quezon Chapter**, featuring a dedicated **Super Admin Suite** (System Health, Crash Logs, Soft Deleted Files Quarantine, Audit Trail, and 1-Click Database Backups).
+A modern PHP + MySQL management portal and public architectural website designed for the **United Architects of the Philippines (UAP) - Quezon Province Chapter**, featuring a dedicated **Super Admin Suite** (System Health, Crash Logs, Soft Deleted Files Quarantine, Audit Trail, and 1-Click Database Backups).
 
 ---
 
 ## 🎨 Visual Identity & Color Palette
 
-Derived directly from the official **UAP Quezon Chapter Logo**:
+Derived directly from the official **UAP Quezon Province Chapter Logo**:
 - **Radiant Sunset Gold / Amber**: `#F59E0B` / `#E58A13` (Top arch, sun, architectural highlights)
 - **Quezon Mountain Emerald Green**: `#15803D` / `#16A34A` / `#22C55E` (Mt. Banahaw ridges and lush Quezon slopes)
 - **Architectural Charcoal & Slate**: `#0B1120` / `#111827` / `#1E293B` (Ionic column fluting, surfaces, cards)

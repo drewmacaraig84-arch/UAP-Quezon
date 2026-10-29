@@ -3,7 +3,7 @@
     <div style="max-width: 1380px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
         <div style="display: flex; flex-direction: column; gap: 4px;">
             <div>
-              &copy; <?php echo date('Y'); ?> <strong>United Architects of the Philippines &bull; Quezon Chapter</strong>
+              &copy; <?php echo date('Y'); ?> <strong>United Architects of the Philippines &bull; Quezon Province Chapter</strong>
             </div>
             <div style="font-size: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
               <a href="<?php echo BASE_URL; ?>/public/privacy_policy.php" style="color: var(--text-secondary); text-decoration: none;">Privacy Policy</a>

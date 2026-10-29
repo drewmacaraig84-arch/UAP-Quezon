@@ -1,6 +1,6 @@
 <?php
 /**
- * UAP Quezon Chapter - InfinityFree Database Diagnostics & Auto-Connector
+ * UAP Quezon Province Chapter - InfinityFree Database Diagnostics & Auto-Connector
  */
 header('Content-Type: text/html; charset=utf-8');
 
@@ -120,7 +120,7 @@ if ($matchedDb) {
         }
     } else {
         echo "<p style='color: #22c55e;'>Found <strong>{$tableCount}</strong> tables in database: " . implode(', ', array_slice($tables, 0, 8)) . "...</p>";
-        echo "<p><a href='index.php' class='btn' style='display:inline-block; text-decoration:none;'>Open UAP Quezon Chapter Website &rarr;</a> ";
+        echo "<p><a href='index.php' class='btn' style='display:inline-block; text-decoration:none;'>Open UAP Quezon Province Chapter Website &rarr;</a> ";
         echo "<a href='auth/login.php' class='btn' style='display:inline-block; text-decoration:none; background: #e58a13; margin-left: 10px;'>Go to Login &rarr;</a></p>";
     }
     echo "</div>";

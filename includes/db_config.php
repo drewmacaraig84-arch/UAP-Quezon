@@ -1,7 +1,7 @@
 <?php
 /**
  * ==============================================================================
- * UAP Quezon Chapter - Dual-Environment Database & Hosting Configuration
+ * UAP Quezon Province Chapter - Dual-Environment Database & Hosting Configuration
  * ==============================================================================
  * Auto-detects whether the application is running locally (Laragon / XAMPP)
  * or on the live InfinityFree hosting server (uap-quezonchapter.page.gd).

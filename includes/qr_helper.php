@@ -1,6 +1,6 @@
 <?php
 /**
- * UAP Quezon Chapter - Pure PHP QR Code Generation Engine
+ * UAP Quezon Province Chapter - Pure PHP QR Code Generation Engine
  * Generates crisp, high-resolution QR codes encoding member website profile URLs
  * Compatible with PHP 8.0+ and GD extension without external dependencies.
  */

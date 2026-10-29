@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
-$page_title = 'Terms of Agreement • UAP Quezon Chapter';
+$page_title = 'Terms of Agreement • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -18,9 +18,9 @@ include __DIR__ . '/../includes/header.php';
 <div class="card" style="max-width: 900px; margin: 0 auto 40px; padding: 36px; line-height: 1.7; color: var(--text-primary);">
   <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 24px;">
     <span class="muted" style="font-size: 13px;">Adopted Fiscal Year 2026&ndash;2027 &bull; Board of Officers</span>
-    <h2 style="font-size: 20px; font-weight: 800; margin-top: 6px; color: var(--accent-primary);">United Architects of the Philippines &ndash; Quezon Chapter</h2>
+    <h2 style="font-size: 20px; font-weight: 800; margin-top: 6px; color: var(--accent-primary);">United Architects of the Philippines &ndash; Quezon Province Chapter</h2>
     <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">
-      By submitting your registration, creating an account, or accessing the UAP Quezon Chapter Management Portal, you formally signify your agreement to these Terms of Agreement.
+      By submitting your registration, creating an account, or accessing the UAP Quezon Province Chapter Management Portal, you formally signify your agreement to these Terms of Agreement.
     </p>
   </div>
 
@@ -29,7 +29,7 @@ include __DIR__ . '/../includes/header.php';
       <?php echo icon('check', '', 18); ?> 1. Eligibility &amp; PRC Credential Veracity
     </h3>
     <p style="font-size: 14px; color: var(--text-secondary);">
-      Membership in the UAP Quezon Chapter is reserved exclusively for registered and licensed architects duly certified by the Professional Regulation Commission (PRC) under Republic Act No. 9266 (The Architecture Act of 2004). You certify under penalty of administrative sanctions that all personal details, PRC numbers, and documents submitted are truthful, authentic, and accurate.
+      Membership in the UAP Quezon Province Chapter is reserved exclusively for registered and licensed architects duly certified by the Professional Regulation Commission (PRC) under Republic Act No. 9266 (The Architecture Act of 2004). You certify under penalty of administrative sanctions that all personal details, PRC numbers, and documents submitted are truthful, authentic, and accurate.
     </p>
   </section>
 
@@ -71,7 +71,7 @@ include __DIR__ . '/../includes/header.php';
 
   <section style="border-top: 1px solid var(--border-color); padding-top: 20px; font-size: 13px; color: var(--text-secondary);">
     <strong style="color: var(--text-primary);">Questions or Grievances:</strong><br>
-    Board of Officers &bull; United Architects of the Philippines &ndash; Quezon Chapter<br>
+    Board of Officers &bull; United Architects of the Philippines &ndash; Quezon Province Chapter<br>
     Contact: <a href="mailto:secretariat@uapquezon.org" style="color: var(--accent-primary);">secretariat@uapquezon.org</a>
   </section>
 </div>

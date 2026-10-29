@@ -249,7 +249,7 @@ if ($selected_member_id) {
     }
 }
 
-$page_title = 'Chapter Members • UAP Quezon Chapter';
+$page_title = 'Chapter Members • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 

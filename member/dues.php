@@ -62,7 +62,7 @@ foreach ($dues as $d) {
     $overall_total_payable += $balanceForThis;
 }
 
-$page_title = 'My Chapter Dues & Obligations • UAP Quezon Chapter';
+$page_title = 'My Chapter Dues & Obligations • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 

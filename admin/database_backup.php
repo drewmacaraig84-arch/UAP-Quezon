@@ -16,7 +16,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'download_sql') {
     // Generate full SQL dump
     $dbName = DB_NAME;
     $dump = "-- ====================================================================\n";
-    $dump .= "-- UAP Quezon Chapter - Full Database SQL Backup\n";
+    $dump .= "-- UAP Quezon Province Chapter - Full Database SQL Backup\n";
     $dump .= "-- Generated: " . date('Y-m-d H:i:s') . "\n";
     $dump .= "-- Database: " . $dbName . "\n";
     $dump .= "-- Server: " . ($_SERVER['SERVER_SOFTWARE'] ?? 'Localhost') . "\n";

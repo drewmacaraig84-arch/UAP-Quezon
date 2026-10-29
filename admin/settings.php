@@ -453,7 +453,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 $settings_rows = $pdo->query("SELECT setting_key, setting_value FROM site_settings")->fetchAll(PDO::FETCH_KEY_PAIR);
 $logo_val = $settings_rows['logo'] ?? null;
 $about_us_val = $settings_rows['about_us'] ?? '';
-$org_name_val = $settings_rows['org_name'] ?? 'United Architects of the Philippines - Quezon Chapter';
+$org_name_val = $settings_rows['org_name'] ?? 'United Architects of the Philippines - Quezon Province Chapter';
 $contact_address_val = $settings_rows['contact_address'] ?? 'Lucena City, Quezon Province, Philippines';
 $contact_email_val = $settings_rows['contact_email'] ?? 'quezon@united-architects.ph';
 $contact_phone_val = $settings_rows['contact_phone'] ?? '+63 (0) XXXX XXXX';
@@ -611,7 +611,7 @@ function switchSettingsTab(tabId, btn) {
         </div>
         <h2 style="font-size: 16px; margin: 0;">Chapter Logo &amp; Seal</h2>
       </div>
-      <p class="muted" style="margin-bottom: 16px; font-size: 13px;">Upload the official UAP Quezon Chapter seal. Used on navigation headers, login portals, and receipts.</p>
+      <p class="muted" style="margin-bottom: 16px; font-size: 13px;">Upload the official UAP Quezon Province Chapter seal. Used on navigation headers, login portals, and receipts.</p>
       
       <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 20px; padding: 14px; background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color);">
         <div style="width: 80px; height: 80px; border-radius: 4px; background: #fff; padding: 1px; border: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); flex-shrink: 0;">
@@ -655,7 +655,7 @@ function switchSettingsTab(tabId, btn) {
         <input type="hidden" name="action" value="update_info">
         <div class="field" style="margin-bottom: 16px;">
           <label>Organization Name</label>
-          <input type="text" name="org_name" value="<?php echo htmlspecialchars($org_name_val); ?>" required placeholder="e.g. United Architects of the Philippines - Quezon Chapter">
+          <input type="text" name="org_name" value="<?php echo htmlspecialchars($org_name_val); ?>" required placeholder="e.g. United Architects of the Philippines - Quezon Province Chapter">
         </div>
         <button class="btn btn-sm" type="submit" style="display: inline-flex; align-items: center; gap: 6px;">
           <?php echo icon('check', '', 14); ?> <span>Save Organization Title</span>
@@ -1216,7 +1216,7 @@ function switchSettingsTab(tabId, btn) {
       <div class="grid-2" style="gap: 14px; margin-bottom: 14px;">
         <div class="field" style="margin: 0;">
           <label>News Headline / Title *</label>
-          <input type="text" name="news_title" placeholder="e.g. UAP Quezon Chapter General Assembly 2026" required>
+          <input type="text" name="news_title" placeholder="e.g. UAP Quezon Province Chapter General Assembly 2026" required>
         </div>
         <div class="field" style="margin: 0;">
           <label>Date of Event / Publication *</label>

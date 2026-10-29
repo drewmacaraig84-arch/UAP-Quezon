@@ -152,7 +152,7 @@ export default function Sponsors() {
                       <h3 className="sponsor-card-title">{sponsor.name}</h3>
                       <p className="sponsor-card-desc">
                         {sponsor.description ||
-                          'Official industry partner collaborating with UAP Quezon Chapter to promote excellence and quality construction.'}
+                          'Official industry partner collaborating with UAP Quezon Province Chapter to promote excellence and quality construction.'}
                       </p>
 
                       {isPlatinum && productCount > 0 && (

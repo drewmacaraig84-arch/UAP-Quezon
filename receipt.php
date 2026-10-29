@@ -171,7 +171,7 @@ $backUrl = $_SESSION['role'] === 'admin' ? BASE_URL . '/admin/reports.php' : BAS
   <div class="receipt-header">
     <img src="<?php echo BASE_URL; ?>/public/logo.jpg" alt="UAP Logo" class="receipt-logo" onerror="if(this.src.indexOf('uploads/logo.jpg')===-1)this.src='<?php echo BASE_URL; ?>/uploads/logo.jpg';">
     <div class="org-title">United Architects of the Philippines</div>
-    <div class="org-sub">Quezon Chapter • Official Receipt</div>
+    <div class="org-sub">Quezon Province Chapter • Official Receipt</div>
     <div class="receipt-title">OFFICIAL RECEIPT</div>
     <div class="receipt-num"><?php echo htmlspecialchars($r['receipt_number']); ?></div>
   </div>
@@ -207,7 +207,7 @@ $backUrl = $_SESSION['role'] === 'admin' ? BASE_URL . '/admin/reports.php' : BAS
   </div>
 
   <div class="footer-note">
-    This is an electronically generated official receipt issued by the UAP Quezon Chapter dues portal. No signature is required.
+    This is an electronically generated official receipt issued by the UAP Quezon Province Chapter dues portal. No signature is required.
   </div>
 </div>
 

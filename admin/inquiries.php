@@ -365,7 +365,7 @@ include __DIR__ . '/../includes/header.php';
                 </button>
 
                 <?php if (!empty($inq['email'])): ?>
-                  <a href="mailto:<?php echo htmlspecialchars($inq['email']); ?>?subject=<?php echo urlencode('Re: ' . ($inq['subject'] ?: 'UAP Quezon Chapter Inquiry')); ?>"
+                  <a href="mailto:<?php echo htmlspecialchars($inq['email']); ?>?subject=<?php echo urlencode('Re: ' . ($inq['subject'] ?: 'UAP Quezon Province Chapter Inquiry')); ?>"
                      class="btn btn-sm btn-outline"
                      title="Direct Email Reply"
                      style="padding: 4px 8px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px;">
@@ -490,7 +490,7 @@ function openInquiryModal(inq) {
 
   const mailBtn = document.getElementById('modalMailtoBtn');
   if (inq.email) {
-    const mailtoSubject = encodeURIComponent('Re: ' + (inq.subject || 'UAP Quezon Chapter Inquiry'));
+    const mailtoSubject = encodeURIComponent('Re: ' + (inq.subject || 'UAP Quezon Province Chapter Inquiry'));
     const mailtoBody = encodeURIComponent('\n\n--- Original Inquiry ---\nFrom: ' + inq.name + '\nDate: ' + inq.created_at + '\n\n' + inq.message);
     mailBtn.href = 'mailto:' + inq.email + '?subject=' + mailtoSubject + '&body=' + mailtoBody;
     mailBtn.style.display = 'inline-flex';

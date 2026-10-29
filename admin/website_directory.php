@@ -282,7 +282,7 @@ try {
     } catch (Throwable $e2) {}
 }
 
-$page_title = 'Website Directory Manager • UAP Quezon Chapter';
+$page_title = 'Website Directory Manager • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 

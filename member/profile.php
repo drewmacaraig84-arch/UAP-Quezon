@@ -191,7 +191,7 @@ if (!empty($userBirthDate)) {
     }
 }
 
-$page_title = 'My Profile • UAP Quezon Chapter';
+$page_title = 'My Profile • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 
 $currentPhoto = ($user['profile_photo'] ?? null) ?: ($wmRecord['photo_path'] ?? null);

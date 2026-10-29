@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$page_title = 'Change Password • UAP Quezon Chapter';
+$page_title = 'Change Password • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 

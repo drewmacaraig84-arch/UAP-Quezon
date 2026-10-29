@@ -13,7 +13,7 @@ $fy = get_active_fiscal_year();
 $attendance = get_or_create_member_attendance($pdo, $currentUid, $fy);
 $c = $attendance['computed'];
 
-$page_title = 'My Chapter Status & Attendance • UAP Quezon Chapter';
+$page_title = 'My Chapter Status & Attendance • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -227,7 +227,7 @@ include __DIR__ . '/../includes/header.php';
     <div style="color: #f59e0b; margin-top: 2px;"><?php echo icon('shield', '', 20); ?></div>
     <div style="font-size: 13px; line-height: 1.5; color: var(--text-secondary);">
       <strong style="color: var(--text-primary); font-size: 14px; display: block; margin-bottom: 4px;">
-        UAP Quezon Chapter Activity Status Guidelines:
+        UAP Quezon Province Chapter Activity Status Guidelines:
       </strong>
       <ul style="margin: 0; padding-left: 18px;">
         <li><strong style="color: #10b981;">Active Badge:</strong> Conferred when an architect attends <strong>7 or more</strong> meetings or events across the fiscal year. Entitles the member to voting privileges, electoral rights, and chapter convention subsidy endorsements.</li>

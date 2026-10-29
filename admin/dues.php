@@ -141,7 +141,7 @@ if (isset($_GET['edit'])) {
 $dues = $pdo->query("SELECT * FROM dues ORDER BY created_at DESC")->fetchAll();
 $all_members = $pdo->query("SELECT id, name, id_number FROM users WHERE role = 'member' AND status = 'approved' ORDER BY name ASC")->fetchAll();
 
-$page_title = 'Dues Management • UAP Quezon Chapter';
+$page_title = 'Dues Management • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 

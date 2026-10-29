@@ -1,4 +1,4 @@
-# Apache Configuration for UAP Quezon Chapter (React SPA Website + PHP Admin Portal)
+# Apache Configuration for UAP Quezon Province Chapter (React SPA Website + PHP Admin Portal)
 
 # Ensure index.html (React Website) is the primary default index
 DirectoryIndex index.html index.php

@@ -1,6 +1,6 @@
 # 🚀 Deploying UAP Quezon to Railway
 
-This guide walks you through deploying the complete **UAP Quezon Chapter Platform** (React 18 + Vite Frontend, PHP REST API, Member & Admin Portal, and MySQL Database) to [Railway](https://railway.app).
+This guide walks you through deploying the complete **UAP Quezon Province Chapter Platform** (React 18 + Vite Frontend, PHP REST API, Member & Admin Portal, and MySQL Database) to [Railway](https://railway.app).
 
 ---
 

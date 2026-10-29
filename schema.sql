@@ -1,6 +1,6 @@
 -- ====================================================================
--- UAP Quezon Chapter Management System - Database Schema
--- United Architects of the Philippines - Quezon Chapter
+-- UAP Quezon Province Chapter Management System - Database Schema
+-- United Architects of the Philippines - Quezon Province Chapter
 -- Includes Super Admin, System Health, Crash Logs, Soft Deleted Files,
 -- Audit Trail, Dues Management, and Website Directory
 -- ====================================================================
@@ -384,14 +384,14 @@ CREATE TABLE member_attendance (
 
 -- Default Site Settings for UAP Quezon
 INSERT INTO site_settings (setting_key, setting_value) VALUES
-('chapter_name', 'United Architects of the Philippines - Quezon Chapter'),
-('chapter_short_name', 'UAP Quezon Chapter'),
+('chapter_name', 'United Architects of the Philippines - Quezon Province Chapter'),
+('chapter_short_name', 'UAP Quezon Province Chapter'),
 ('chapter_code', 'UAP-QC'),
 ('logo', 'public/logo.jpg'),
 ('favicon', 'public/logo.jpg'),
 ('primary_color', '#E58A13'),
 ('secondary_color', '#15803D'),
-('about_us', 'The United Architects of the Philippines (UAP) Quezon Chapter unites registered and licensed architects across Quezon Province. We stand committed to architectural excellence, environmental stewardship of Mt. Banahaw and the Quezon coastline, heritage preservation, and sustainable community development.'),
+('about_us', 'The United Architects of the Philippines (UAP) Quezon Province Chapter unites registered and licensed architects across Quezon Province. We stand committed to architectural excellence, environmental stewardship of Mt. Banahaw and the Quezon coastline, heritage preservation, and sustainable community development.'),
 ('contact_email', 'quezon@united-architects.ph'),
 ('contact_phone', '+63 917 555 UAPQ'),
 ('contact_address', 'Lucena City, Quezon Province, Philippines'),
@@ -407,7 +407,7 @@ INSERT INTO site_settings (setting_key, setting_value) VALUES
 
 INSERT INTO users (name, id_number, email, phone, password, role, status) VALUES
 ('Super Administrator', 'SUPERADMIN01', 'superadmin@uap-quezon.org', '09170000001', '$2y$10$rhTiIVrjN9Uh/Jj47WMzoeksyWBPC6l/wR7z9qnPb.tb93CKwUpPS', 'super_admin', 'approved'),
-('Quezon Chapter Admin', 'ADMIN001', 'admin@uap-quezon.org', '09170000002', '$2y$10$rhTiIVrjN9Uh/Jj47WMzoeksyWBPC6l/wR7z9qnPb.tb93CKwUpPS', 'admin', 'approved'),
+('Quezon Province Chapter Admin', 'ADMIN001', 'admin@uap-quezon.org', '09170000002', '$2y$10$rhTiIVrjN9Uh/Jj47WMzoeksyWBPC6l/wR7z9qnPb.tb93CKwUpPS', 'admin', 'approved'),
 ('Ar. Juan Dela Cruz, uap', 'UAPQ-2026-001', 'juandelacruz@uap-quezon.org', '09170000003', '$2y$10$rhTiIVrjN9Uh/Jj47WMzoeksyWBPC6l/wR7z9qnPb.tb93CKwUpPS', 'member', 'approved'),
 ('Ar. Maria Santos, uap', 'UAPQ-2026-002', 'mariasantos@uap-quezon.org', '09170000004', '$2y$10$rhTiIVrjN9Uh/Jj47WMzoeksyWBPC6l/wR7z9qnPb.tb93CKwUpPS', 'member', 'approved');
 
@@ -432,9 +432,9 @@ INSERT INTO receipts (payment_id, receipt_number, issued_at) VALUES
 
 -- Default QR codes
 INSERT INTO qr_codes (method, image_path, account_name, account_number) VALUES
-('gcash', 'uploads/qr_codes/gcash_sample.png', 'UAP Quezon Chapter (Treasurer)', '0917-555-UAPQ'),
-('maya', 'uploads/qr_codes/maya_sample.png', 'UAP Quezon Chapter', '0917-555-UAPQ'),
-('bank', 'uploads/qr_codes/bank_sample.png', 'UAP Quezon Chapter / BDO Lucena', '0045-8821-9923');
+('gcash', 'uploads/qr_codes/gcash_sample.png', 'UAP Quezon Province Chapter (Treasurer)', '0917-555-UAPQ'),
+('maya', 'uploads/qr_codes/maya_sample.png', 'UAP Quezon Province Chapter', '0917-555-UAPQ'),
+('bank', 'uploads/qr_codes/bank_sample.png', 'UAP Quezon Province Chapter / BDO Lucena', '0045-8821-9923');
 
 -- Default Sponsors
 INSERT INTO sponsors (name, tier, website_url, description, is_active, display_order) VALUES
@@ -445,13 +445,13 @@ INSERT INTO sponsors (name, tier, website_url, description, is_active, display_o
 
 -- Default News & Announcements
 INSERT INTO news_announcements (title, summary, content, date_display, display_order, is_published) VALUES
-('UAP Quezon 2026 Chapter Assembly & General Membership Meeting', 'Join us for our upcoming Chapter Assembly in Lucena City focusing on sustainable regional architecture and local master plans.', 'The UAP Quezon Chapter warmly invites all members to our General Membership Meeting. Agenda includes 2026 Chapter Plans, CPD seminars, induction of new members, and review of local building bylaws in Quezon Province.', 'NOV 15, 2026', 1, 1),
+('UAP Quezon 2026 Chapter Assembly & General Membership Meeting', 'Join us for our upcoming Chapter Assembly in Lucena City focusing on sustainable regional architecture and local master plans.', 'The UAP Quezon Province Chapter warmly invites all members to our General Membership Meeting. Agenda includes 2026 Chapter Plans, CPD seminars, induction of new members, and review of local building bylaws in Quezon Province.', 'NOV 15, 2026', 1, 1),
 ('Quezon Heritage Architecture & Mt. Banahaw Eco-Sanctuary Workshop', 'A 2-day CPD accredited design workshop exploring indigenous Quezon building materials and vernacular heritage preservation.', 'Architects across District 1, 2, 3, and 4 will convene for an on-site heritage analysis of ancestral houses and eco-resilient community shelters.', 'DEC 05, 2026', 2, 1),
 ('CPD Credit Masterclass: Republic Act 9266 Enforcement in Local LGUs', 'Legal clinic and masterclass on protecting the architectural profession and working with local building officials across Quezon municipalities.', 'Learn practical guidelines, recent jurisprudence, and collaborative workflows with engineering departments and building permit offices.', 'JAN 20, 2027', 3, 1);
 
 -- Default Chapter Milestones
 INSERT INTO chapter_milestones (year, title, description, display_order) VALUES
-('1984', 'UAP Quezon Chapter Chartering', 'Official chartering of the Quezon Chapter under Area B, uniting visionary architects of the province.', 1),
+('1984', 'UAP Quezon Province Chapter Chartering', 'Official chartering of the Quezon Province Chapter under Area B, uniting visionary architects of the province.', 1),
 ('2000', 'Quezon Heritage Preservation Initiative', 'Pioneered heritage survey of historical landmarks and neoclassical buildings across Tayabas and Lucena.', 2),
 ('2015', 'Southern Luzon Best Chapter Award', 'Recognized by UAP National for outstanding membership growth and community architecture assistance.', 3),
 ('2026', 'Launch of Digital Portal & Super Admin Hub', 'Modern web portal, automated dues verification, and member directory launched for all Quezon architects.', 4);

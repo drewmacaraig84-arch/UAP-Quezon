@@ -68,7 +68,7 @@ $labels = [
     'bank' => ['title' => 'Direct Bank Account / QR Ph', 'desc' => 'Official chapter bank account details and deposit instructions.']
 ];
 
-$page_title = 'Payment QR Codes • UAP Quezon Chapter';
+$page_title = 'Payment QR Codes • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 

@@ -88,14 +88,14 @@ $recentTransactions = $pdo->query("
     LIMIT 5
 ")->fetchAll();
 
-$page_title = 'Executive Dashboard • UAP Quezon Chapter';
+$page_title = 'Executive Dashboard • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 
 <!-- EXECUTIVE HERO SECTION -->
 <div class="page-hero">
   <div>
-    <p class="eyebrow">UAP Quezon Chapter &bull; Admin Management Portal</p>
+    <p class="eyebrow">UAP Quezon Province Chapter &bull; Admin Management Portal</p>
     <h1>Executive Dashboard</h1>
     <p class="page-subtitle">Live overview of chapter collections, member compliance, pending verification queues, and active dues.</p>
   </div>

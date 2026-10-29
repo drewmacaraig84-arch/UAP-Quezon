@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
-$page_title = 'Data Privacy Policy • UAP Quezon Chapter';
+$page_title = 'Data Privacy Policy • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -8,7 +8,7 @@ include __DIR__ . '/../includes/header.php';
   <div>
     <p class="eyebrow" style="color: #fbbf24;">LEGAL COMPLIANCE &bull; RA 10173</p>
     <h1>Data Privacy Policy</h1>
-    <p class="page-subtitle">How the United Architects of the Philippines - Quezon Chapter collects, protects, and handles your professional and personal data.</p>
+    <p class="page-subtitle">How the United Architects of the Philippines - Quezon Province Chapter collects, protects, and handles your professional and personal data.</p>
   </div>
   <div class="hero-badge">
     <?php echo icon('shield_check', '', 14); ?> <span>NPC &amp; RA 10173 Compliant</span>
@@ -18,9 +18,9 @@ include __DIR__ . '/../includes/header.php';
 <div class="card" style="max-width: 900px; margin: 0 auto 40px; padding: 36px; line-height: 1.7; color: var(--text-primary);">
   <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 24px;">
     <span class="muted" style="font-size: 13px;">Effective Date: October 2026 &bull; Chapter Administration</span>
-    <h2 style="font-size: 20px; font-weight: 800; margin-top: 6px; color: var(--accent-primary);">United Architects of the Philippines &ndash; Quezon Chapter</h2>
+    <h2 style="font-size: 20px; font-weight: 800; margin-top: 6px; color: var(--accent-primary);">United Architects of the Philippines &ndash; Quezon Province Chapter</h2>
     <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">
-      The UAP Quezon Chapter is committed to protecting your personal data and upholding your rights under <strong>Republic Act No. 10173</strong>, otherwise known as the <em>Data Privacy Act of 2012 (DPA)</em> of the Republic of the Philippines.
+      The UAP Quezon Province Chapter is committed to protecting your personal data and upholding your rights under <strong>Republic Act No. 10173</strong>, otherwise known as the <em>Data Privacy Act of 2012 (DPA)</em> of the Republic of the Philippines.
     </p>
   </div>
 
@@ -81,7 +81,7 @@ include __DIR__ . '/../includes/header.php';
 
   <section style="border-top: 1px solid var(--border-color); padding-top: 20px; font-size: 13px; color: var(--text-secondary);">
     <strong style="color: var(--text-primary);">Data Protection Inquiries:</strong><br>
-    United Architects of the Philippines &ndash; Quezon Chapter Secretariat<br>
+    United Architects of the Philippines &ndash; Quezon Province Chapter Secretariat<br>
     Email: <a href="mailto:privacy@uapquezon.org" style="color: var(--accent-primary);">privacy@uapquezon.org</a> &bull; Lucena City, Quezon Province
   </section>
 </div>

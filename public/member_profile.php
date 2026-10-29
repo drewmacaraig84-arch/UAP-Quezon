@@ -59,7 +59,7 @@ if ($member) {
     }
 }
 
-$pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory Profile' : 'Member Profile - UAP Quezon Chapter';
+$pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory Profile' : 'Member Profile - UAP Quezon Province Chapter';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -409,7 +409,7 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
             <div class="brand-logo">
                 <a href="<?php echo BASE_URL; ?>/index.php" style="display:flex;align-items:center;gap:14px;text-decoration:none;">
                     <img src="<?php echo BASE_URL; ?>/public/logo.jpg" alt="UAP Quezon Logo" onerror="if(this.src.indexOf('uploads/logo.jpg')===-1)this.src='<?php echo BASE_URL; ?>/uploads/logo.jpg';">
-                    <div class="brand-title">UAP-<span>Quezon Chapter</span></div>
+                    <div class="brand-title">UAP-<span>Quezon Province Chapter</span></div>
                 </a>
             </div>
 
@@ -460,7 +460,7 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
             $cleanSpecialty = (!empty($member['specialty']) && strcasecmp(trim($member['specialty']), 'none') !== 0) ? $member['specialty'] : 'General Practice';
             $cleanLocation = (!empty($member['location']) && strcasecmp(trim($member['location']), 'none') !== 0) ? $member['location'] : 'Quezon, Philippines';
             $cleanAchievements = (!empty($member['achievements']) && strcasecmp(trim($member['achievements']), 'none') !== 0) ? $member['achievements'] : 'Registered Architect actively practicing in the Quezon region.';
-            $cleanAwards = (!empty($member['awards']) && strcasecmp(trim($member['awards']), 'none') !== 0) ? $member['awards'] : 'Active professional member in good standing under UAP Quezon Chapter (121).';
+            $cleanAwards = (!empty($member['awards']) && strcasecmp(trim($member['awards']), 'none') !== 0) ? $member['awards'] : 'Active professional member in good standing under UAP Quezon Province Chapter (121).';
         ?>
 
             <!-- HERO MEMBER HEADER -->
@@ -490,7 +490,7 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
                     </div>
                     <div class="info-cell">
                         <label>Chapter Affiliation</label>
-                        <span>UAP Quezon Chapter (121)</span>
+                        <span>UAP Quezon Province Chapter (121)</span>
                     </div>
                     <div class="info-cell">
                         <label>Architectural Specialty</label>
@@ -588,7 +588,7 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
                     <h2 style="display:flex; align-items:center; gap:8px;"><?php echo icon('shield_check', '', 20); ?> <span>Chapter Verification</span></h2>
                 </div>
                 <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.2rem;">
-                    Official registered architect verified under the United Architects of the Philippines – Quezon Chapter.
+                    Official registered architect verified under the United Architects of the Philippines – Quezon Province Chapter.
                 </p>
                 
                 <?php if (!empty($member['qr_image_path'])): ?>
@@ -599,7 +599,7 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
                 <?php else: ?>
                     <div style="background: var(--bg-inner-card); border: 1px dashed var(--border-dark); border-radius: 8px; padding: 24px; max-width: 440px; margin: 0 auto; display:flex; flex-direction:column; align-items:center; gap:8px;">
                         <div style="color: var(--accent-yellow, #f5b800);"><?php echo icon('landmark', '', 32); ?></div>
-                        <strong style="color: #ffffff; font-size: 0.95rem;">UAP Quezon Chapter Registered Member</strong>
+                        <strong style="color: #ffffff; font-size: 0.95rem;">UAP Quezon Province Chapter Registered Member</strong>
                     </div>
                 <?php endif; ?>
             </section>
@@ -612,7 +612,7 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
     <footer id="contact">
         <div class="footer-container">
             <div class="footer-col">
-                <h1>UAP Quezon Chapter</h1>
+                <h1>UAP Quezon Province Chapter</h1>
                 <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.6;">
                     Official chapter of the United Architects of the Philippines (IAPOA Chapter 121) serving architects and communities across Quezon.
                 </p>
@@ -627,7 +627,7 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
         </div>
         <div class="copyright">
             <div>
-                &copy; <?php echo date('Y'); ?> United Architects of the Philippines - Quezon Chapter. All rights reserved.
+                &copy; <?php echo date('Y'); ?> United Architects of the Philippines - Quezon Province Chapter. All rights reserved.
                 <div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-muted, #94a3b8);">
                     Designed &amp; Developed by <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: var(--quezon-gold, #f59e0b); font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">Drew Macaraig</a>
                 </div>

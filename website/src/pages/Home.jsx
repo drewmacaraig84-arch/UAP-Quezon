@@ -53,7 +53,7 @@ export default function Home() {
         <div className="container-wide hero-container">
           <div className="hero-content">
             <p className="eyebrow hero-eyebrow animate-fade-in-up">
-              United Architects of the Philippines — Quezon Chapter
+              United Architects of the Philippines — Quezon Province Chapter
             </p>
             <h1 className="display-1 hero-title animate-fade-in-up">
               Building the Future<br />
@@ -107,7 +107,7 @@ export default function Home() {
             <div className="about-logo-wrap">
               <img 
                 src={settings?.logo || '/public/logo.jpg'} 
-                alt={settings?.org_name || 'UAP Quezon Chapter'} 
+                alt={settings?.org_name || 'UAP Quezon Province Chapter'} 
                 onError={(e) => {
                   if (!e.currentTarget.src.endsWith('/logo.jpg')) {
                     e.currentTarget.src = '/public/logo.jpg';
@@ -122,7 +122,7 @@ export default function Home() {
             <h2 className="display-2">Advocates of<br /><span className="text-gold">Architectural Excellence</span></h2>
             <div className="section-divider" />
             <p className="body-lg muted" style={{ marginTop: '20px' }}>
-              {settings?.about_us || 'The UAP Quezon Chapter brings together registered architects dedicated to advancing the profession, upholding ethical standards, and serving the communities of Quezon through design excellence and innovation.'}
+              {settings?.about_us || 'The UAP Quezon Province Chapter brings together registered architects dedicated to advancing the profession, upholding ethical standards, and serving the communities of Quezon through design excellence and innovation.'}
             </p>
             <div className="about-features reveal-stagger">
               {[{

@@ -1,5 +1,5 @@
 <?php
-$page_title = $page_title ?? 'UAP Quezon Chapter Portal';
+$page_title = $page_title ?? 'UAP Quezon Province Chapter Portal';
 require_once __DIR__ . '/icons.php';
 ?>
 <!DOCTYPE html>

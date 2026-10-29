@@ -3,7 +3,7 @@ import { IconBuilding, IconLeaf, IconDraftingCompass, IconHandshake } from '../c
 import './About.css';
 
 const DEFAULT_MILESTONES = [
-  { year: '2016', title: 'Chapter Founded', content: 'UAP Quezon Chapter established as IAPOA Chapter 121, bringing together registered architects across the Quezon provinces.' },
+  { year: '2016', title: 'Chapter Founded', content: 'UAP Quezon Province Chapter established as IAPOA Chapter 121, bringing together registered architects across the Quezon provinces.' },
   { year: '2018', title: 'Growing Membership', content: 'Membership expanded significantly with architects from Lucena City, Tayabas, Sariaya, and the four districts of Quezon Province joining the chapter.' },
   { year: '2020', title: 'Digital Transformation', content: 'Adopted digital systems for member management, dues processing, and chapter communications.' },
   { year: '2023', title: 'New Leadership', content: 'A new Board of Directors was elected, bringing fresh perspectives and initiatives for chapter growth.' },
@@ -36,7 +36,7 @@ const MISSION = [
 export default function About() {
   const { data: settings } = useApi('/api/settings.php');
   const { data: milestonesData } = useApi('/api/milestones.php');
-  const aboutText = settings?.about_us || 'The United Architects of the Philippines — Quezon Chapter (IAPOA Chapter 121) is the official professional organization of licensed architects serving Quezon Province.';
+  const aboutText = settings?.about_us || 'The United Architects of the Philippines — Quezon Province Chapter (IAPOA Chapter 121) is the official professional organization of licensed architects serving Quezon Province.';
   const rawTimeline = (milestonesData && milestonesData.length > 0) ? milestonesData : DEFAULT_MILESTONES;
   const timeline = rawTimeline.filter((item, index, self) =>
     index === self.findIndex((t) => (t.id ? t.id === item.id : (t.year === item.year && t.title === item.title)))

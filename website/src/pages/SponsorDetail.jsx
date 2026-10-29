@@ -113,7 +113,7 @@ export default function SponsorDetail() {
 
               <p className="sponsor-detail-bio">
                 {sponsor.description ||
-                  `${sponsor.name} is an esteemed corporate partner collaborating with the United Architects of the Philippines Quezon Chapter, supporting architectural practice, quality construction, and regional development.`}
+                  `${sponsor.name} is an esteemed corporate partner collaborating with the United Architects of the Philippines Quezon Province Chapter, supporting architectural practice, quality construction, and regional development.`}
               </p>
 
               <div className="sponsor-detail-cta-row">

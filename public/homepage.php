@@ -3,7 +3,7 @@ require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/icons.php';
 
-$pageTitle = 'UAP Quezon Chapter | United Architects of the Philippines';
+$pageTitle = 'UAP Quezon Province Chapter | United Architects of the Philippines';
 
 // Handle contact form submission
 $contactSuccess = '';
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         try {
             $stmt = $pdo->prepare("INSERT INTO contact_inquiries (name, email, phone, subject, message, status, created_at) VALUES (?, ?, ?, ?, ?, 'unread', NOW())");
             $stmt->execute([$name, $email, $phone, $subject, $msg]);
-            $contactSuccess = 'Thank you for reaching out! Your message has been routed to the UAP Quezon Chapter secretariat.';
+            $contactSuccess = 'Thank you for reaching out! Your message has been routed to the UAP Quezon Province Chapter secretariat.';
         } catch (Throwable $e) {
             $contactError = 'Unable to send message at this time. Please try again.';
         }
@@ -61,7 +61,7 @@ try {
 $aboutUsText = get_site_setting(
     $pdo, 
     'about_us', 
-    'The United Architects of the Philippines (UAP) Quezon Chapter unites registered and licensed architects across Quezon Province. We stand committed to architectural excellence, environmental stewardship of Mt. Banahaw and the Quezon coastline, heritage preservation, and sustainable community development.'
+    'The United Architects of the Philippines (UAP) Quezon Province Chapter unites registered and licensed architects across Quezon Province. We stand committed to architectural excellence, environmental stewardship of Mt. Banahaw and the Quezon coastline, heritage preservation, and sustainable community development.'
 );
 $contactEmail = get_site_setting($pdo, 'contact_email', 'quezon@united-architects.ph');
 $contactPhone = get_site_setting($pdo, 'contact_phone', '+63 917 555 UAPQ');
@@ -918,7 +918,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
     <header>
         <div class="header-container">
             <div class="brand-logo">
-                <img src="<?php echo $logoSrc; ?>" alt="UAP Quezon Chapter Logo">
+                <img src="<?php echo $logoSrc; ?>" alt="UAP Quezon Province Chapter Logo">
                 <div>
                     <div class="brand-title">
                         <span class="gold">UAP</span> <span class="green">QUEZON</span>
@@ -978,7 +978,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         </h1>
 
         <p class="lead">
-            The official digital hub of the United Architects of the Philippines - Quezon Chapter. Uniting registered architects across Lucena City, Tayabas, Sariaya, and the four legislative districts of Quezon Province.
+            The official digital hub of the United Architects of the Philippines - Quezon Province Chapter. Uniting registered architects across Lucena City, Tayabas, Sariaya, and the four legislative districts of Quezon Province.
         </p>
 
         <!-- STATS -->
@@ -1018,7 +1018,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                                 <?php echo icon('landmark', '', 26); ?>
                             </div>
                             <h4 style="color: #ffffff; margin-bottom: 4px;">Directory Profiles Updating</h4>
-                            <p style="font-size: 0.88rem;">Quezon Chapter architects are updating their digital profiles and good standing records.</p>
+                            <p style="font-size: 0.88rem;">Quezon Province Chapter architects are updating their digital profiles and good standing records.</p>
                         </div>
                     <?php else: ?>
                         <div class="table-scroll-hint" style="display: none; align-items: center; justify-content: space-between; background: rgba(229,138,19,0.08); border: 1px dashed var(--quezon-border-gold); padding: 7px 12px; border-radius: 8px; font-size: 11.5px; color: var(--quezon-gold); margin-bottom: 8px;">
@@ -1211,7 +1211,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 <div class="footer-brand">
                     <img src="<?php echo $logoSrc; ?>" alt="UAP Quezon Logo">
                     <div>
-                        <div style="font-weight: 800; font-size: 1.1rem; color: #ffffff;">UAP QUEZON CHAPTER</div>
+                        <div style="font-weight: 800; font-size: 1.1rem; color: #ffffff;">UAP QUEZON PROVINCE CHAPTER</div>
                         <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;">United Architects of the Philippines</div>
                     </div>
                 </div>
@@ -1262,7 +1262,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 
         <div class="copyright">
             <div>
-                &copy; <?php echo date('Y'); ?> United Architects of the Philippines - Quezon Chapter. All rights reserved.
+                &copy; <?php echo date('Y'); ?> United Architects of the Philippines - Quezon Province Chapter. All rights reserved.
                 <div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-muted);">
                     Designed &amp; Developed by <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: var(--quezon-gold); font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">Drew Macaraig</a>
                 </div>

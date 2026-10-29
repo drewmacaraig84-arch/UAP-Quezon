@@ -63,7 +63,7 @@ $dirAppStmt = $pdo->prepare("SELECT * FROM directory_applications WHERE user_id 
 $dirAppStmt->execute([$currentUid]);
 $rejectedDirApp = $dirAppStmt->fetch();
 
-$page_title = 'Member Dashboard • UAP Quezon Chapter';
+$page_title = 'Member Dashboard • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="page-hero">
@@ -150,7 +150,7 @@ include __DIR__ . '/../includes/header.php';
       </div>
       <div>
         <h2 style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin: 0;">Member Profile &amp; Demographics</h2>
-        <span class="muted" style="font-size: 12px;">Certified chapter architectural registration records</span>
+        <span class="muted" style="font-size: 12px;">Certified chapter member registration records</span>
       </div>
     </div>
     <div style="display: flex; gap: 8px;">

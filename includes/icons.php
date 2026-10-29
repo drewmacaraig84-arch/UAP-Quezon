@@ -1,6 +1,6 @@
 <?php
 /**
- * Modern SVG Icon System for UAP Quezon Chapter Portal
+ * Modern SVG Icon System for UAP Quezon Province Chapter Portal
  * Crisp, scalable vector icons (Feather/Lucide style)
  */
 

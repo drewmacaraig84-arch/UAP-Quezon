@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$page_title = 'Portal Login • UAP Quezon Chapter';
+$page_title = 'Portal Login • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -98,11 +98,11 @@ include __DIR__ . '/../includes/header.php';
     <div class="auth-hero-panel">
       <div>
         <div class="auth-logo-badge">
-          <img src="<?php echo BASE_URL; ?>/public/logo.jpg" alt="UAP Quezon Chapter Logo" onerror="if(this.src.indexOf('uploads/logo.jpg')===-1)this.src='<?php echo BASE_URL; ?>/uploads/logo.jpg';">
+          <img src="<?php echo BASE_URL; ?>/public/logo.jpg" alt="UAP Quezon Province Chapter Logo" onerror="if(this.src.indexOf('uploads/logo.jpg')===-1)this.src='<?php echo BASE_URL; ?>/uploads/logo.jpg';">
         </div>
         <p class="eyebrow" style="color: #fbbf24; margin-bottom: 6px;">OFFICIAL CHAPTER PORTAL</p>
         <h2 class="auth-hero-title">United Architects of the Philippines</h2>
-        <p class="auth-hero-sub">Quezon Chapter &bull; Centralized financial administration, dues tracking, and member compliance system.</p>
+        <p class="auth-hero-sub">Quezon Province Chapter &bull; Centralized financial administration, dues tracking, and member compliance system.</p>
 
         <div class="auth-feature-list">
           <div class="auth-feature-item">
@@ -127,7 +127,7 @@ include __DIR__ . '/../includes/header.php';
       </div>
 
       <div style="margin-top: 36px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: #64748b;">
-        <div>&copy; <?php echo date('Y'); ?> UAP Quezon Chapter &bull; Portal &amp; Management</div>
+        <div>&copy; <?php echo date('Y'); ?> UAP Quezon Province Chapter &bull; Portal &amp; Management</div>
         <div style="margin-top: 5px; font-size: 11.5px;">
           Designed &amp; Developed by <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: #fbbf24; font-weight: 600; text-decoration: underline; text-underline-offset: 2px;">Drew Macaraig</a>
         </div>

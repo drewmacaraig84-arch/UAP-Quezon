@@ -284,7 +284,7 @@ if ($search) {
 }
 $members = $stmt->fetchAll();
 
-$page_title = 'Edit Member Accounts • UAP Quezon Chapter';
+$page_title = 'Edit Member Accounts • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 

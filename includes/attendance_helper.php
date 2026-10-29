@@ -88,7 +88,7 @@ if (!function_exists('get_major_events_list')) {
     function get_major_events_list(): array {
         return [
             'event_induction'       => 'Chapter Induction of Officers & New Members',
-            'event_anniversary'     => 'UAP Quezon Chapter Founding Anniversary',
+            'event_anniversary'     => 'UAP Quezon Province Chapter Founding Anniversary',
             'event_christmas_party' => 'Annual Architects Fellowship & Christmas Party',
         ];
     }

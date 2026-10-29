@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $pending = $pdo->query("SELECT * FROM users WHERE role = 'member' AND status = 'pending' ORDER BY created_at ASC")->fetchAll();
 
-$page_title = 'Pending Member Approvals • UAP Quezon Chapter';
+$page_title = 'Pending Member Approvals • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 

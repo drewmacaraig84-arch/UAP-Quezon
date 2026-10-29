@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$page_title = 'Member Registration • UAP Quezon Chapter';
+$page_title = 'Member Registration • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -87,10 +87,10 @@ include __DIR__ . '/../includes/header.php';
     <div class="auth-hero-panel" style="position: sticky; top: 30px; height: fit-content; min-height: 100%;">
       <div>
         <div class="auth-logo-badge">
-          <img src="<?php echo BASE_URL; ?>/public/logo.jpg" alt="UAP Quezon Chapter Logo" onerror="if(this.src.indexOf('uploads/logo.jpg')===-1)this.src='<?php echo BASE_URL; ?>/uploads/logo.jpg';">
+          <img src="<?php echo BASE_URL; ?>/public/logo.jpg" alt="UAP Quezon Province Chapter Logo" onerror="if(this.src.indexOf('uploads/logo.jpg')===-1)this.src='<?php echo BASE_URL; ?>/uploads/logo.jpg';">
         </div>
         <p class="eyebrow" style="color: #fbbf24; margin-bottom: 6px;">NEW MEMBER REGISTRATION</p>
-        <h2 class="auth-hero-title">Join UAP Quezon Chapter</h2>
+        <h2 class="auth-hero-title">Join UAP Quezon Province Chapter</h2>
         <p class="auth-hero-sub">Register your official architect credentials to access online dues payments, track official receipts, and appear in the certified directory.</p>
 
         <div class="auth-feature-list">
@@ -122,7 +122,7 @@ include __DIR__ . '/../includes/header.php';
       </div>
 
       <div style="margin-top: 36px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: #64748b;">
-        <div>&copy; <?php echo date('Y'); ?> UAP Quezon Chapter &bull; Portal &amp; Management</div>
+        <div>&copy; <?php echo date('Y'); ?> UAP Quezon Province Chapter &bull; Portal &amp; Management</div>
         <div style="margin-top: 5px; font-size: 11.5px;">
           Designed &amp; Developed by <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: #fbbf24; font-weight: 600; text-decoration: underline; text-underline-offset: 2px;">Drew Macaraig</a>
         </div>
@@ -133,7 +133,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="auth-form-panel" style="padding: 44px 40px; justify-content: flex-start;">
       <div class="auth-header">
         <h1>Create Member Account</h1>
-        <p>Register as a licensed architect of the UAP Quezon Chapter.</p>
+        <p>Register as a licensed architect of the UAP Quezon Province Chapter.</p>
       </div>
 
       <?php if ($error): ?>
@@ -263,7 +263,7 @@ include __DIR__ . '/../includes/header.php';
               <button type="button" class="legal-link-btn" onclick="openLegalModal('termsModal')">Terms of Agreement</button>, 
               <button type="button" class="legal-link-btn" onclick="openLegalModal('privacyModal')">Data Privacy Policy</button>, and 
               <button type="button" class="legal-link-btn" onclick="openLegalModal('cookieModal')">Cookie Policy</button> 
-              of the UAP Quezon Chapter.
+              of the UAP Quezon Province Chapter.
             </label>
           </div>
         </div>
@@ -347,7 +347,7 @@ const legalTexts = {
   privacyModal: {
     title: 'Data Privacy Policy (RA 10173)',
     content: `
-      <p><strong>1. Compliance:</strong> UAP Quezon Chapter complies with Republic Act No. 10173 (Data Privacy Act of 2012) and National Privacy Commission regulations.</p>
+      <p><strong>1. Compliance:</strong> UAP Quezon Province Chapter complies with Republic Act No. 10173 (Data Privacy Act of 2012) and National Privacy Commission regulations.</p>
       <p><strong>2. Information Collected:</strong> We process your full name, PRC number, date of birth, contact details, address, and chapter payment proofs.</p>
       <p><strong>3. Purpose:</strong> Data is collected solely for chapter membership management, good standing verification, dues billing, and official event tracking.</p>
       <p><strong>4. Security:</strong> Encrypted passwords, role-based access controls, and forensic audit logs safeguard your records against unauthorized disclosure.</p>

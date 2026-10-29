@@ -25,4 +25,4 @@ CREATE TABLE IF NOT EXISTS news_announcements (
 );
 
 -- Insert default about us content if not exists
-INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('about_us', 'The United Architects of the Philippines (UAP) Quezon Chapter unites registered and licensed architects across Quezon Province. We stand committed to architectural excellence, environmental stewardship of Mt. Banahaw and the Quezon coastline, heritage preservation, and sustainable community development.');
+INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('about_us', 'The United Architects of the Philippines (UAP) Quezon Province Chapter unites registered and licensed architects across Quezon Province. We stand committed to architectural excellence, environmental stewardship of Mt. Banahaw and the Quezon coastline, heritage preservation, and sustainable community development.');

@@ -93,8 +93,8 @@ INSERT IGNORE INTO `qr_codes` (`id`, `method`, `image_path`, `updated_at`) VALUE
 
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES
 ('logo', 'public/logo.jpg'),
-('org_name', 'UAP Quezon Chapter'),
-('about_us', 'The United Architects of the Philippines (UAP) Quezon Chapter unites registered and licensed architects across Quezon Province. We stand committed to architectural excellence, environmental stewardship of Mt. Banahaw and the Quezon coastline, heritage preservation, and sustainable community development.'),
+('org_name', 'UAP Quezon Province Chapter'),
+('about_us', 'The United Architects of the Philippines (UAP) Quezon Province Chapter unites registered and licensed architects across Quezon Province. We stand committed to architectural excellence, environmental stewardship of Mt. Banahaw and the Quezon coastline, heritage preservation, and sustainable community development.'),
 ('contact_address', 'Lucena City, Quezon Province, Philippines'),
 ('contact_email', 'quezon@united-architects.ph'),
 ('contact_phone', '+63 (0) XXXX XXXX'),
