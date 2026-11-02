@@ -416,11 +416,11 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
             <div class="header-actions">
                 <nav>
                     <ul>
-                        <li><a href="<?php echo BASE_URL; ?>/index.php#home">Home</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>/index.php#members">Members</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>/index.php#about">About</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>/index.php#news">News</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>/index.php#contact">Contact</a></li>
+                        <li><a href="<?php echo BASE_URL; ?>/public/homepage.php">Home</a></li>
+                        <li><a href="<?php echo BASE_URL; ?>/public/architects.php">Directory</a></li>
+                        <li><a href="<?php echo BASE_URL; ?>/public/about.php">About</a></li>
+                        <li><a href="<?php echo BASE_URL; ?>/public/news.php">News</a></li>
+                        <li><a href="<?php echo BASE_URL; ?>/public/contact.php">Contact</a></li>
                     </ul>
                 </nav>
                 <a href="<?php echo BASE_URL; ?>/auth/login.php" class="login-btn">Login</a>
@@ -432,7 +432,7 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
     <div class="main-container">
         
         <div style="margin-bottom: 1.4rem;">
-            <a href="<?php echo BASE_URL; ?>/index.php#members" class="btn-yellow">
+            <a href="<?php echo BASE_URL; ?>/public/architects.php" class="btn-yellow">
                 &larr; Back to Chapter Directory
             </a>
         </div>
@@ -446,7 +446,7 @@ $pageTitle = $member ? htmlspecialchars($member['name']) . ' - Chapter Directory
                 <p style="color:var(--text-muted); max-width: 520px; margin: 0 auto 24px; font-size: 0.95rem; line-height: 1.6;">
                     This member profile is either not published yet or is currently awaiting annual directory placement fee verification.
                 </p>
-                <a href="<?php echo BASE_URL; ?>/index.php#members" class="btn-yellow">Return to Directory</a>
+                <a href="<?php echo BASE_URL; ?>/public/architects.php" class="btn-yellow">Return to Directory</a>
             </section>
         <?php else: 
             $initials = '';
