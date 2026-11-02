@@ -407,11 +407,6 @@ $activePage = 'architects';
                 </div>
                 <div class="credentials-grid">
                     <div class="cred-item">
-                        <span class="cred-label">Chapter Member ID</span>
-                        <span class="cred-value" style="color: var(--quezon-gold);"><?php echo htmlspecialchars($chapterId); ?></span>
-                    </div>
-
-                    <div class="cred-item">
                         <span class="cred-label">Chapter Affiliation</span>
                         <span class="cred-value">UAP Quezon Province Chapter (121)</span>
                     </div>
@@ -482,14 +477,6 @@ $activePage = 'architects';
                     <div class="cred-item">
                         <span class="cred-label">Base Practice Municipality</span>
                         <span class="cred-value"><?php echo htmlspecialchars($cleanLocation); ?></span>
-                    </div>
-
-                    <div class="cred-item">
-                        <span class="cred-label">Official Standing Status</span>
-                        <span class="cred-value" style="color: #34d399; display: flex; align-items: center; gap: 6px;">
-                            <?php echo icon('shield_check', '', 14); ?>
-                            <span>Certified Good Standing</span>
-                        </span>
                     </div>
 
                     <div class="cred-item">
