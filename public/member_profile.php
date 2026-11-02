@@ -15,8 +15,8 @@ if ($memberId > 0) {
     $stmt->execute([$memberId]);
     $member = $stmt->fetch();
 } elseif ($prcNumber !== '') {
-    $stmt = $pdo->prepare("SELECT wm.*, COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path FROM website_members wm LEFT JOIN users u ON wm.user_id = u.id WHERE wm.id_number = ? AND wm.is_published = 1 AND wm.deleted_at IS NULL");
-    $stmt->execute([$prcNumber]);
+    $stmt = $pdo->prepare("SELECT wm.*, COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path FROM website_members wm LEFT JOIN users u ON wm.user_id = u.id WHERE (wm.prc_number = ? OR wm.id_number = ?) AND wm.is_published = 1 AND wm.deleted_at IS NULL");
+    $stmt->execute([$prcNumber, $prcNumber]);
     $member = $stmt->fetch();
 } elseif ($nameQuery !== '') {
     $stmt = $pdo->prepare("SELECT wm.*, COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path FROM website_members wm LEFT JOIN users u ON wm.user_id = u.id WHERE wm.name = ? AND wm.is_published = 1 AND wm.deleted_at IS NULL");
@@ -321,7 +321,8 @@ $activePage = 'architects';
                 $cleanLocation = (!empty($member['location']) && strcasecmp(trim($member['location']), 'none') !== 0) ? $member['location'] : 'Quezon Province, Philippines';
                 $cleanAchievements = (!empty($member['achievements']) && strcasecmp(trim($member['achievements']), 'none') !== 0) ? $member['achievements'] : 'Registered Architect actively practicing in Quezon Province under UAP Chapter 121.';
                 $cleanAwards = (!empty($member['awards']) && strcasecmp(trim($member['awards']), 'none') !== 0) ? $member['awards'] : 'Active professional member in certified good standing under UAP Quezon Province Chapter.';
-                $prcNumber = $member['id_number'] ?: ($member['prc_number'] ?: '—');
+                $prcNumber = !empty($member['prc_number']) ? $member['prc_number'] : '—';
+                $chapterId = !empty($member['id_number']) ? $member['id_number'] : '—';
             ?>
 
             <!-- HERO PROFILE CARD -->
@@ -342,7 +343,6 @@ $activePage = 'architects';
                     <div class="profile-role"><?php echo htmlspecialchars($member['role_title'] ?: 'Architect'); ?></div>
 
                     <div class="profile-badges-row">
-                        <span class="badge-prc">PRC: <?php echo htmlspecialchars($prcNumber); ?></span>
                         <span class="badge-verified-pill">
                             <?php echo icon('shield_check', '', 14); ?>
                             <span>Good Standing (Verified)</span>
@@ -371,6 +371,11 @@ $activePage = 'architects';
                     <div class="cred-item">
                         <span class="cred-label">PRC Registration License</span>
                         <span class="cred-value" style="color: var(--quezon-green-light);"><?php echo htmlspecialchars($prcNumber); ?></span>
+                    </div>
+
+                    <div class="cred-item">
+                        <span class="cred-label">Chapter Member ID</span>
+                        <span class="cred-value" style="color: var(--quezon-gold);"><?php echo htmlspecialchars($chapterId); ?></span>
                     </div>
 
                     <div class="cred-item">

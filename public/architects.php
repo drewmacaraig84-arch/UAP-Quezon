@@ -18,9 +18,9 @@ try {
     $params = [];
 
     if ($search !== '') {
-        $sql .= " AND (wm.name LIKE ? OR wm.specialty LIKE ? OR wm.company_name LIKE ? OR wm.location LIKE ? OR wm.id_number LIKE ?)";
+        $sql .= " AND (wm.name LIKE ? OR wm.specialty LIKE ? OR wm.company_name LIKE ? OR wm.location LIKE ? OR wm.prc_number LIKE ? OR wm.id_number LIKE ?)";
         $term = "%$search%";
-        $params = array_merge($params, [$term, $term, $term, $term, $term]);
+        $params = array_merge($params, [$term, $term, $term, $term, $term, $term]);
     }
 
     if ($filterSpec !== '' && $filterSpec !== 'All') {
@@ -39,7 +39,7 @@ try {
             'name' => $wm['name'],
             'role' => $wm['role_title'] ?: 'Architect',
             'specialty' => $wm['specialty'] ?: 'Professional Architect',
-            'prc' => $wm['id_number'] ?: ($wm['prc_number'] ?: '—'),
+            'prc' => !empty($wm['prc_number']) ? $wm['prc_number'] : ($wm['id_number'] ?: '—'),
             'location' => $wm['location'] ?: 'Quezon Province',
             'company' => $wm['company_name'] ?: '',
             'photo_path' => $wm['photo_path'] ?? ''
