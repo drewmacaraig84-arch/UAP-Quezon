@@ -369,11 +369,6 @@ $activePage = 'architects';
                 </div>
                 <div class="credentials-grid">
                     <div class="cred-item">
-                        <span class="cred-label">PRC Registration License</span>
-                        <span class="cred-value" style="color: var(--quezon-green-light);"><?php echo htmlspecialchars($prcNumber); ?></span>
-                    </div>
-
-                    <div class="cred-item">
                         <span class="cred-label">Chapter Member ID</span>
                         <span class="cred-value" style="color: var(--quezon-gold);"><?php echo htmlspecialchars($chapterId); ?></span>
                     </div>
