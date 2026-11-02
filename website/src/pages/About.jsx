@@ -3,11 +3,11 @@ import { IconBuilding, IconLeaf, IconDraftingCompass, IconHandshake } from '../c
 import './About.css';
 
 const DEFAULT_MILESTONES = [
-  { year: '2016', title: 'Chapter Founded', content: 'UAP Quezon Province Chapter established as IAPOA Chapter 121, bringing together registered architects across the Quezon provinces.' },
-  { year: '2018', title: 'Growing Membership', content: 'Membership expanded significantly with architects from Lucena City, Tayabas, Sariaya, and the four districts of Quezon Province joining the chapter.' },
-  { year: '2020', title: 'Digital Transformation', content: 'Adopted digital systems for member management, dues processing, and chapter communications.' },
-  { year: '2023', title: 'New Leadership', content: 'A new Board of Directors was elected, bringing fresh perspectives and initiatives for chapter growth.' },
-  { year: '2024', title: 'Online Architect Directory', content: 'Launched the public Architect Directory to connect clients with verified UAP Quezon architects.' },
+  { year: '1977', title: 'Chartering of UAP Quezon Province Chapter', content: 'Chartered on November 11, 1977 as the first chapter in District B4 and the 18th chapter registered in the Philippines, founded under Benecio N. Tolentino, FUAP.' },
+  { year: '1995', title: 'Preserving Quezon Heritage & Culture', content: 'Pioneered heritage documentation and preservation advocacy for ancestral stone houses and civic landmarks across Lucena City, Tayabas, and Sariaya.' },
+  { year: '2004', title: 'Advocacy for Republic Act No. 9266', content: 'Led active collaboration with local municipal governments and building officials across Quezon Province for the full implementation of the Architecture Act.' },
+  { year: '2018', title: 'Guhit Arkitektong Quezonian', content: 'Launched the chapter\'s signature annual design exhibition, CPD symposium, and platform uniting local architectural talent and creative community dialogue.' },
+  { year: '2026', title: 'Approaching Golden 50th Anniversary', content: 'Comprising over 300 members and guided by 27 Chapter Presidents, the chapter launches its digital member portal and verified architect directory.' },
 ];
 
 const MISSION = [

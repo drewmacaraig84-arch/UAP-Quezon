@@ -148,8 +148,13 @@ include __DIR__ . '/../includes/header.php';
     <h1>Attendance &amp; Activity Manager</h1>
     <p class="page-subtitle">Record and audit General Membership Meetings, Zoom webinars, and Major Event participation to verify Active vs Inactive standing.</p>
   </div>
-  <div class="hero-badge">
-    <?php echo icon('check', '', 14); ?> <span>Active Criteria: 7+ Events</span>
+  <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <a href="scan_attendance.php" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; padding: 9px 18px; font-weight: 800; box-shadow: 0 4px 14px rgba(245,158,11,0.3);">
+      <?php echo icon('qr_codes', '', 16); ?> Open Live QR Scanner
+    </a>
+    <div class="hero-badge">
+      <?php echo icon('check', '', 14); ?> <span>Active Criteria: 7+ Events</span>
+    </div>
   </div>
 </div>
 

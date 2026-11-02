@@ -340,7 +340,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             width: 100%;
             margin: 3.5rem auto 0;
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 1.5rem;
             padding: 1.8rem 2rem;
             background: rgba(19, 29, 51, 0.65);
@@ -851,7 +851,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         /* RESPONSIVE BREAKPOINTS (Tablets & Mobile Devices) */
         @media (max-width: 960px) {
             .content-grid { grid-template-columns: minmax(0, 1fr); }
-            .stats-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding: 1.5rem; }
+            .stats-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding: 1.5rem; }
             .footer-container { grid-template-columns: minmax(0, 1fr); gap: 2.2rem; }
             .desktop-nav { display: none; }
             .mobile-menu-btn { display: inline-flex; }
@@ -914,57 +914,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 </head>
 <body>
 
-    <!-- STICKY NAVBAR -->
-    <header>
-        <div class="header-container">
-            <div class="brand-logo">
-                <img src="<?php echo $logoSrc; ?>" alt="UAP Quezon Province Chapter Logo">
-                <div>
-                    <div class="brand-title">
-                        <span class="gold">UAP</span> <span class="green">QUEZON</span>
-                    </div>
-                    <span class="brand-sub">United Architects of the Philippines</span>
-                </div>
-            </div>
-
-            <nav class="desktop-nav">
-                <ul>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#directory">Architects</a></li>
-                    <li><a href="#news">News &amp; Events</a></li>
-                    <li><a href="#milestones">Milestones</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </nav>
-
-            <div class="header-actions">
-                <a href="<?php echo BASE_URL; ?>/auth/login.php" class="btn-portal">
-                    <?php echo icon('shield_check', '', 14); ?>
-                    <span>Portal Login</span>
-                </a>
-                <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation menu" onclick="toggleMobileMenu()">
-                    <?php echo icon('dashboard', '', 20); ?>
-                </button>
-            </div>
-        </div>
-
-        <!-- Mobile Navigation Drawer -->
-        <div class="mobile-nav-drawer" id="mobileNavDrawer">
-            <ul>
-                <li><a href="#about" onclick="closeMobileMenu()"><?php echo icon('landmark', '', 16); ?> <span>About Chapter</span></a></li>
-                <li><a href="#directory" onclick="closeMobileMenu()"><?php echo icon('members', '', 16); ?> <span>Architect Directory</span></a></li>
-                <li><a href="#news" onclick="closeMobileMenu()"><?php echo icon('newspaper', '', 16); ?> <span>News &amp; Events</span></a></li>
-                <li><a href="#milestones" onclick="closeMobileMenu()"><?php echo icon('clock', '', 16); ?> <span>Milestones</span></a></li>
-                <li><a href="#contact" onclick="closeMobileMenu()"><?php echo icon('mail', '', 16); ?> <span>Contact Us</span></a></li>
-                <li class="mobile-portal-item">
-                    <a href="<?php echo BASE_URL; ?>/auth/login.php" class="btn-mobile-portal">
-                        <?php echo icon('shield_check', '', 16); ?>
-                        <span>Sign In to Member Portal</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </header>
+    <?php $activePage = 'home'; require __DIR__ . '/../includes/public_nav.php'; ?>
 
     <!-- HERO SECTION -->
     <section class="hero">
@@ -984,16 +934,20 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         <!-- STATS -->
         <div class="stats-bar">
             <div class="stat-item">
-                <div class="stat-value" style="color: var(--quezon-gold);"><?php echo max(120, count($members) * 15); ?>+</div>
+                <div class="stat-value" style="color: var(--quezon-gold);">1977</div>
+                <div class="stat-label">Chartered (1st in B4)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" style="color: var(--quezon-green-light);">27</div>
+                <div class="stat-label">Chapter Presidents</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" style="color: #60a5fa;">300+</div>
                 <div class="stat-label">Registered Architects</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" style="color: var(--quezon-green-light);">42+</div>
-                <div class="stat-label">Years of Heritage</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" style="color: #fbbf24;">4</div>
-                <div class="stat-label">Quezon Districts Served</div>
+                <div class="stat-value" style="color: #fbbf24;">50th</div>
+                <div class="stat-label">Golden Anniversary</div>
             </div>
         </div>
     </section>
@@ -1003,13 +957,57 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         <div class="content-grid">
             <!-- MAIN COLUMN -->
             <main>
+                <!-- ABOUT US SECTION -->
+                <section class="section-box" id="about">
+                    <div class="section-header">
+                        <h2><?php echo icon('landmark', '', 20); ?> Built Through Time &amp; <span>About UAP Quezon</span></h2>
+                        <a href="<?php echo BASE_URL; ?>/public/about.php" class="btn-outline-quezon" style="font-size: 0.78rem; padding: 6px 14px;">
+                            Full Story &rarr;
+                        </a>
+                    </div>
+                    <div style="font-size: 1.02rem; line-height: 1.7; color: #cbd5e1; margin-bottom: 1.2rem;">
+                        <p style="margin-bottom: 0.8rem;">
+                            The <strong>United Architects of the Philippines – Quezon Province Chapter (UAP-QPC)</strong> holds a historic place within the national organization. Chartered on <strong>November 11, 1977</strong>, it was the first chapter established in District B4 and the 18th chapter registered in the Philippines.
+                        </p>
+                        <p style="margin-bottom: 0.8rem;">
+                            Under the visionary leadership of Founding Chapter President <strong>Ar. Benecio N. Tolentino, FUAP</strong>, and guided across decades by <strong>twenty-seven (27) Chapter Presidents</strong>, the chapter has united over 300 licensed architects across Lucena City, Tayabas, Sariaya, and the four districts of Quezon.
+                        </p>
+                        <p>
+                            As we approach our <strong>Golden 50th Anniversary</strong>, we reaffirm our commitment to empowering the profession through CPD masterclasses, signature showcases such as <em>Guhit Arkitektong Quezonian</em>, community outreach, and collaborative enforcement of Republic Act No. 9266 with local government units.
+                        </p>
+                    </div>
+
+                    <div class="about-features-grid">
+                        <div style="background: var(--quezon-card-inner); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--quezon-border);">
+                            <div style="color: var(--quezon-gold); margin-bottom: 8px;"><?php echo icon('building', '', 22); ?></div>
+                            <h4 style="color: #ffffff; margin-bottom: 4px; font-size: 0.95rem;">Professional Standards &amp; RA 9266</h4>
+                            <p style="font-size: 0.82rem; color: var(--text-muted);">Partnering with Quezon municipal building officials to enforce architectural practice laws.</p>
+                        </div>
+                        <div style="background: var(--quezon-card-inner); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--quezon-border);">
+                            <div style="color: var(--quezon-green-light); margin-bottom: 8px;"><?php echo icon('sparkles', '', 22); ?></div>
+                            <h4 style="color: #ffffff; margin-bottom: 4px; font-size: 0.95rem;">Ecological &amp; Heritage Design</h4>
+                            <p style="font-size: 0.82rem; color: var(--text-muted);">Preserving Quezon ancestral landmarks while designing climate-resilient architecture.</p>
+                        </div>
+                        <div style="background: var(--quezon-card-inner); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--quezon-border);">
+                            <div style="color: #60a5fa; margin-bottom: 8px;"><?php echo icon('award', '', 22); ?></div>
+                            <h4 style="color: #ffffff; margin-bottom: 4px; font-size: 0.95rem;">Community Extension Services</h4>
+                            <p style="font-size: 0.82rem; color: var(--text-muted);">Pro-bono civic planning, community outreach, and public school assistance.</p>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- DIRECTORY SECTION -->
                 <section class="section-box" id="directory">
                     <div class="section-header">
                         <h2><?php echo icon('members', '', 20); ?> Chapter <span>Architect Directory</span></h2>
-                        <a href="<?php echo BASE_URL; ?>/auth/register.php" class="btn-outline-quezon" style="font-size: 0.78rem; padding: 6px 14px;">
-                            Join Chapter &rarr;
-                        </a>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="<?php echo BASE_URL; ?>/public/architects.php" class="btn-outline-quezon" style="font-size: 0.78rem; padding: 6px 14px;">
+                                Full Directory &rarr;
+                            </a>
+                            <a href="<?php echo BASE_URL; ?>/auth/register.php" class="btn-outline-quezon" style="font-size: 0.78rem; padding: 6px 14px;">
+                                Join &rarr;
+                            </a>
+                        </div>
                     </div>
 
                     <?php if (empty($members)): ?>
@@ -1059,38 +1057,13 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                     <?php endif; ?>
                 </section>
 
-                <!-- ABOUT US SECTION -->
-                <section class="section-box" id="about">
-                    <div class="section-header">
-                        <h2><?php echo icon('landmark', '', 20); ?> About <span>UAP Quezon</span></h2>
-                    </div>
-                    <div style="font-size: 1.05rem; line-height: 1.7; color: #cbd5e1;">
-                        <p><?php echo nl2br(htmlspecialchars($aboutUsText)); ?></p>
-                    </div>
-
-                    <div class="about-features-grid">
-                        <div style="background: var(--quezon-card-inner); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--quezon-border);">
-                            <div style="color: var(--quezon-gold); margin-bottom: 8px;"><?php echo icon('building', '', 22); ?></div>
-                            <h4 style="color: #ffffff; margin-bottom: 4px; font-size: 0.95rem;">Heritage Advocacy</h4>
-                            <p style="font-size: 0.82rem; color: var(--text-muted);">Protecting ancestral stone and wooden houses across Lucena, Sariaya, and Tayabas.</p>
-                        </div>
-                        <div style="background: var(--quezon-card-inner); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--quezon-border);">
-                            <div style="color: var(--quezon-green-light); margin-bottom: 8px;"><?php echo icon('sparkles', '', 22); ?></div>
-                            <h4 style="color: #ffffff; margin-bottom: 4px; font-size: 0.95rem;">Ecological Design</h4>
-                            <p style="font-size: 0.82rem; color: var(--text-muted);">Climate-resilient construction celebrating Mt. Banahaw watershed topography.</p>
-                        </div>
-                        <div style="background: var(--quezon-card-inner); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--quezon-border);">
-                            <div style="color: #60a5fa; margin-bottom: 8px;"><?php echo icon('award', '', 22); ?></div>
-                            <h4 style="color: #ffffff; margin-bottom: 4px; font-size: 0.95rem;">Professional Pride</h4>
-                            <p style="font-size: 0.82rem; color: var(--text-muted);">Strict enforcement of RA 9266 Architecture Act in Quezon local government units.</p>
-                        </div>
-                    </div>
-                </section>
-
                 <!-- NEWS & EVENTS SECTION -->
                 <section class="section-box" id="news">
                     <div class="section-header">
                         <h2><?php echo icon('newspaper', '', 20); ?> News &amp; <span>Announcements</span></h2>
+                        <a href="<?php echo BASE_URL; ?>/public/news.php" class="btn-outline-quezon" style="font-size: 0.78rem; padding: 6px 14px;">
+                            All Events &rarr;
+                        </a>
                     </div>
 
                     <div class="news-grid">
@@ -1108,6 +1081,9 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 <section class="section-box" id="milestones">
                     <div class="section-header">
                         <h2><?php echo icon('award', '', 20); ?> Chapter <span>Milestones</span></h2>
+                        <a href="<?php echo BASE_URL; ?>/public/milestones.php" class="btn-outline-quezon" style="font-size: 0.78rem; padding: 6px 14px;">
+                            Full Milestones &rarr;
+                        </a>
                     </div>
 
                     <div class="milestone-timeline">
@@ -1204,94 +1180,6 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         </div>
     </div>
 
-    <!-- FOOTER -->
-    <footer>
-        <div class="footer-container">
-            <div>
-                <div class="footer-brand">
-                    <img src="<?php echo $logoSrc; ?>" alt="UAP Quezon Logo">
-                    <div>
-                        <div style="font-weight: 800; font-size: 1.1rem; color: #ffffff;">UAP QUEZON PROVINCE CHAPTER</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;">United Architects of the Philippines</div>
-                    </div>
-                </div>
-                <p style="font-size: 0.88rem; color: var(--text-muted); max-width: 440px; line-height: 1.6;">
-                    The integrated and accredited professional organization of architects (IAPOA) representing registered architects of Quezon Province.
-                </p>
-            </div>
-
-            <div class="footer-col">
-                <h4>Chapter Links</h4>
-                <ul>
-                    <li><a href="#about">About UAP Quezon</a></li>
-                    <li><a href="#directory">Chapter Architects</a></li>
-                    <li><a href="#news">News &amp; Events</a></li>
-                    <li><a href="#milestones">Timeline &amp; Milestones</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>/auth/login.php">Member Portal &amp; Dues</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-col">
-                <h4>Contact UAP-QC</h4>
-                <ul>
-                    <li style="display: flex; align-items: flex-start; gap: 8px; color: var(--text-muted); font-size: 0.88rem; line-height: 1.4;">
-                        <span style="color: var(--quezon-gold); flex-shrink: 0; margin-top: 2px;"><?php echo icon('map_pin', '', 15); ?></span>
-                        <span><?php echo htmlspecialchars($contactAddress); ?></span>
-                    </li>
-                    <li style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem;">
-                        <span style="color: var(--quezon-gold); flex-shrink: 0;"><?php echo icon('mail', '', 15); ?></span>
-                        <a href="mailto:<?php echo htmlspecialchars($contactEmail); ?>" style="color: var(--text-muted); text-decoration: none; word-break: break-all;"><?php echo htmlspecialchars($contactEmail); ?></a>
-                    </li>
-                    <li style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem;">
-                        <span style="color: var(--quezon-gold); flex-shrink: 0;"><?php echo icon('phone', '', 15); ?></span>
-                        <a href="tel:<?php echo htmlspecialchars(preg_replace('/[^0-9+]/', '', $contactPhone)); ?>" style="color: var(--text-muted); text-decoration: none;"><?php echo htmlspecialchars($contactPhone); ?></a>
-                    </li>
-                    <li style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 0.88rem;">
-                        <span style="color: var(--quezon-gold); flex-shrink: 0;"><?php echo icon('clock', '', 15); ?></span>
-                        <span>Mon &ndash; Fri &bull; 9:00 AM &ndash; 5:00 PM</span>
-                    </li>
-                    <li style="margin-top: 6px;">
-                        <a href="#contact" style="display: inline-flex; align-items: center; gap: 6px; color: var(--quezon-green-light); font-weight: 700; font-size: 0.85rem; text-decoration: none;">
-                            <span>Message Chapter Secretariat</span>
-                            <?php echo icon('arrow_right', '', 13); ?>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="copyright">
-            <div>
-                &copy; <?php echo date('Y'); ?> United Architects of the Philippines - Quezon Province Chapter. All rights reserved.
-                <div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-muted);">
-                    Designed &amp; Developed by <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: var(--quezon-gold); font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">Drew Macaraig</a>
-                </div>
-            </div>
-            <div style="color: var(--quezon-green-light); font-weight: 600;">Area B • Quezon Province</div>
-        </div>
-    </footer>
-    <script>
-    function toggleMobileMenu() {
-        const drawer = document.getElementById('mobileNavDrawer');
-        if (drawer) {
-            drawer.classList.toggle('open');
-        }
-    }
-    function closeMobileMenu() {
-        const drawer = document.getElementById('mobileNavDrawer');
-        if (drawer) {
-            drawer.classList.remove('open');
-        }
-    }
-    document.addEventListener('click', function(e) {
-        const drawer = document.getElementById('mobileNavDrawer');
-        const btn = document.getElementById('mobileMenuBtn');
-        if (drawer && drawer.classList.contains('open')) {
-            if (!drawer.contains(e.target) && !btn.contains(e.target)) {
-                drawer.classList.remove('open');
-            }
-        }
-    });
-    </script>
+    <?php require __DIR__ . '/../includes/public_footer.php'; ?>
 </body>
 </html>

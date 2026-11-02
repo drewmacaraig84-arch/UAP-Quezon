@@ -106,6 +106,18 @@ function detect_social_link_type($url, $selectedType = 'auto') {
     return 'website';
 }
 
+if (!function_exists('is_logged_in')) {
+    function is_logged_in(): bool {
+        return !empty($_SESSION['user_id']);
+    }
+}
+
+if (!function_exists('is_admin')) {
+    function is_admin(): bool {
+        return isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'super_admin'], true);
+    }
+}
+
 function require_login() {
     global $pdo;
     if (!isset($_SESSION['user_id'])) {

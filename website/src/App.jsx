@@ -6,12 +6,13 @@ import SponsorDock from './components/SponsorDock';
 import { useScrollReveal } from './hooks/useScrollReveal';
 
 // Lazy-loaded pages
-const Home      = lazy(() => import('./pages/Home'));
-const Directory = lazy(() => import('./pages/Directory'));
+const Home          = lazy(() => import('./pages/Home'));
+const Directory     = lazy(() => import('./pages/Directory'));
 const Profile       = lazy(() => import('./pages/Profile'));
 const ProjectDetail = lazy(() => import('./pages/ProjectDetail'));
 const About         = lazy(() => import('./pages/About'));
 const News          = lazy(() => import('./pages/News'));
+const Milestones    = lazy(() => import('./pages/Milestones'));
 const Sponsors      = lazy(() => import('./pages/Sponsors'));
 const SponsorDetail = lazy(() => import('./pages/SponsorDetail'));
 const Contact       = lazy(() => import('./pages/Contact'));
@@ -38,11 +39,13 @@ export default function App() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/"           element={<Home />} />
+          <Route path="/about"      element={<About />} />
+          <Route path="/architects" element={<Directory />} />
           <Route path="/directory"  element={<Directory />} />
           <Route path="/profile/:id" element={<Profile />} />
           <Route path="/profile/:id/project/:projectId" element={<ProjectDetail />} />
-          <Route path="/about"      element={<About />} />
           <Route path="/news"       element={<News />} />
+          <Route path="/milestones" element={<Milestones />} />
           <Route path="/partners"   element={<Sponsors />} />
           <Route path="/partners/:id" element={<SponsorDetail />} />
           <Route path="/sponsors"   element={<Sponsors />} />

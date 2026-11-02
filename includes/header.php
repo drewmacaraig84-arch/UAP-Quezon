@@ -185,9 +185,17 @@ require_once __DIR__ . '/icons.php';
             <span class="nav-icon"><?php echo icon('good_members'); ?></span>
             <span>Good Standing</span>
           </a>
+          <a class="nav-item<?php echo $nav_active('events.php'); ?>" href="<?php echo BASE_URL; ?>/admin/events.php">
+            <span class="nav-icon"><?php echo icon('calendar'); ?></span>
+            <span>Meetings &amp; Events</span>
+          </a>
           <a class="nav-item<?php echo $nav_active('attendance.php'); ?>" href="<?php echo BASE_URL; ?>/admin/attendance.php">
             <span class="nav-icon"><?php echo icon('check'); ?></span>
             <span>Attendance Manager</span>
+          </a>
+          <a class="nav-item<?php echo $nav_active('scan_attendance.php'); ?>" href="<?php echo BASE_URL; ?>/admin/scan_attendance.php">
+            <span class="nav-icon"><?php echo icon('qr_codes'); ?></span>
+            <span>QR Attendance Scanner</span>
           </a>
           <a class="nav-item<?php echo $nav_active('website_directory.php'); ?>" href="<?php echo BASE_URL; ?>/admin/website_directory.php">
             <span class="nav-icon"><?php echo icon('website_directory'); ?></span>
@@ -228,9 +236,17 @@ require_once __DIR__ . '/icons.php';
             <span class="nav-icon"><?php echo icon('dashboard'); ?></span>
             <span>Dashboard</span>
           </a>
+          <a class="nav-item<?php echo $nav_active('events.php'); ?>" href="<?php echo BASE_URL; ?>/member/events.php">
+            <span class="nav-icon"><?php echo icon('calendar'); ?></span>
+            <span>Chapter Meetings</span>
+          </a>
           <a class="nav-item<?php echo $nav_active('chapter_status.php'); ?>" href="<?php echo BASE_URL; ?>/member/chapter_status.php">
             <span class="nav-icon"><?php echo icon('shield_check'); ?></span>
             <span>My Chapter Status</span>
+          </a>
+          <a class="nav-item<?php echo $nav_active('attendance_pass.php'); ?>" href="<?php echo BASE_URL; ?>/member/attendance_pass.php">
+            <span class="nav-icon"><?php echo icon('qr_codes'); ?></span>
+            <span>Digital Attendance Pass</span>
           </a>
           <a class="nav-item<?php echo $nav_active(['dues.php', 'pay.php']); ?>" href="<?php echo BASE_URL; ?>/member/dues.php">
             <span class="nav-icon"><?php echo icon('payments'); ?></span>

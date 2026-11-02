@@ -1,3 +1,9 @@
+/* =========================================================
+   UAP-QUEZON HOME PAGE STYLES
+   Executive Summary Showcase for:
+   1. About, 2. Architects, 3. News & Events, 4. Milestones, 5. Contact
+   ========================================================= */
+
 /* ========== HERO ========== */
 .hero-section {
   position: relative;
@@ -27,7 +33,7 @@
   margin: 0 auto;
   padding: calc(var(--nav-h) + 30px) 4vw 70px 5vw;
   display: grid;
-  grid-template-columns: minmax(320px, 560px) 1fr;
+  grid-template-columns: minmax(320px, 580px) 1fr;
   align-items: center;
   pointer-events: none;
 }
@@ -35,7 +41,7 @@
 .hero-content {
   position: relative;
   z-index: 2;
-  max-width: 540px;
+  max-width: 560px;
   text-align: left;
   pointer-events: auto;
 }
@@ -57,7 +63,7 @@
 }
 
 .hero-sub {
-  max-width: 480px;
+  max-width: 500px;
   margin-bottom: var(--space-5);
   line-height: 1.65;
   font-size: 0.95rem;
@@ -66,7 +72,7 @@
 
 .hero-actions {
   display: flex;
-  gap: var(--space-4);
+  gap: var(--space-3);
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
@@ -96,17 +102,70 @@
 .hero-content > *:nth-child(3) { animation-delay: 0.4s; }
 .hero-content > *:nth-child(4) { animation-delay: 0.55s; }
 
-/* ========== STATS ========== */
+/* ========== CHAPTER STATS STRIP ========== */
+.chapter-stats-strip {
+  background: linear-gradient(180deg, rgba(11, 17, 32, 0.95) 0%, rgba(19, 29, 51, 0.98) 100%);
+  border-top: 1px solid var(--c-border-gold);
+  border-bottom: 1px solid var(--c-border);
+  padding: 24px 0;
+  position: relative;
+  z-index: 3;
+}
+
+.chapter-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--r-md, 8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--c-border-gold);
+}
+
+.stat-num {
+  font-family: var(--f-display);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.stat-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-white);
+  margin-top: 4px;
+}
+
+.stat-desc {
+  font-size: 0.72rem;
+  color: var(--c-text-2);
+  margin-top: 2px;
+}
+
 /* ========== SHOWCASE SLIDER STRIP ========== */
 .showcase-strip {
   background: var(--c-bg-2);
-  border-top: 1px solid var(--c-border);
   border-bottom: 1px solid var(--c-border);
   padding: 16px 0;
   overflow: hidden;
 }
 
-/* Horizontal Showcase Slider */
 .home-showcase-marquee {
   margin: 0;
   width: 100%;
@@ -154,16 +213,42 @@
 }
 
 @keyframes showcase-scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
-/* ========== ABOUT ========== */
-.about-section { background: var(--c-bg-2); }
+/* ========== SECTION BADGE PILL ========== */
+.section-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(229, 138, 19, 0.12);
+  border: 1px solid var(--c-border-gold);
+  color: var(--c-gold);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  margin-bottom: 8px;
+}
+
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-gold);
+  box-shadow: 0 0 8px var(--c-gold);
+}
+
+/* =========================================================
+   1. ABOUT SUMMARY SECTION
+   ========================================================= */
+.about-section {
+  background: var(--c-bg-2);
+  border-top: 1px solid var(--c-border);
+}
 
 .about-grid {
   display: grid;
@@ -182,11 +267,11 @@
 .about-logo-wrap {
   width: 260px;
   height: 260px;
-  border-radius: 6px;
+  border-radius: 8px;
   background: #fff;
-  padding: 2px;
+  padding: 4px;
   border: 1px solid var(--c-border-gold);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
   position: relative;
   z-index: 1;
 }
@@ -208,15 +293,17 @@
   opacity: 0.4;
 }
 
-.about-content { display: flex; flex-direction: column; gap: var(--space-4); }
-
-
+.about-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
 
 .about-features {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  margin-top: var(--space-3);
+  margin-top: var(--space-2);
 }
 
 .about-feature {
@@ -236,39 +323,307 @@
   background: var(--c-gold-dim);
   border: 1px solid var(--c-border-gold);
   border-radius: 10px;
+  color: var(--c-gold);
 }
 
 .about-feature strong {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--c-white);
   margin-bottom: 2px;
 }
 
 .about-feature p {
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   color: var(--c-text-2);
 }
 
-/* ========== FEATURED ========== */
-.featured-section { background: var(--c-bg); }
-.featured-grid { margin-top: var(--space-7); }
-.skeleton-grid { margin-top: var(--space-7); }
-.empty-state { text-align: center; padding: var(--space-8) 0; }
+.section-summary-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
 
-/* ========== NEWS ========== */
+.summary-page-tag {
+  font-size: 0.76rem;
+  color: var(--c-text-3, #94a3b8);
+  font-style: italic;
+}
+
+/* =========================================================
+   2. ARCHITECTS DIRECTORY SUMMARY SECTION
+   ========================================================= */
+.featured-section {
+  background: var(--c-bg);
+  border-top: 1px solid var(--c-border);
+}
+
+.specialty-pills-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.spec-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--c-border);
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  transition: all 0.2s ease;
+}
+
+.spec-pill:hover {
+  border-color: var(--c-border-gold);
+  background: var(--c-gold-dim);
+  color: #fff;
+}
+
+.section-summary-footer {
+  margin-top: 32px;
+}
+
+.summary-cta-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  background: linear-gradient(135deg, rgba(25, 37, 66, 0.8) 0%, rgba(11, 17, 32, 0.9) 100%);
+  border: 1px solid var(--c-border-gold);
+  padding: 20px 28px;
+  border-radius: var(--r-lg, 12px);
+  text-align: left;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-8) 0;
+}
+
+/* =========================================================
+   3. NEWS & EVENTS SUMMARY SECTION
+   ========================================================= */
 .news-section {
   background: var(--c-bg-3);
   border-top: 1px solid var(--c-border);
 }
 
 .news-section .section-header {
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
   align-items: flex-end;
 }
 
-/* ========== CTA ========== */
+/* =========================================================
+   4. MILESTONES SUMMARY SECTION
+   ========================================================= */
+.milestones-summary-section {
+  background: var(--c-bg);
+  border-top: 1px solid var(--c-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.home-milestones-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-top: var(--space-6);
+}
+
+.home-milestone-card {
+  position: relative;
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg, 12px);
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: transform 0.25s var(--ease), border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+  overflow: hidden;
+}
+
+.home-milestone-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--c-border-gold);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(229, 138, 19, 0.15);
+}
+
+.milestone-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.milestone-year-pill {
+  font-family: var(--f-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--c-gold);
+  background: var(--c-gold-dim);
+  padding: 3px 10px;
+  border-radius: 9999px;
+  border: 1px solid var(--c-border-gold);
+}
+
+.milestone-step-index {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--c-text-3, #64748b);
+  letter-spacing: 0.1em;
+}
+
+.milestone-card-title {
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: var(--c-white);
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.milestone-card-desc {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--c-text-2);
+  flex-grow: 1;
+}
+
+.milestone-bottom-glow {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--c-gold), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.home-milestone-card:hover .milestone-bottom-glow {
+  opacity: 1;
+}
+
+/* =========================================================
+   5. CONTACT SUMMARY SECTION
+   ========================================================= */
+.contact-summary-section {
+  background: var(--c-bg-2);
+  border-top: 1px solid var(--c-border);
+}
+
+.home-contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: var(--space-7);
+  margin-top: var(--space-6);
+  align-items: stretch;
+}
+
+.home-info-card,
+.home-form-card {
+  padding: var(--space-6);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg, 12px);
+  background: var(--c-card);
+  height: 100%;
+}
+
+.home-info-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--c-white);
+  margin-bottom: 6px;
+}
+
+.home-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.home-info-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--c-gold-dim);
+  border: 1px solid var(--c-border-gold);
+  color: var(--c-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.home-info-item strong {
+  display: block;
+  font-size: 0.86rem;
+  color: var(--c-white);
+  margin-bottom: 2px;
+}
+
+.home-info-item p,
+.home-info-item a {
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.home-info-badge {
+  background: rgba(229, 138, 19, 0.06);
+  border: 1px solid var(--c-border-gold);
+  border-radius: var(--r-md, 8px);
+  padding: 12px 14px;
+  margin-top: 16px;
+}
+
+.home-inquiry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.form-error-banner {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+}
+
+/* =========================================================
+   MEMBER PORTAL CTA BANNER
+   ========================================================= */
 .cta-section {
   padding: var(--space-10) 0;
   background: linear-gradient(135deg, #07091a 0%, #0f1629 50%, #07091a 100%);
@@ -285,8 +640,17 @@
   transform: translateX(-50%);
   width: 600px;
   height: 300px;
-  background: radial-gradient(ellipse, rgba(245,158,11,0.08) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
   pointer-events: none;
+}
+
+/* =========================================================
+   RESPONSIVE QUERIES
+   ========================================================= */
+@media (max-width: 1200px) {
+  .home-milestones-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 @media (max-width: 1024px) {
@@ -297,8 +661,25 @@
   .hero-content {
     max-width: 600px;
   }
-  .about-grid { grid-template-columns: 1fr; gap: var(--space-6); }
-  .about-visual { margin-bottom: var(--space-4); }
+  .chapter-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+  .about-visual {
+    margin-bottom: var(--space-4);
+  }
+  .home-contact-grid {
+    grid-template-columns: 1fr;
+  }
+  .summary-cta-box {
+    flex-direction: column;
+    text-align: center;
+    gap: 14px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -319,19 +700,42 @@
     font-size: 0.9rem;
     line-height: 1.6;
   }
-  .about-logo-wrap { width: 160px; height: 160px; }
-  .about-accent-ring { width: 200px; height: 200px; }
-  .home-showcase-card { width: 95px; height: 95px; }
+  .about-logo-wrap {
+    width: 160px;
+    height: 160px;
+  }
+  .about-accent-ring {
+    width: 200px;
+    height: 200px;
+  }
+  .home-showcase-card {
+    width: 95px;
+    height: 95px;
+  }
+  .home-milestones-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {
-  .home-showcase-card { width: 75px; height: 75px; }
+  .chapter-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .home-showcase-card {
+    width: 75px;
+    height: 75px;
+  }
   .hero-actions {
     flex-direction: column;
     width: 100%;
   }
   .hero-actions .btn {
     width: 100%;
+    justify-content: center;
   }
   .about-feature {
     gap: 12px;
@@ -339,5 +743,9 @@
   .about-feature-icon {
     width: 38px;
     height: 38px;
+  }
+  .home-info-card,
+  .home-form-card {
+    padding: var(--space-4);
   }
 }

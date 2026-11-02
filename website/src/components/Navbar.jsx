@@ -4,12 +4,12 @@ import { useApi } from '../hooks/useApi';
 import './Navbar.css';
 
 const NAV_LINKS = [
-  { to: '/',         label: 'Home' },
-  { to: '/directory',label: 'Directory' },
-  { to: '/about',    label: 'About' },
-  { to: '/news',     label: 'News' },
-  { to: '/partners', label: 'Partners' },
-  { to: '/contact',  label: 'Contact' },
+  { to: '/',           label: 'Home' },
+  { to: '/about',      label: 'About' },
+  { to: '/architects', label: 'Architects' },
+  { to: '/news',       label: 'News & Events' },
+  { to: '/milestones', label: 'Milestones' },
+  { to: '/contact',    label: 'Contact' },
 ];
 
 export default function Navbar() {
@@ -22,7 +22,11 @@ export default function Navbar() {
   const location = useLocation();
 
   // Close menu on route change
-  useEffect(() => { setMenuOpen(false); }, [location]);
+  const [prevPath, setPrevPath] = useState(location.pathname);
+  if (prevPath !== location.pathname) {
+    setPrevPath(location.pathname);
+    setMenuOpen(false);
+  }
 
   // Add/remove scrolled class
   useEffect(() => {
@@ -99,43 +103,52 @@ export default function Navbar() {
           ))}
         </nav>
 
-        {/* CTA + Hamburger */}
+        {/* Actions */}
         <div className="navbar-actions">
           <a
             href="/auth/login.php"
-            className="btn btn-gold navbar-cta"
-            target="_self"
+            className="btn btn-portal"
           >
-            Member Portal
+            Portal Login
           </a>
+
+          {/* Mobile hamburger */}
           <button
-            className={`navbar-hamburger${menuOpen ? ' open' : ''}`}
+            type="button"
+            className={`navbar-burger${menuOpen ? ' open' : ''}`}
             onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
+            aria-label="Toggle navigation menu"
+            aria-expanded={menuOpen}
           >
-            <span /><span /><span />
+            <span />
+            <span />
+            <span />
           </button>
         </div>
       </div>
 
       {/* Mobile Drawer */}
       <div className={`navbar-drawer${menuOpen ? ' open' : ''}`}>
-        {NAV_LINKS.map(({ to, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            className={({ isActive }) => `drawer-link${isActive ? ' active' : ''}`}
+        <nav className="navbar-drawer-links">
+          {NAV_LINKS.map(({ to, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/'}
+              className={({ isActive }) => `navbar-drawer-link${isActive ? ' active' : ''}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              {label}
+            </NavLink>
+          ))}
+          <a
+            href="/auth/login.php"
+            className="btn btn-portal"
+            style={{ marginTop: '1rem', width: '100%', justifyContent: 'center' }}
           >
-            {label}
-          </NavLink>
-        ))}
-        <a
-          href="/auth/login.php"
-          className="btn btn-gold drawer-cta"
-        >
-          Member Portal
-        </a>
+            Portal Login
+          </a>
+        </nav>
       </div>
     </header>
   );

@@ -35,11 +35,11 @@ if ($member && !empty($member['user_id'])) {
 
 // Redirect to modern React website profile page
 if ($member && !empty($member['id'])) {
-    header('Location: ' . BASE_URL . '/profile/' . (int)$member['id']);
-    exit;
+    // Render member profile directly
+    // Proceed to render profile HTML
 } else {
-    header('Location: ' . BASE_URL . '/directory');
-    exit;
+    // Fallback: render not found state
+    // Proceed to render profile HTML
 }
 
 

@@ -34,6 +34,18 @@ if (!empty($mBirthDate)) {
 $attendance = get_or_create_member_attendance($pdo, $currentUid);
 $cActivity = $attendance['computed'];
 
+// Fetch upcoming chapter meetings
+$upcomingEventsStmt = $pdo->prepare("
+    SELECT ce.*, 
+           (SELECT attended_at FROM event_attendance_logs WHERE user_id = ? AND event_key = CONCAT('ce_', ce.id) LIMIT 1) as attended_at
+    FROM chapter_events ce
+    WHERE ce.event_status = 'upcoming' AND ce.event_date >= CURDATE()
+    ORDER BY ce.event_date ASC, ce.start_time ASC
+    LIMIT 2
+");
+$upcomingEventsStmt->execute([$currentUid]);
+$upcomingChapterEvents = $upcomingEventsStmt->fetchAll();
+
 // Fetch member dues
 $stmt = $pdo->prepare("
     SELECT md.id as member_due_id, md.status, md.payment_type, md.installment_months,
@@ -72,7 +84,10 @@ include __DIR__ . '/../includes/header.php';
     <h1>Architect Member Dashboard</h1>
     <p class="page-subtitle">Welcome back, <?php echo htmlspecialchars($memberUser['name']); ?>. View your certified credentials and financial standing.</p>
   </div>
-  <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+  <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+    <a href="attendance_pass.php" class="btn btn-sm btn-primary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 7px 14px; font-weight: 800; text-decoration: none; box-shadow: 0 4px 12px rgba(245,158,11,0.25);">
+      <?php echo icon('qr_codes', '', 14); ?> <span>Digital Pass (QR)</span>
+    </a>
     <a href="chapter_status.php" style="text-decoration: none;">
       <?php echo render_activity_badge($attendance); ?>
     </a>
@@ -154,8 +169,11 @@ include __DIR__ . '/../includes/header.php';
       </div>
     </div>
     <div style="display: flex; gap: 8px;">
+      <a href="attendance_pass.php" class="btn btn-sm btn-primary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 14px; font-weight: 800;">
+        <?php echo icon('qr_codes', '', 13); ?> <span>My Digital Pass</span>
+      </a>
       <a href="chapter_status.php" class="btn btn-sm btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 14px;">
-        <?php echo icon('shield_check', '', 13); ?> <span>View Full Attendance</span>
+        <?php echo icon('shield_check', '', 13); ?> <span>Attendance Record</span>
       </a>
       <a href="profile.php" class="btn btn-sm btn-outline" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 14px;">
         <?php echo icon('edit', '', 13); ?> <span>Update Profile</span>
@@ -249,6 +267,112 @@ include __DIR__ . '/../includes/header.php';
       </div>
     </div>
   </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- UPCOMING CHAPTER MEETINGS & ASSEMBLIES WIDGET                  -->
+<!-- ============================================================== -->
+<div class="card" style="margin-bottom: 24px; padding: 22px; border: 1px solid var(--border-color); background: var(--card-bg);">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(59,130,246,0.15); color: #3b82f6; display: inline-flex; align-items: center; justify-content: center;">
+        <?php echo icon('calendar', '', 20); ?>
+      </div>
+      <div>
+        <h2 style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin: 0;">Upcoming Chapter Meetings &amp; Assemblies</h2>
+        <span class="muted" style="font-size: 12px;">Next scheduled general membership meetings, board sessions, and CPD events</span>
+      </div>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <a href="attendance_pass.php" class="btn btn-sm btn-primary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 12px; font-weight: 700;">
+        <?php echo icon('qr_codes', '', 12); ?> <span>My QR Pass</span>
+      </a>
+      <a href="events.php" class="btn btn-sm btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 12px;">
+        <span>View All Meetings</span> <?php echo icon('arrow_right', '', 12); ?>
+      </a>
+    </div>
+  </div>
+
+  <?php if (empty($upcomingChapterEvents)): ?>
+    <div style="text-align: center; padding: 28px 16px; background: rgba(255,255,255,0.015); border-radius: 8px; border: 1px dashed var(--border-color);">
+      <div style="color: var(--text-secondary); margin-bottom: 8px;"><?php echo icon('calendar', '', 32); ?></div>
+      <div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">No Upcoming Meetings Scheduled</div>
+      <p class="muted" style="font-size: 12px; margin: 4px 0 0 0;">Check back soon or consult chapter announcements for new schedules.</p>
+    </div>
+  <?php else: ?>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+      <?php foreach ($upcomingChapterEvents as $ev): ?>
+        <?php
+          $eTypeLabels = [
+            'gmm' => 'General Membership Meeting (GMM)',
+            'board' => 'Chapter Board Meeting',
+            'cpd' => 'CPD Technical Seminar',
+            'fellowship' => 'Fellowship & Sports',
+            'assembly' => 'National / Area Assembly',
+            'other' => 'Chapter Activity'
+          ];
+          $typeLabel = $eTypeLabels[$ev['event_type']] ?? ucfirst($ev['event_type']);
+          $formattedDate = date('D, M d, Y', strtotime($ev['event_date']));
+          $timeRange = date('h:i A', strtotime($ev['start_time'])) . ' – ' . date('h:i A', strtotime($ev['end_time']));
+        ?>
+        <div style="border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; background: rgba(255,255,255,0.02); display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+          <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+              <span class="badge" style="font-size: 10.5px; background: rgba(59,130,246,0.12); color: #60a5fa; font-weight: 700;"><?php echo htmlspecialchars($typeLabel); ?></span>
+              <?php if ((float)$ev['cpd_units'] > 0): ?>
+                <span class="badge" style="font-size: 10.5px; background: rgba(245,158,11,0.15); color: #fbbf24; font-weight: 800;"><?php echo (float)$ev['cpd_units']; ?> CPD Units</span>
+              <?php endif; ?>
+            </div>
+
+            <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0 0 8px 0; line-height: 1.35;">
+              <?php echo htmlspecialchars($ev['title']); ?>
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--text-secondary);">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="color: #3b82f6;"><?php echo icon('calendar', '', 14); ?></span>
+                <strong style="color: var(--text-primary);"><?php echo $formattedDate; ?></strong>
+                <span class="muted">•</span>
+                <span><?php echo $timeRange; ?></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="color: #10b981;"><?php echo icon('map_pin', '', 14); ?></span>
+                <span><?php echo htmlspecialchars($ev['venue_name'] ?: 'To be announced'); ?></span>
+                <?php if ($ev['format'] === 'hybrid'): ?>
+                  <span class="badge" style="font-size: 9.5px; background: rgba(168,85,247,0.15); color: #c084fc;">Hybrid</span>
+                <?php elseif ($ev['format'] === 'online'): ?>
+                  <span class="badge" style="font-size: 9.5px; background: rgba(59,130,246,0.15); color: #60a5fa;">Online</span>
+                <?php endif; ?>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px; flex-wrap: wrap;">
+            <?php if (!empty($ev['attended_at'])): ?>
+              <span class="badge-pill badge-paid" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                <?php echo icon('check', '', 12); ?> <strong>Checked In</strong> (<?php echo date('h:i A', strtotime($ev['attended_at'])); ?>)
+              </span>
+            <?php else: ?>
+              <span class="badge-pill badge-pending" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                <?php echo icon('clock', '', 12); ?> Not Yet Attended
+              </span>
+            <?php endif; ?>
+
+            <div style="display: flex; gap: 6px;">
+              <?php if (!empty($ev['zoom_link'])): ?>
+                <a href="<?php echo htmlspecialchars($ev['zoom_link']); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
+                  <?php echo icon('external_link', '', 11); ?> Zoom
+                </a>
+              <?php endif; ?>
+              <a href="attendance_pass.php" class="btn btn-sm btn-secondary" style="font-size: 11px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
+                <?php echo icon('qr_codes', '', 11); ?> QR Pass
+              </a>
+            </div>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
 </div>
 
 <!-- ============================================================== -->
