@@ -11,16 +11,19 @@ $filterSpec = trim($_GET['specialty'] ?? '');
 
 $members = [];
 try {
-    $sql = "SELECT wm.*, COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path 
+    $sql = "SELECT wm.*, 
+                   COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path,
+                   u.email as user_email,
+                   u.phone as user_phone 
             FROM website_members wm 
             LEFT JOIN users u ON wm.user_id = u.id 
             WHERE wm.is_published = 1 AND wm.deleted_at IS NULL";
     $params = [];
 
     if ($search !== '') {
-        $sql .= " AND (wm.name LIKE ? OR wm.specialty LIKE ? OR wm.company_name LIKE ? OR wm.location LIKE ? OR wm.prc_number LIKE ? OR wm.id_number LIKE ?)";
+        $sql .= " AND (wm.name LIKE ? OR wm.specialty LIKE ? OR wm.company_name LIKE ? OR wm.location LIKE ? OR wm.id_number LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)";
         $term = "%$search%";
-        $params = array_merge($params, [$term, $term, $term, $term, $term, $term]);
+        $params = array_merge($params, [$term, $term, $term, $term, $term, $term, $term]);
     }
 
     if ($filterSpec !== '' && $filterSpec !== 'All') {
@@ -39,10 +42,12 @@ try {
             'name' => $wm['name'],
             'role' => $wm['role_title'] ?: 'Architect',
             'specialty' => $wm['specialty'] ?: 'Professional Architect',
-            'prc' => !empty($wm['prc_number']) ? $wm['prc_number'] : ($wm['id_number'] ?: '—'),
+            'id_number' => $wm['id_number'] ?: '—',
             'location' => $wm['location'] ?: 'Quezon Province',
             'company' => $wm['company_name'] ?: '',
-            'photo_path' => $wm['photo_path'] ?? ''
+            'photo_path' => $wm['photo_path'] ?? '',
+            'email' => $wm['user_email'] ?? '',
+            'phone' => $wm['user_phone'] ?? ''
         ];
     }
 } catch (Exception $e) {}
@@ -268,13 +273,33 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
                             </div>
                         <?php endif; ?>
 
-                        <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px; flex-grow: 1;">
+                        <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px; flex-grow: 1;">
                             <?php echo htmlspecialchars($m['specialty']); ?>
                         </div>
 
+                        <?php if (!empty($m['email']) || !empty($m['phone'])): ?>
+                            <div style="display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08); font-size: 0.8rem;">
+                                <?php if (!empty($m['email'])): ?>
+                                    <a href="mailto:<?php echo htmlspecialchars($m['email']); ?>" style="color: #cbd5e1; display: inline-flex; align-items: center; gap: 7px; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Email <?php echo htmlspecialchars($m['name']); ?>">
+                                        <span style="color: var(--quezon-gold); display: inline-flex; flex-shrink: 0;"><?php echo icon('mail', '', 14); ?></span>
+                                        <span style="overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($m['email']); ?></span>
+                                    </a>
+                                <?php endif; ?>
+                                <?php if (!empty($m['phone'])): ?>
+                                    <a href="tel:<?php echo htmlspecialchars(preg_replace('/[^0-9+]/', '', $m['phone'])); ?>" style="color: #cbd5e1; display: inline-flex; align-items: center; gap: 7px; text-decoration: none;" title="Call <?php echo htmlspecialchars($m['name']); ?>">
+                                        <span style="color: #34d399; display: inline-flex; flex-shrink: 0;"><?php echo icon('phone', '', 14); ?></span>
+                                        <span><?php echo htmlspecialchars($m['phone']); ?></span>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+
                         <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--quezon-border); padding-top: 12px; font-size: 0.82rem;">
-                            <span class="badge-prc">PRC: <?php echo htmlspecialchars($m['prc']); ?></span>
-                            <span style="color: var(--text-muted);"><?php echo htmlspecialchars($m['location']); ?></span>
+                            <span style="color: var(--quezon-gold); font-size: 0.8rem; font-weight: 600;"><?php echo htmlspecialchars($m['id_number']); ?></span>
+                            <span style="color: var(--text-muted); font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;">
+                                <?php echo icon('map_pin', '', 12); ?>
+                                <span><?php echo htmlspecialchars($m['location']); ?></span>
+                            </span>
                         </div>
 
                         <div style="margin-top: 12px;">

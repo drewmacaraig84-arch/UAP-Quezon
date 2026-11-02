@@ -11,15 +11,36 @@ $member = null;
 
 // 1. Fetch from database
 if ($memberId > 0) {
-    $stmt = $pdo->prepare("SELECT wm.*, COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path FROM website_members wm LEFT JOIN users u ON wm.user_id = u.id WHERE wm.id = ? AND wm.is_published = 1 AND wm.deleted_at IS NULL");
+    $stmt = $pdo->prepare("SELECT wm.*, 
+                                  COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path,
+                                  u.email as user_email,
+                                  u.phone as user_phone,
+                                  u.address as user_address
+                           FROM website_members wm 
+                           LEFT JOIN users u ON wm.user_id = u.id 
+                           WHERE wm.id = ? AND wm.is_published = 1 AND wm.deleted_at IS NULL");
     $stmt->execute([$memberId]);
     $member = $stmt->fetch();
 } elseif ($prcNumber !== '') {
-    $stmt = $pdo->prepare("SELECT wm.*, COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path FROM website_members wm LEFT JOIN users u ON wm.user_id = u.id WHERE (wm.prc_number = ? OR wm.id_number = ?) AND wm.is_published = 1 AND wm.deleted_at IS NULL");
+    $stmt = $pdo->prepare("SELECT wm.*, 
+                                  COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path,
+                                  u.email as user_email,
+                                  u.phone as user_phone,
+                                  u.address as user_address
+                           FROM website_members wm 
+                           LEFT JOIN users u ON wm.user_id = u.id 
+                           WHERE (wm.prc_number = ? OR wm.id_number = ?) AND wm.is_published = 1 AND wm.deleted_at IS NULL");
     $stmt->execute([$prcNumber, $prcNumber]);
     $member = $stmt->fetch();
 } elseif ($nameQuery !== '') {
-    $stmt = $pdo->prepare("SELECT wm.*, COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path FROM website_members wm LEFT JOIN users u ON wm.user_id = u.id WHERE wm.name = ? AND wm.is_published = 1 AND wm.deleted_at IS NULL");
+    $stmt = $pdo->prepare("SELECT wm.*, 
+                                  COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path,
+                                  u.email as user_email,
+                                  u.phone as user_phone,
+                                  u.address as user_address
+                           FROM website_members wm 
+                           LEFT JOIN users u ON wm.user_id = u.id 
+                           WHERE wm.name = ? AND wm.is_published = 1 AND wm.deleted_at IS NULL");
     $stmt->execute([$nameQuery]);
     $member = $stmt->fetch();
 }
@@ -356,6 +377,23 @@ $activePage = 'architects';
                             <span><?php echo htmlspecialchars($cleanLocation); ?></span>
                         </span>
                     </div>
+
+                    <?php if (!empty($member['user_email']) || !empty($member['user_phone'])): ?>
+                    <div style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
+                        <?php if (!empty($member['user_email'])): ?>
+                            <a href="mailto:<?php echo htmlspecialchars($member['user_email']); ?>" class="btn-portal" style="font-size: 0.82rem; padding: 8px 16px; text-decoration: none; display: inline-flex; align-items: center; gap: 7px;">
+                                <?php echo icon('mail', '', 15); ?>
+                                <span>Email Architect</span>
+                            </a>
+                        <?php endif; ?>
+                        <?php if (!empty($member['user_phone'])): ?>
+                            <a href="tel:<?php echo htmlspecialchars(preg_replace('/[^0-9+]/', '', $member['user_phone'])); ?>" class="btn-outline-quezon" style="font-size: 0.82rem; padding: 8px 16px; text-decoration: none; display: inline-flex; align-items: center; gap: 7px;">
+                                <?php echo icon('phone', '', 15); ?>
+                                <span>Call <?php echo htmlspecialchars($member['user_phone']); ?></span>
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -382,6 +420,40 @@ $activePage = 'architects';
                         <span class="cred-label">Architectural Specialization</span>
                         <span class="cred-value"><?php echo htmlspecialchars($cleanSpecialty); ?></span>
                     </div>
+
+                    <?php if (!empty($member['user_email'])): ?>
+                    <div class="cred-item">
+                        <span class="cred-label">Official Email Address</span>
+                        <span class="cred-value">
+                            <a href="mailto:<?php echo htmlspecialchars($member['user_email']); ?>" style="color: var(--quezon-gold); display: inline-flex; align-items: center; gap: 6px; text-decoration: underline; text-underline-offset: 3px;">
+                                <?php echo icon('mail', '', 14); ?>
+                                <span><?php echo htmlspecialchars($member['user_email']); ?></span>
+                            </a>
+                        </span>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($member['user_phone'])): ?>
+                    <div class="cred-item">
+                        <span class="cred-label">Contact / Mobile Number</span>
+                        <span class="cred-value">
+                            <a href="tel:<?php echo htmlspecialchars(preg_replace('/[^0-9+]/', '', $member['user_phone'])); ?>" style="color: #34d399; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+                                <?php echo icon('phone', '', 14); ?>
+                                <span><?php echo htmlspecialchars($member['user_phone']); ?></span>
+                            </a>
+                        </span>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($member['user_address'])): ?>
+                    <div class="cred-item" style="grid-column: 1 / -1;">
+                        <span class="cred-label">Registered Office / Practice Address</span>
+                        <span class="cred-value" style="display: flex; align-items: center; gap: 6px; color: #cbd5e1;">
+                            <span style="color: var(--quezon-gold); flex-shrink: 0;"><?php echo icon('map_pin', '', 14); ?></span>
+                            <span><?php echo htmlspecialchars($member['user_address']); ?></span>
+                        </span>
+                    </div>
+                    <?php endif; ?>
 
                     <?php if (!empty($member['company_name'])): ?>
                     <div class="cred-item">
