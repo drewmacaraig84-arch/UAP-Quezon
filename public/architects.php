@@ -297,9 +297,6 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
                 <a href="<?php echo BASE_URL; ?>/auth/register.php" class="btn-portal">
                     Register as Member
                 </a>
-                <a href="<?php echo BASE_URL; ?>/auth/login.php" class="btn-outline-quezon">
-                    Sign In to Portal
-                </a>
             </div>
         </div>
     </div>
