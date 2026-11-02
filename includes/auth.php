@@ -341,6 +341,15 @@ function get_directory_application($pdo, $userId) {
 }
 
 function has_unlocked_website_directory($pdo, $userId) {
+    $userId = (int) $userId;
+    if ($userId <= 0) return false;
+    try {
+        $wmStmt = $pdo->prepare("SELECT id FROM website_members WHERE user_id = ? AND is_published = 1 AND deleted_at IS NULL LIMIT 1");
+        $wmStmt->execute([$userId]);
+        if ($wmStmt->fetch()) {
+            return true;
+        }
+    } catch (Throwable $e) {}
     $app = get_directory_application($pdo, $userId);
     if (!$app) return false;
     // Unlocked if application status is paid, or linked member due is paid
