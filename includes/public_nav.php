@@ -5,6 +5,24 @@
  */
 $activePage = $activePage ?? 'home';
 $logoSrc = BASE_URL . '/public/logo.jpg';
+
+$isUserLoggedIn = !empty($_SESSION['user_id']);
+$userPortalUrl = BASE_URL . '/auth/login.php';
+$portalLabel = 'Portal Login';
+$portalMobileLabel = 'Sign In to Member Portal';
+
+if ($isUserLoggedIn) {
+    $userRole = $_SESSION['role'] ?? 'member';
+    if (in_array($userRole, ['admin', 'super_admin'], true)) {
+        $userPortalUrl = BASE_URL . '/admin/dashboard.php';
+        $portalLabel = 'Admin Portal &rarr;';
+        $portalMobileLabel = 'Go to Admin Portal';
+    } else {
+        $userPortalUrl = BASE_URL . '/member/dashboard.php';
+        $portalLabel = 'My Portal &rarr;';
+        $portalMobileLabel = 'Go to Member Dashboard';
+    }
+}
 ?>
 <!-- STICKY NAVBAR -->
 <header>
@@ -31,9 +49,9 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         </nav>
 
         <div class="header-actions">
-            <a href="<?php echo BASE_URL; ?>/auth/login.php" class="btn-portal">
-                <?php echo icon('shield_check', '', 14); ?>
-                <span>Portal Login</span>
+            <a href="<?php echo $userPortalUrl; ?>" class="btn-portal" title="<?php echo $isUserLoggedIn ? 'Switch back to your portal dashboard' : 'Sign in to chapter portal'; ?>">
+                <?php echo icon($isUserLoggedIn ? 'dashboard' : 'shield_check', '', 14); ?>
+                <span><?php echo $portalLabel; ?></span>
             </a>
             <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation menu" onclick="toggleMobileMenu()">
                 <?php echo icon('dashboard', '', 20); ?>
@@ -51,12 +69,11 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             <li><a href="<?php echo BASE_URL; ?>/public/milestones.php" class="<?php echo $activePage === 'milestones' ? 'active' : ''; ?>" onclick="closeMobileMenu()"><?php echo icon('clock', '', 16); ?> <span>Milestones</span></a></li>
             <li><a href="<?php echo BASE_URL; ?>/public/contact.php" class="<?php echo $activePage === 'contact' ? 'active' : ''; ?>" onclick="closeMobileMenu()"><?php echo icon('mail', '', 16); ?> <span>Contact Us</span></a></li>
             <li class="mobile-portal-item">
-                <a href="<?php echo BASE_URL; ?>/auth/login.php" class="btn-mobile-portal">
-                    <?php echo icon('shield_check', '', 16); ?>
-                    <span>Sign In to Member Portal</span>
+                <a href="<?php echo $userPortalUrl; ?>" class="btn-mobile-portal">
+                    <?php echo icon($isUserLoggedIn ? 'dashboard' : 'shield_check', '', 16); ?>
+                    <span><?php echo $portalMobileLabel; ?></span>
                 </a>
             </li>
         </ul>
     </div>
 </header>
-

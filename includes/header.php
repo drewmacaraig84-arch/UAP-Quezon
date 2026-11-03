@@ -266,6 +266,14 @@ require_once __DIR__ . '/icons.php';
           </a>
         </div>
       <?php endif; ?>
+
+      <div class="nav-category">Main Website</div>
+      <div class="nav-section">
+        <a class="nav-item" href="<?php echo BASE_URL; ?>/public/homepage.php" target="_blank" rel="noopener noreferrer">
+          <span class="nav-icon"><?php echo icon('landmark'); ?></span>
+          <span>Public Website &nearr;</span>
+        </a>
+      </div>
     </div>
   </nav>
 
@@ -365,6 +373,10 @@ require_once __DIR__ . '/icons.php';
           <a href="<?php echo BASE_URL . (in_array($user_role, ['admin', 'super_admin']) ? '/admin/profile.php' : '/member/profile.php'); ?>">
             <?php echo icon('user', '', 16); ?>
             <span>My Profile</span>
+          </a>
+          <a href="<?php echo BASE_URL; ?>/public/homepage.php" target="_blank" rel="noopener noreferrer">
+            <?php echo icon('landmark', '', 16); ?>
+            <span>Visit Public Website &nearr;</span>
           </a>
           <div class="user-menu-divider"></div>
 
