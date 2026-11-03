@@ -72,9 +72,12 @@ $aboutUsText = get_site_setting(
     'about_us', 
     'The United Architects of the Philippines (UAP) Quezon Province Chapter unites registered and licensed architects across Quezon Province. We stand committed to architectural excellence, environmental stewardship of Mt. Banahaw and the Quezon coastline, heritage preservation, and sustainable community development.'
 );
-$contactEmail = get_site_setting($pdo, 'contact_email', 'quezon@united-architects.ph');
-$contactPhone = get_site_setting($pdo, 'contact_phone', '+63 917 555 UAPQ');
+$contactEmail = get_site_setting($pdo, 'contact_email', 'uap.qpc@gmail.com');
+$contactPhone = get_site_setting($pdo, 'contact_phone', '09399125237 / 09175939781');
 $contactAddress = get_site_setting($pdo, 'contact_address', 'Lucena City, Quezon Province, Philippines');
+$heroBadge = get_site_setting($pdo, 'hero_badge', 'District B4 • Quezon Province');
+$heroTitle = get_site_setting($pdo, 'hero_title', '“TAGUYOD”');
+$heroTagline = get_site_setting($pdo, 'hero_tagline', 'MOVERS OF PROGRESS 2.0');
 
 // Fetch news from database
 $newsItems = [];
@@ -928,13 +931,23 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
     <!-- HERO SECTION -->
     <section class="hero">
         <div class="hero-badge">
-            <?php echo icon('landmark', '', 14); ?> Area B • Southern Luzon Region
+            <?php echo icon('landmark', '', 14); ?> <?php echo htmlspecialchars($heroBadge); ?>
         </div>
 
-        <h1>
-            Architectural Excellence,<br>
-            <span class="highlight-gold">Mt. Banahaw Ecology</span> &amp; <span class="highlight-green">Quezon Heritage</span>
+        <h1 class="hero-title-taguyod">
+            <span class="highlight-gold"><?php echo htmlspecialchars($heroTitle); ?></span>
         </h1>
+
+        <!-- Architectural Triple Accent Lines -->
+        <div class="hero-accent-lines" aria-hidden="true">
+            <span class="accent-line line-1"></span>
+            <span class="accent-line line-2"></span>
+            <span class="accent-line line-3"></span>
+        </div>
+
+        <div class="hero-tagline">
+            <?php echo htmlspecialchars($heroTagline); ?>
+        </div>
 
         <p class="lead">
             The official digital hub of the United Architects of the Philippines - Quezon Province Chapter. Uniting registered architects across Lucena City, Tayabas, Sariaya, and the four legislative districts of Quezon Province.

@@ -3,8 +3,8 @@
  * Shared Public Footer
  */
 $logoSrc = BASE_URL . '/public/logo.jpg';
-$contactEmail = $contactEmail ?? get_site_setting($pdo, 'contact_email', 'quezon@united-architects.ph');
-$contactPhone = $contactPhone ?? get_site_setting($pdo, 'contact_phone', '+63 917 555 UAPQ');
+$contactEmail = $contactEmail ?? get_site_setting($pdo, 'contact_email', 'uap.qpc@gmail.com');
+$contactPhone = $contactPhone ?? get_site_setting($pdo, 'contact_phone', '09399125237 / 09175939781');
 $contactAddress = $contactAddress ?? get_site_setting($pdo, 'contact_address', 'Lucena City, Quezon Province, Philippines');
 $hoursWeekdays = $hoursWeekdays ?? get_site_setting($pdo, 'office_hours_weekdays', '9:00 AM – 5:00 PM');
 $hoursSaturday = $hoursSaturday ?? get_site_setting($pdo, 'office_hours_saturday', '9:00 AM – 12:00 PM');
@@ -40,7 +40,7 @@ $hoursSunday = $hoursSunday ?? get_site_setting($pdo, 'office_hours_sunday', 'Cl
         </div>
 
         <div class="footer-col">
-            <h4>Contact UAP-QC</h4>
+            <h4>Contact UAP-QPC</h4>
             <ul>
                 <li style="display: flex; align-items: flex-start; gap: 8px; color: var(--text-muted); font-size: 0.88rem; line-height: 1.4;">
                     <span style="color: var(--quezon-gold); flex-shrink: 0; margin-top: 2px;"><?php echo icon('map_pin', '', 15); ?></span>
@@ -75,7 +75,7 @@ $hoursSunday = $hoursSunday ?? get_site_setting($pdo, 'office_hours_sunday', 'Cl
                 Designed &amp; Developed by <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: var(--quezon-gold); font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">Drew Macaraig</a>
             </div>
         </div>
-        <div style="color: var(--quezon-green-light); font-weight: 600;">Area B • Quezon Province</div>
+        <div style="color: var(--quezon-green-light); font-weight: 600;">District B4 &bull; Quezon Province</div>
     </div>
 </footer>
 

@@ -72,6 +72,25 @@ function ensure_user_profile_photo_column($pdo) {
                   )
             ");
         } catch (Throwable $e) {}
+
+        // Auto-seed and synchronize official chapter branding, contacts, and hero settings
+        try {
+            $officialSettings = [
+                'chapter_code'   => 'UAP-QPC',
+                'contact_email'  => 'uap.qpc@gmail.com',
+                'contact_phone'  => '09399125237 / 09175939781',
+                'hero_badge'     => 'District B4 • Quezon Province',
+                'hero_title'     => '“TAGUYOD”',
+                'hero_tagline'   => 'MOVERS OF PROGRESS 2.0',
+            ];
+            $stmtSet = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+            foreach ($officialSettings as $k => $v) {
+                $curr = $pdo->query("SELECT setting_value FROM site_settings WHERE setting_key = " . $pdo->quote($k))->fetchColumn();
+                if ($curr === false || in_array($curr, ['UAP-QC', 'quezon@united-architects.ph', '+63 917 555 UAPQ', 'Area B • Southern Luzon Region', ''], true)) {
+                    $stmtSet->execute([$k, $v]);
+                }
+            }
+        } catch (Throwable $e) {}
         $sponsorsTableCheck = $pdo->query("SHOW TABLES LIKE 'sponsors'")->fetch();
         if ($sponsorsTableCheck) {
             $sCols = $pdo->query("DESCRIBE sponsors")->fetchAll(PDO::FETCH_ASSOC);

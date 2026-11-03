@@ -34,8 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-$contactEmail = get_site_setting($pdo, 'contact_email', 'quezon@united-architects.ph');
-$contactPhone = get_site_setting($pdo, 'contact_phone', '+63 917 555 UAPQ');
+$contactEmail = get_site_setting($pdo, 'contact_email', 'uap.qpc@gmail.com');
+$contactPhone = get_site_setting($pdo, 'contact_phone', '09399125237 / 09175939781');
 $contactAddress = get_site_setting($pdo, 'contact_address', 'Lucena City, Quezon Province, Philippines');
 $hoursWeekdays = get_site_setting($pdo, 'office_hours_weekdays', '9:00 AM – 5:00 PM');
 $hoursSaturday = get_site_setting($pdo, 'office_hours_saturday', '9:00 AM – 12:00 PM');

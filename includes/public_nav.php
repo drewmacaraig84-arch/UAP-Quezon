@@ -31,7 +31,7 @@ if ($isUserLoggedIn) {
             <img src="<?php echo $logoSrc; ?>" alt="UAP Quezon Province Chapter Logo">
             <div>
                 <div class="brand-title">
-                    <span class="gold">UAP</span> <span class="green">QUEZON</span>
+                    <span class="gold">UAP</span> <span class="green">QUEZON</span> <span class="brand-province" style="color: #ffffff; font-weight: 700;">PROVINCE CHAPTER</span>
                 </div>
                 <span class="brand-sub">United Architects of the Philippines</span>
             </div>

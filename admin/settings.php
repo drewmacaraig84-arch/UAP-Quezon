@@ -130,6 +130,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             'office_hours_weekdays'  => trim($_POST['office_hours_weekdays'] ?? ''),
             'office_hours_saturday'  => trim($_POST['office_hours_saturday'] ?? ''),
             'office_hours_sunday'    => trim($_POST['office_hours_sunday'] ?? ''),
+            'hero_badge'             => trim($_POST['hero_badge'] ?? ''),
+            'hero_title'             => trim($_POST['hero_title'] ?? ''),
+            'hero_tagline'           => trim($_POST['hero_tagline'] ?? ''),
         ];
 
         $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
@@ -463,11 +466,14 @@ $logo_val = $settings_rows['logo'] ?? null;
 $about_us_val = $settings_rows['about_us'] ?? '';
 $org_name_val = $settings_rows['org_name'] ?? 'United Architects of the Philippines - Quezon Province Chapter';
 $contact_address_val = $settings_rows['contact_address'] ?? 'Lucena City, Quezon Province, Philippines';
-$contact_email_val = $settings_rows['contact_email'] ?? 'quezon@united-architects.ph';
-$contact_phone_val = $settings_rows['contact_phone'] ?? '+63 (0) XXXX XXXX';
+$contact_email_val = $settings_rows['contact_email'] ?? 'uap.qpc@gmail.com';
+$contact_phone_val = $settings_rows['contact_phone'] ?? '09399125237 / 09175939781';
 $office_hours_weekdays_val = $settings_rows['office_hours_weekdays'] ?? '9:00 AM – 5:00 PM';
 $office_hours_saturday_val = $settings_rows['office_hours_saturday'] ?? '9:00 AM – 12:00 PM';
 $office_hours_sunday_val = $settings_rows['office_hours_sunday'] ?? 'Closed';
+$hero_badge_val = $settings_rows['hero_badge'] ?? 'District B4 • Quezon Province';
+$hero_title_val = $settings_rows['hero_title'] ?? '“TAGUYOD”';
+$hero_tagline_val = $settings_rows['hero_tagline'] ?? 'MOVERS OF PROGRESS 2.0';
 
 $sponsors = $pdo->query("SELECT * FROM sponsors WHERE is_active = 1 AND deleted_at IS NULL ORDER BY display_order ASC")->fetchAll();
 $news = $pdo->query("SELECT * FROM news_announcements WHERE is_active = 1 ORDER BY display_order ASC, id DESC")->fetchAll();
@@ -775,6 +781,27 @@ function switchSettingsTab(tabId, btn) {
     <form method="post" style="margin-top: 20px;">
       <?php echo csrf_field(); ?>
       <input type="hidden" name="action" value="update_about">
+
+      <!-- SECTION 0: HOMEPAGE HERO BANNER & TAGLINE -->
+      <div style="padding: 16px; background: var(--bg-secondary); border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+        <h3 style="font-size: 14px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; color: var(--accent-primary);">
+          <?php echo icon('sparkles', '', 16); ?> <span>Homepage Hero Banner &amp; Chapter Tagline</span>
+        </h3>
+        <div class="field" style="margin-bottom: 14px;">
+          <label style="font-size: 12px;">District &amp; Chapter Badge (Pill Above Title)</label>
+          <input type="text" name="hero_badge" value="<?php echo htmlspecialchars($hero_badge_val); ?>" placeholder="e.g. District B4 • Quezon Province" required>
+        </div>
+        <div class="grid-2" style="gap: 14px;">
+          <div class="field" style="margin: 0;">
+            <label style="font-size: 12px;">Hero Main Title (Theme / Battlecry)</label>
+            <input type="text" name="hero_title" value="<?php echo htmlspecialchars($hero_title_val); ?>" placeholder="e.g. “TAGUYOD”" required>
+          </div>
+          <div class="field" style="margin: 0;">
+            <label style="font-size: 12px;">Hero Subtitle / Tagline (Under Accent Lines)</label>
+            <input type="text" name="hero_tagline" value="<?php echo htmlspecialchars($hero_tagline_val); ?>" placeholder="e.g. MOVERS OF PROGRESS 2.0" required>
+          </div>
+        </div>
+      </div>
 
       <!-- SECTION 1: ABOUT US & MISSION -->
       <div style="padding: 16px; background: var(--bg-secondary); border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 20px;">
