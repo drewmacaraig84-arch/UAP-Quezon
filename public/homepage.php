@@ -75,7 +75,8 @@ $aboutUsText = get_site_setting(
 $contactEmail = get_site_setting($pdo, 'contact_email', 'uap.qpc@gmail.com');
 $contactPhone = get_site_setting($pdo, 'contact_phone', '09399125237 / 09175939781');
 $contactAddress = get_site_setting($pdo, 'contact_address', 'Lucena City, Quezon Province, Philippines');
-$heroBadge = get_site_setting($pdo, 'hero_badge', 'District B4 • Quezon Province');
+$heroBadge = get_site_setting($pdo, 'hero_badge', 'DISTRICT - B4 • QUEZON PROVINCE');
+if (in_array($heroBadge, ['District B4 • Quezon Province', 'Area B • Quezon Province', 'Area B • Southern Luzon Region', 'District B4'], true)) { $heroBadge = 'DISTRICT - B4 • QUEZON PROVINCE'; }
 $heroTitle = get_site_setting($pdo, 'hero_title', '“TAGUYOD”');
 $heroTagline = get_site_setting($pdo, 'hero_tagline', 'MOVERS OF PROGRESS 2.0');
 

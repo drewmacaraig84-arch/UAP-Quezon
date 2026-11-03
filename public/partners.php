@@ -11,9 +11,19 @@ try {
     $partners = $pdo->query("
         SELECT * FROM sponsors 
         WHERE is_active = 1 AND deleted_at IS NULL 
-        ORDER BY is_platinum DESC, display_order ASC, id DESC
+        ORDER BY (CASE WHEN tier = 'platinum' OR is_platinum = 1 THEN 1 ELSE 0 END) DESC, display_order ASC, id DESC
     ")->fetchAll();
-} catch (Exception $e) {}
+} catch (Throwable $e) {
+    try {
+        $partners = $pdo->query("
+            SELECT * FROM sponsors 
+            WHERE is_active = 1 
+            ORDER BY (CASE WHEN tier = 'platinum' THEN 1 ELSE 0 END) DESC, display_order ASC, id DESC
+        ")->fetchAll();
+    } catch (Throwable $e2) {
+        $partners = [];
+    }
+}
 
 $totalCount = count($partners);
 $platinumCount = 0;

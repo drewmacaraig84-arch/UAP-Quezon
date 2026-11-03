@@ -146,6 +146,35 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     }
 
     // ============ SPONSOR MANAGEMENT ============
+    if (!function_exists('get_sponsor_table_columns')) {
+        function get_sponsor_table_columns($pdo) {
+            static $cols = null;
+            if ($cols !== null) return $cols;
+            $cols = [];
+            try {
+                $raw = $pdo->query("SHOW COLUMNS FROM sponsors")->fetchAll(PDO::FETCH_ASSOC);
+                $cols = array_column($raw, 'Field');
+            } catch (Throwable $e) {}
+
+            // Auto-create missing sponsor columns if needed
+            if (!in_array('is_platinum', $cols, true)) {
+                try { $pdo->exec("ALTER TABLE sponsors ADD COLUMN is_platinum TINYINT(1) NOT NULL DEFAULT 0"); $cols[] = 'is_platinum'; } catch (Throwable $e) {}
+            }
+            if (!in_array('products_json', $cols, true)) {
+                try { $pdo->exec("ALTER TABLE sponsors ADD COLUMN products_json LONGTEXT NULL"); $cols[] = 'products_json'; } catch (Throwable $e) {}
+            }
+            if (!in_array('website_url', $cols, true)) {
+                try { $pdo->exec("ALTER TABLE sponsors ADD COLUMN website_url VARCHAR(255) NULL"); $cols[] = 'website_url'; } catch (Throwable $e) {}
+            }
+            if (!in_array('url', $cols, true)) {
+                try { $pdo->exec("ALTER TABLE sponsors ADD COLUMN url VARCHAR(255) NULL"); $cols[] = 'url'; } catch (Throwable $e) {}
+            }
+            if (!in_array('deleted_at', $cols, true)) {
+                try { $pdo->exec("ALTER TABLE sponsors ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL"); $cols[] = 'deleted_at'; } catch (Throwable $e) {}
+            }
+            return $cols;
+        }
+    }
     if ($action === 'add_sponsor') {
         $sponsor_name = trim($_POST['sponsor_name'] ?? '');
         $is_platinum = !empty($_POST['is_platinum']) ? 1 : 0;
@@ -232,11 +261,35 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 $sponsorUrl = trim($_POST['sponsor_url'] ?? '');
                 $sponsorDesc = trim($_POST['sponsor_desc'] ?? '');
 
-                $stmt = $pdo->prepare("
-                    INSERT INTO sponsors (name, tier, logo_path, description, website_url, url, is_platinum, products_json, display_order) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(display_order), 0) + 1 FROM sponsors s2))
-                ");
-                $stmt->execute([$sponsor_name, $tier, $logo_path ?: null, $sponsorDesc, $sponsorUrl, $sponsorUrl, $is_platinum, $products_json]);
+                $sponsorCols = get_sponsor_table_columns($pdo);
+                $insertData = [
+                    'name' => $sponsor_name,
+                    'tier' => $tier,
+                    'description' => $sponsorDesc,
+                ];
+                if ($logo_path) {
+                    $insertData['logo_path'] = $logo_path;
+                }
+                if (in_array('website_url', $sponsorCols, true)) {
+                    $insertData['website_url'] = $sponsorUrl;
+                }
+                if (in_array('url', $sponsorCols, true)) {
+                    $insertData['url'] = $sponsorUrl;
+                }
+                if (in_array('is_platinum', $sponsorCols, true)) {
+                    $insertData['is_platinum'] = $is_platinum;
+                }
+                if (in_array('products_json', $sponsorCols, true)) {
+                    $insertData['products_json'] = $products_json;
+                }
+
+                $fields = array_keys($insertData);
+                $fields[] = 'display_order';
+                $placeholders = array_fill(0, count($insertData), '?');
+                $placeholders[] = '(SELECT COALESCE(MAX(display_order), 0) + 1 FROM sponsors s2)';
+
+                $stmt = $pdo->prepare("INSERT INTO sponsors (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")");
+                $stmt->execute(array_values($insertData));
                 $success = 'Sponsor partner added successfully.';
             }
         }
@@ -317,13 +370,38 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $products_json = !empty($products) ? json_encode($products) : null;
 
         $tier = $is_platinum ? 'platinum' : 'gold';
+        $sponsorCols = get_sponsor_table_columns($pdo);
+        $updateData = [
+            'name' => $sponsor_name,
+            'tier' => $tier,
+            'description' => $sponsor_desc,
+        ];
         if ($logo_path) {
-            $stmt = $pdo->prepare("UPDATE sponsors SET name = ?, tier = ?, description = ?, website_url = ?, url = ?, is_platinum = ?, products_json = ?, logo_path = ? WHERE id = ?");
-            $stmt->execute([$sponsor_name, $tier, $sponsor_desc, $sponsor_url, $sponsor_url, $is_platinum, $products_json, $logo_path, $sponsor_id]);
-        } else {
-            $stmt = $pdo->prepare("UPDATE sponsors SET name = ?, tier = ?, description = ?, website_url = ?, url = ?, is_platinum = ?, products_json = ? WHERE id = ?");
-            $stmt->execute([$sponsor_name, $tier, $sponsor_desc, $sponsor_url, $sponsor_url, $is_platinum, $products_json, $sponsor_id]);
+            $updateData['logo_path'] = $logo_path;
         }
+        if (in_array('website_url', $sponsorCols, true)) {
+            $updateData['website_url'] = $sponsor_url;
+        }
+        if (in_array('url', $sponsorCols, true)) {
+            $updateData['url'] = $sponsor_url;
+        }
+        if (in_array('is_platinum', $sponsorCols, true)) {
+            $updateData['is_platinum'] = $is_platinum;
+        }
+        if (in_array('products_json', $sponsorCols, true)) {
+            $updateData['products_json'] = $products_json;
+        }
+
+        $setClauses = [];
+        $params = [];
+        foreach ($updateData as $c => $val) {
+            $setClauses[] = "$c = ?";
+            $params[] = $val;
+        }
+        $params[] = $sponsor_id;
+
+        $stmt = $pdo->prepare("UPDATE sponsors SET " . implode(', ', $setClauses) . " WHERE id = ?");
+        $stmt->execute($params);
         $success = 'Sponsor partner updated successfully.';
     }
 
@@ -471,11 +549,23 @@ $contact_phone_val = $settings_rows['contact_phone'] ?? '09399125237 / 091759397
 $office_hours_weekdays_val = $settings_rows['office_hours_weekdays'] ?? '9:00 AM – 5:00 PM';
 $office_hours_saturday_val = $settings_rows['office_hours_saturday'] ?? '9:00 AM – 12:00 PM';
 $office_hours_sunday_val = $settings_rows['office_hours_sunday'] ?? 'Closed';
-$hero_badge_val = $settings_rows['hero_badge'] ?? 'District B4 • Quezon Province';
+$hero_badge_val = $settings_rows['hero_badge'] ?? 'DISTRICT - B4 • QUEZON PROVINCE';
+if (in_array($hero_badge_val, ['District B4 • Quezon Province', 'Area B • Quezon Province', 'Area B • Southern Luzon Region', 'District B4'], true)) {
+    $hero_badge_val = 'DISTRICT - B4 • QUEZON PROVINCE';
+}
 $hero_title_val = $settings_rows['hero_title'] ?? '“TAGUYOD”';
 $hero_tagline_val = $settings_rows['hero_tagline'] ?? 'MOVERS OF PROGRESS 2.0';
 
-$sponsors = $pdo->query("SELECT * FROM sponsors WHERE is_active = 1 AND deleted_at IS NULL ORDER BY display_order ASC")->fetchAll();
+$sponsors = [];
+try {
+    $sponsors = $pdo->query("SELECT * FROM sponsors WHERE is_active = 1 AND deleted_at IS NULL ORDER BY display_order ASC")->fetchAll();
+} catch (Throwable $e) {
+    try {
+        $sponsors = $pdo->query("SELECT * FROM sponsors WHERE is_active = 1 ORDER BY display_order ASC")->fetchAll();
+    } catch (Throwable $e2) {
+        $sponsors = [];
+    }
+}
 $news = $pdo->query("SELECT * FROM news_announcements WHERE is_active = 1 ORDER BY display_order ASC, id DESC")->fetchAll();
 $milestones = [];
 try {
@@ -789,7 +879,7 @@ function switchSettingsTab(tabId, btn) {
         </h3>
         <div class="field" style="margin-bottom: 14px;">
           <label style="font-size: 12px;">District &amp; Chapter Badge (Pill Above Title)</label>
-          <input type="text" name="hero_badge" value="<?php echo htmlspecialchars($hero_badge_val); ?>" placeholder="e.g. District B4 • Quezon Province" required>
+          <input type="text" name="hero_badge" value="<?php echo htmlspecialchars($hero_badge_val); ?>" placeholder="e.g. DISTRICT - B4 • QUEZON PROVINCE" required>
         </div>
         <div class="grid-2" style="gap: 14px;">
           <div class="field" style="margin: 0;">
@@ -826,7 +916,7 @@ function switchSettingsTab(tabId, btn) {
         <div class="grid-2" style="gap: 14px;">
           <div class="field" style="margin: 0;">
             <label style="font-size: 12px;">Official Secretariat Email Address</label>
-            <input type="email" name="contact_email" value="<?php echo htmlspecialchars($contact_email_val); ?>" placeholder="e.g. quezon@united-architects.ph" required>
+            <input type="email" name="contact_email" value="<?php echo htmlspecialchars($contact_email_val); ?>" placeholder="e.g. uap.qpc@gmail.com" required>
           </div>
           <div class="field" style="margin: 0;">
             <label style="font-size: 12px;">Contact Number / Hotline</label>

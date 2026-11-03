@@ -4,7 +4,13 @@
  */
 $logoSrc = BASE_URL . '/public/logo.jpg';
 $contactEmail = $contactEmail ?? get_site_setting($pdo, 'contact_email', 'uap.qpc@gmail.com');
+if (empty($contactEmail) || in_array($contactEmail, ['quezon@united-architects.ph', 'info@uap-quezon.org'], true)) {
+    $contactEmail = 'uap.qpc@gmail.com';
+}
 $contactPhone = $contactPhone ?? get_site_setting($pdo, 'contact_phone', '09399125237 / 09175939781');
+if (empty($contactPhone) || strpos($contactPhone, '555') !== false) {
+    $contactPhone = '09399125237 / 09175939781';
+}
 $contactAddress = $contactAddress ?? get_site_setting($pdo, 'contact_address', 'Lucena City, Quezon Province, Philippines');
 $hoursWeekdays = $hoursWeekdays ?? get_site_setting($pdo, 'office_hours_weekdays', '9:00 AM – 5:00 PM');
 $hoursSaturday = $hoursSaturday ?? get_site_setting($pdo, 'office_hours_saturday', '9:00 AM – 12:00 PM');
@@ -76,7 +82,7 @@ $hoursSunday = $hoursSunday ?? get_site_setting($pdo, 'office_hours_sunday', 'Cl
                 Designed &amp; Developed by <a href="https://drewportfoliio.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: var(--quezon-gold); font-weight: 700; text-decoration: underline; text-underline-offset: 3px;">Drew Macaraig</a>
             </div>
         </div>
-        <div style="color: var(--quezon-green-light); font-weight: 600;">District B4 &bull; Quezon Province</div>
+        <div style="color: var(--quezon-green-light); font-weight: 700; letter-spacing: 0.05em;">DISTRICT - B4 &bull; QUEZON PROVINCE</div>
     </div>
 </footer>
 

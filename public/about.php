@@ -11,8 +11,14 @@ $aboutUsText = get_site_setting(
     'about_us',
     'The United Architects of the Philippines – Quezon Province Chapter (UAP-QPC) holds a meaningful place within national architectural history. Chartered on November 11, 1977, it was the first chapter established in District B4 and the 18th chapter registered in the Philippines.'
 );
-$contactEmail = get_site_setting($pdo, 'contact_email', 'quezon@united-architects.ph');
-$contactPhone = get_site_setting($pdo, 'contact_phone', '+63 917 555 UAPQ');
+$contactEmail = get_site_setting($pdo, 'contact_email', 'uap.qpc@gmail.com');
+if (empty($contactEmail) || in_array($contactEmail, ['quezon@united-architects.ph', 'info@uap-quezon.org'], true)) {
+    $contactEmail = 'uap.qpc@gmail.com';
+}
+$contactPhone = get_site_setting($pdo, 'contact_phone', '09399125237 / 09175939781');
+if (empty($contactPhone) || strpos($contactPhone, '555') !== false) {
+    $contactPhone = '09399125237 / 09175939781';
+}
 $contactAddress = get_site_setting($pdo, 'contact_address', 'Lucena City, Quezon Province, Philippines');
 $logoSrc = BASE_URL . '/public/logo.jpg';
 ?>
@@ -116,7 +122,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                     </div>
                     <h3 style="color: #ffffff; font-size: 1.2rem; margin-bottom: 4px;">UAP Quezon Province Chapter</h3>
                     <div style="font-size: 0.82rem; color: var(--quezon-gold); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px;">
-                        IAPOA Chapter 121 &bull; Area B
+                        IAPOA Chapter 121 &bull; DISTRICT - B4
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-top: 1px solid var(--quezon-border); padding-top: 16px; text-align: left;">
                         <div>
