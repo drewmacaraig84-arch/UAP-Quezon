@@ -144,7 +144,7 @@ if ($isUserLoggedIn) {
             gap: 8px !important;
             flex-shrink: 0 !important;
         }
-        .btn-portal {
+        .btn-nav-portal {
             display: inline-flex !important;
             align-items: center !important;
             gap: 5px !important;
@@ -163,16 +163,16 @@ if ($isUserLoggedIn) {
             flex-shrink: 0 !important;
             line-height: 1.1 !important;
         }
-        .btn-portal span {
+        .btn-nav-portal span {
             white-space: nowrap !important;
             display: inline !important;
         }
-        .btn-portal svg {
+        .btn-nav-portal svg {
             width: 13px !important;
             height: 13px !important;
             flex-shrink: 0 !important;
         }
-        .btn-portal:hover {
+        .btn-nav-portal:hover {
             transform: translateY(-1px) !important;
             box-shadow: 0 4px 14px rgba(21, 128, 61, 0.4) !important;
             color: #ffffff !important;
@@ -218,7 +218,7 @@ if ($isUserLoggedIn) {
         </nav>
 
         <div class="header-actions">
-            <a href="<?php echo $userPortalUrl; ?>" class="btn-portal" title="<?php echo $isUserLoggedIn ? 'Switch back to your portal dashboard' : 'Sign in to chapter portal'; ?>">
+            <a href="<?php echo $userPortalUrl; ?>" class="btn-nav-portal" title="<?php echo $isUserLoggedIn ? 'Switch back to your portal dashboard' : 'Sign in to chapter portal'; ?>">
                 <?php echo icon($isUserLoggedIn ? 'dashboard' : 'shield_check', '', 14); ?>
                 <span><?php echo $portalLabel; ?></span>
             </a>

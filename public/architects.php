@@ -234,7 +234,7 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
                 <?php if ($filterSpec): ?>
                     <input type="hidden" name="specialty" value="<?php echo htmlspecialchars($filterSpec); ?>">
                 <?php endif; ?>
-                <button type="submit" class="btn-portal" style="border: none; cursor: pointer; padding: 12px 22px;">
+                <button type="submit" class="btn-primary-quezon" style="border: none; cursor: pointer; padding: 0.75rem 1.6rem; font-size: 0.88rem; font-weight: 700; border-radius: 8px;">
                     <?php echo icon('dashboard', '', 16); ?> Search
                 </button>
             </form>
@@ -366,8 +366,8 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
                 Join over 300 registered architects of UAP Quezon Province Chapter. Access CPD seminars, verify good standing, and list your architectural practice.
             </p>
             <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-                <a href="<?php echo BASE_URL; ?>/auth/register.php" class="btn-portal">
-                    Register as Member
+                <a href="<?php echo BASE_URL; ?>/auth/register.php" class="btn-primary-quezon">
+                    Register as Member &rarr;
                 </a>
             </div>
         </div>

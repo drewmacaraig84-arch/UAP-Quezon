@@ -362,7 +362,7 @@ $activePage = 'architects';
                 <p style="color: var(--text-muted); max-width: 520px; margin: 0 auto 24px; font-size: 0.95rem; line-height: 1.6;">
                     The requested architect profile is either not published or is currently under verification by Chapter Administration.
                 </p>
-                <a href="<?php echo BASE_URL; ?>/public/architects.php" class="btn-portal" style="display: inline-flex;">
+                <a href="<?php echo BASE_URL; ?>/public/architects.php" class="btn-primary-quezon" style="display: inline-flex; padding: 0.7rem 1.4rem; font-size: 0.85rem;">
                     <span>Return to Chapter Directory</span> &rarr;
                 </a>
             </div>
@@ -444,7 +444,7 @@ $activePage = 'architects';
                     <?php if (!empty($member['user_email']) || !empty($member['user_phone'])): ?>
                     <div style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
                         <?php if (!empty($member['user_email'])): ?>
-                            <a href="mailto:<?php echo htmlspecialchars($member['user_email']); ?>" class="btn-portal" style="font-size: 0.82rem; padding: 8px 16px; text-decoration: none; display: inline-flex; align-items: center; gap: 7px;">
+                            <a href="mailto:<?php echo htmlspecialchars($member['user_email']); ?>" class="btn-primary-quezon" style="font-size: 0.82rem; padding: 8px 16px; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; border-radius: 8px;">
                                 <?php echo icon('mail', '', 15); ?>
                                 <span>Email Architect</span>
                             </a>

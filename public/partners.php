@@ -347,7 +347,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 1.5rem; font-size: 0.9rem;">
                     Our official corporate partnership directory is being updated. Inquire with our Secretariat to explore partnership opportunities.
                 </p>
-                <a href="<?php echo BASE_URL; ?>/public/contact.php" class="btn btn-portal" style="display: inline-flex; padding: 10px 20px;">
+                <a href="<?php echo BASE_URL; ?>/public/contact.php" class="btn-primary-quezon" style="display: inline-flex; padding: 10px 20px;">
                     Inquire for Corporate Partnership
                 </a>
             </div>
@@ -481,7 +481,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                     Contact our Chapter Secretariat to discuss corporate partnership packages, technical presentation opportunities, and upcoming event schedules.
                 </p>
                 <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                    <a href="<?php echo BASE_URL; ?>/public/contact.php" class="btn btn-portal" style="padding: 10px 22px; font-weight: 700;">
+                    <a href="<?php echo BASE_URL; ?>/public/contact.php" class="btn-primary-quezon" style="padding: 10px 22px; font-weight: 700;">
                         Message Chapter Secretariat
                     </a>
                     <a href="<?php echo BASE_URL; ?>/public/architects.php" class="btn btn-partner-link" style="padding: 10px 18px; color: #ffffff; border-color: rgba(255,255,255,0.2);">

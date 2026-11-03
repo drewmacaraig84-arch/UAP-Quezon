@@ -226,11 +226,11 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         </section>
 
         <!-- CTAS -->
-        <div style="text-align: center; padding: 2rem 0;">
-            <a href="<?php echo BASE_URL; ?>/public/architects.php" class="btn-portal" style="font-size: 0.95rem; padding: 12px 24px;">
+        <div style="text-align: center; padding: 2rem 0; display: flex; justify-content: center; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <a href="<?php echo BASE_URL; ?>/public/architects.php" class="btn-primary-quezon">
                 Explore Architects Directory &rarr;
             </a>
-            <a href="<?php echo BASE_URL; ?>/public/contact.php" class="btn-outline-quezon" style="font-size: 0.95rem; padding: 12px 24px; margin-left: 12px;">
+            <a href="<?php echo BASE_URL; ?>/public/contact.php" class="btn-outline-quezon">
                 Contact Secretariat
             </a>
         </div>
