@@ -1,4 +1,7 @@
 <?php
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/icons.php';
@@ -9,51 +12,74 @@ $nameQuery = trim($_GET['name'] ?? '');
 
 $member = null;
 
-// 1. Fetch from database
+$activeFy = function_exists('get_active_fiscal_year') ? get_active_fiscal_year() : '2026-2027';
+
+// 1. Fetch from database (enforcing attendance compliance: inactive members <= 2 events are hidden)
 if ($memberId > 0) {
     $stmt = $pdo->prepare("SELECT wm.*, 
                                   COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path,
                                   u.email as user_email,
                                   u.phone as user_phone,
-                                  u.address as user_address
+                                  u.address as user_address,
+                                  u.good_standing_override,
+                                  COALESCE(ma.activity_status, 'inactive') as activity_status
                            FROM website_members wm 
                            JOIN users u ON wm.user_id = u.id 
+                           LEFT JOIN member_attendance ma ON ma.user_id = u.id AND ma.fiscal_year = ?
                            WHERE (wm.id = ? OR wm.user_id = ?) 
                              AND wm.is_published = 1 
                              AND wm.deleted_at IS NULL
                              AND u.deleted_at IS NULL
-                             AND u.status = 'approved'");
-    $stmt->execute([$memberId, $memberId]);
+                             AND u.status = 'approved'
+                             AND (
+                                 COALESCE(u.good_standing_override, 'auto') = 'granted'
+                                 OR COALESCE(ma.activity_status, 'inactive') != 'inactive'
+                             )");
+    $stmt->execute([$activeFy, $memberId, $memberId]);
     $member = $stmt->fetch();
 } elseif ($prcNumber !== '') {
     $stmt = $pdo->prepare("SELECT wm.*, 
                                   COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path,
                                   u.email as user_email,
                                   u.phone as user_phone,
-                                  u.address as user_address
+                                  u.address as user_address,
+                                  u.good_standing_override,
+                                  COALESCE(ma.activity_status, 'inactive') as activity_status
                            FROM website_members wm 
                            JOIN users u ON wm.user_id = u.id 
+                           LEFT JOIN member_attendance ma ON ma.user_id = u.id AND ma.fiscal_year = ?
                            WHERE (wm.prc_number = ? OR wm.id_number = ?) 
                              AND wm.is_published = 1 
                              AND wm.deleted_at IS NULL
                              AND u.deleted_at IS NULL
-                             AND u.status = 'approved'");
-    $stmt->execute([$prcNumber, $prcNumber]);
+                             AND u.status = 'approved'
+                             AND (
+                                 COALESCE(u.good_standing_override, 'auto') = 'granted'
+                                 OR COALESCE(ma.activity_status, 'inactive') != 'inactive'
+                             )");
+    $stmt->execute([$activeFy, $prcNumber, $prcNumber]);
     $member = $stmt->fetch();
 } elseif ($nameQuery !== '') {
     $stmt = $pdo->prepare("SELECT wm.*, 
                                   COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path,
                                   u.email as user_email,
                                   u.phone as user_phone,
-                                  u.address as user_address
+                                  u.address as user_address,
+                                  u.good_standing_override,
+                                  COALESCE(ma.activity_status, 'inactive') as activity_status
                            FROM website_members wm 
                            JOIN users u ON wm.user_id = u.id 
+                           LEFT JOIN member_attendance ma ON ma.user_id = u.id AND ma.fiscal_year = ?
                            WHERE wm.name = ? 
                              AND wm.is_published = 1 
                              AND wm.deleted_at IS NULL
                              AND u.deleted_at IS NULL
-                             AND u.status = 'approved'");
-    $stmt->execute([$nameQuery]);
+                             AND u.status = 'approved'
+                             AND (
+                                 COALESCE(u.good_standing_override, 'auto') = 'granted'
+                                 OR COALESCE(ma.activity_status, 'inactive') != 'inactive'
+                             )");
+    $stmt->execute([$activeFy, $nameQuery]);
     $member = $stmt->fetch();
 }
 
@@ -391,10 +417,20 @@ $activePage = 'architects';
                     <div class="profile-role"><?php echo htmlspecialchars($member['role_title'] ?: 'Architect'); ?></div>
 
                     <div class="profile-badges-row">
-                        <span class="badge-verified-pill">
-                            <?php echo icon('shield_check', '', 14); ?>
-                            <span>Good Standing (Verified)</span>
-                        </span>
+                        <?php
+                            $standingDetails = function_exists('get_member_standing_details') ? get_member_standing_details($pdo, (int)$member['user_id']) : ['is_good' => true, 'label' => 'Good Standing'];
+                            if (!empty($standingDetails['is_good'])):
+                        ?>
+                            <span class="badge-verified-pill" style="background: rgba(16,185,129,0.15); border-color: #10b981; color: #10b981;">
+                                <?php echo icon('shield_check', '', 14); ?>
+                                <span>Good Standing (Verified)</span>
+                            </span>
+                        <?php else: ?>
+                            <span class="badge-verified-pill" style="background: rgba(239,68,68,0.15); border-color: #ef4444; color: #ef4444;">
+                                <?php echo icon('alert', '', 14); ?>
+                                <span><?php echo htmlspecialchars($standingDetails['label']); ?></span>
+                            </span>
+                        <?php endif; ?>
                         <span class="badge-gold-pill">
                             <?php echo icon('landmark', '', 14); ?>
                             <span>UAP Chapter 121</span>
@@ -508,7 +544,13 @@ $activePage = 'architects';
 
                     <div class="cred-item">
                         <span class="cred-label">Public Directory Status</span>
-                        <span class="cred-value">Active Verified Chapter Member</span>
+                        <span class="cred-value">
+                            <?php if (!empty($standingDetails['is_good'])): ?>
+                                <span style="color: #10b981; font-weight: 700;">Active Verified Chapter Member</span>
+                            <?php else: ?>
+                                <span style="color: #ef4444; font-weight: 700;">Hidden from Directory &bull; <?php echo htmlspecialchars($standingDetails['label']); ?></span>
+                            <?php endif; ?>
+                        </span>
                     </div>
                 </div>
             </div>
