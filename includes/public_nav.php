@@ -6,6 +6,20 @@
 $activePage = $activePage ?? 'home';
 $logoSrc = BASE_URL . '/public/logo.jpg';
 
+// Fetch uploaded header auxiliary badge images (Slots 1 to 3)
+$headerBadges = [];
+if (isset($pdo)) {
+    for ($i = 1; $i <= 3; $i++) {
+        $imgVal = trim(get_site_setting($pdo, "header_image_{$i}", ''));
+        if ($imgVal) {
+            $headerBadges[] = [
+                'slot' => $i,
+                'src'  => media_url($imgVal)
+            ];
+        }
+    }
+}
+
 $isUserLoggedIn = !empty($_SESSION['user_id']);
 $userPortalUrl = BASE_URL . '/auth/login.php';
 $portalLabel = 'Portal Login';
@@ -27,15 +41,27 @@ if ($isUserLoggedIn) {
 <!-- STICKY NAVBAR -->
 <header>
     <div class="header-container">
-        <a href="<?php echo BASE_URL; ?>/public/homepage.php" class="brand-logo" style="text-decoration: none;">
-            <img src="<?php echo $logoSrc; ?>" alt="UAP Quezon Province Chapter Logo">
-            <div>
-                <div class="brand-title">
-                    <span class="gold">UAP</span> <span class="green">QUEZON</span> <span class="brand-province" style="color: #ffffff; font-weight: 700;">PROVINCE CHAPTER</span>
+        <div class="brand-group">
+            <a href="<?php echo BASE_URL; ?>/public/homepage.php" class="brand-logo" style="text-decoration: none;">
+                <img src="<?php echo $logoSrc; ?>" alt="UAP Quezon Province Chapter Logo">
+                <div>
+                    <div class="brand-title">
+                        <span class="gold">UAP</span> <span class="green">QUEZON</span> <span class="brand-province" style="color: #ffffff; font-weight: 700;">PROVINCE CHAPTER</span>
+                    </div>
+                    <span class="brand-sub">United Architects of the Philippines</span>
                 </div>
-                <span class="brand-sub">United Architects of the Philippines</span>
-            </div>
-        </a>
+            </a>
+
+            <?php if (!empty($headerBadges)): ?>
+                <div class="header-badges">
+                    <?php foreach ($headerBadges as $badge): ?>
+                        <div class="header-badge-box" title="Affiliation &amp; Partner Badge <?php echo $badge['slot']; ?>">
+                            <img src="<?php echo htmlspecialchars($badge['src']); ?>" alt="Affiliation badge <?php echo $badge['slot']; ?>" class="header-badge-img" onerror="this.parentElement.style.display='none';">
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
 
         <nav class="desktop-nav">
             <ul>

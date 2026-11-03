@@ -164,13 +164,57 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         }
 
         .header-container {
-            max-width: 1300px;
-            margin: 0 auto;
+            max-width: 100%;
+            margin: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.9rem 2rem;
+            padding: 0.8rem 2rem;
             gap: 1.5rem;
+            box-sizing: border-box;
+        }
+
+        .brand-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .header-badges {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-left: 14px;
+            border-left: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .header-badge-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            background: #ffffff;
+            padding: 3px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 1px solid rgba(229, 138, 19, 0.4);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .header-badge-box:hover {
+            transform: translateY(-2px);
+            border-color: var(--quezon-gold);
+        }
+
+        .header-badge-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
         }
 
         .brand-logo {
@@ -862,6 +906,8 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 
         /* RESPONSIVE BREAKPOINTS (Tablets & Mobile Devices) */
         @media (max-width: 960px) {
+            .header-badges { gap: 6px; padding-left: 10px; }
+            .header-badge-box { width: 36px; height: 36px; }
             .content-grid { grid-template-columns: minmax(0, 1fr); }
             .stats-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding: 1.5rem; }
             .footer-container { grid-template-columns: minmax(0, 1fr); gap: 2.2rem; }
@@ -888,6 +934,8 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 
         @media (max-width: 540px) {
             .header-container { padding: 0.65rem 0.85rem; gap: 0.5rem; }
+            .header-badges { gap: 4px; padding-left: 6px; }
+            .header-badge-box { width: 30px; height: 30px; padding: 2px; }
             .brand-logo { gap: 8px; }
             .brand-logo img { height: 36px; }
             .brand-title { font-size: 0.95rem; }
