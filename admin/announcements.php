@@ -222,27 +222,69 @@ include __DIR__ . '/../includes/header.php';
   </div>
 <?php endif; ?>
 
-<!-- METRICS CARDS -->
-<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
-  <div class="stat-card">
-    <span class="stat-label">Total Bulletins</span>
-    <span class="stat-number"><?php echo number_format($totalCount); ?></span>
-    <span class="muted" style="font-size: 11px;">Active notices</span>
+<!-- METRICS CARDS (1x4 BOXES) -->
+<style>
+.stat-grid-1x4 {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  margin-bottom: 24px !important;
+}
+@media (max-width: 1024px) {
+  .stat-grid-1x4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 580px) {
+  .stat-grid-1x4 {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
+
+<div class="stat-grid stat-grid-1x4">
+  <div class="stat-card" style="border-top: 3px solid #3b82f6;">
+    <div class="stat-card-header">
+      <span class="muted" style="font-size: 13px; font-weight: 600;">Total Bulletins</span>
+      <div class="stat-card-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+        <?php echo icon('newspaper', '', 18); ?>
+      </div>
+    </div>
+    <strong style="color: var(--text-primary); font-size: 26px;"><?php echo number_format($totalCount); ?></strong>
+    <span style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; display: block;">Active notices</span>
   </div>
-  <div class="stat-card" style="border-left: 3px solid #f59e0b;">
-    <span class="stat-label">Members Only</span>
-    <span class="stat-number" style="color: #f59e0b;"><?php echo number_format($membersOnlyCount); ?></span>
-    <span class="muted" style="font-size: 11px;">Restricted to portal</span>
+
+  <div class="stat-card" style="border-top: 3px solid #f59e0b;">
+    <div class="stat-card-header">
+      <span class="muted" style="font-size: 13px; font-weight: 600;">Members Only</span>
+      <div class="stat-card-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+        <?php echo icon('members', '', 18); ?>
+      </div>
+    </div>
+    <strong style="color: #f59e0b; font-size: 26px;"><?php echo number_format($membersOnlyCount); ?></strong>
+    <span style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; display: block;">Restricted to portal</span>
   </div>
-  <div class="stat-card" style="border-left: 3px solid #10b981;">
-    <span class="stat-label">Public Website</span>
-    <span class="stat-number" style="color: #10b981;"><?php echo number_format($publicCount); ?></span>
-    <span class="muted" style="font-size: 11px;">Publicly viewable</span>
+
+  <div class="stat-card" style="border-top: 3px solid #10b981;">
+    <div class="stat-card-header">
+      <span class="muted" style="font-size: 13px; font-weight: 600;">Public Website</span>
+      <div class="stat-card-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+        <?php echo icon('globe', '', 18); ?>
+      </div>
+    </div>
+    <strong style="color: #10b981; font-size: 26px;"><?php echo number_format($publicCount); ?></strong>
+    <span style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; display: block;">Publicly viewable</span>
   </div>
-  <div class="stat-card" style="border-left: 3px solid #6366f1;">
-    <span class="stat-label">Pinned on Dashboard</span>
-    <span class="stat-number" style="color: #6366f1;"><?php echo number_format($pinnedCount); ?></span>
-    <span class="muted" style="font-size: 11px;">Top priority notices</span>
+
+  <div class="stat-card" style="border-top: 3px solid #8b5cf6;">
+    <div class="stat-card-header">
+      <span class="muted" style="font-size: 13px; font-weight: 600;">Pinned on Dashboard</span>
+      <div class="stat-card-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+        <?php echo icon('award', '', 18); ?>
+      </div>
+    </div>
+    <strong style="color: #8b5cf6; font-size: 26px;"><?php echo number_format($pinnedCount); ?></strong>
+    <span style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; display: block;">Top priority notices</span>
   </div>
 </div>
 
