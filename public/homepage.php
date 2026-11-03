@@ -1,4 +1,7 @@
 <?php
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/icons.php';
@@ -29,21 +32,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// Fetch website directory members from database
+// Fetch website directory members from database (enforcing attendance compliance: inactive members <= 2 events are hidden)
 $members = [];
 try {
-    $publishedMembers = $pdo->query("
-        SELECT wm.* 
+    $activeFy = function_exists('get_active_fiscal_year') ? get_active_fiscal_year() : '2026-2027';
+
+    $stmt = $pdo->prepare("
+        SELECT wm.*,
+               u.good_standing_override,
+               COALESCE(ma.activity_status, 'inactive') as activity_status
         FROM website_members wm
         JOIN users u ON wm.user_id = u.id
+        LEFT JOIN member_attendance ma ON ma.user_id = u.id AND ma.fiscal_year = ?
         WHERE wm.is_published = 1 
           AND wm.deleted_at IS NULL 
           AND u.deleted_at IS NULL 
-          AND u.status = 'approved' 
+          AND u.status = 'approved'
+          AND (
+              COALESCE(u.good_standing_override, 'auto') = 'granted'
+              OR COALESCE(ma.activity_status, 'inactive') != 'inactive'
+          )
         ORDER BY wm.name ASC
-    ")->fetchAll();
+    ");
+    $stmt->execute([$activeFy]);
+    $publishedMembers = $stmt->fetchAll();
     if (!empty($publishedMembers)) {
         foreach ($publishedMembers as $wm) {
+            if (!empty($wm['user_id']) && function_exists('is_good_member')) {
+                if (!is_good_member($pdo, (int)$wm['user_id'])) {
+                    continue;
+                }
+            }
             $members[] = [
                 'id' => $wm['id'],
                 'name' => $wm['name'],
