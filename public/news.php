@@ -8,7 +8,7 @@ $activePage = 'news';
 
 $newsItems = [];
 try {
-    $newsItems = $pdo->query("SELECT * FROM news_announcements WHERE is_published = 1 AND deleted_at IS NULL ORDER BY display_order ASC, created_at DESC")->fetchAll();
+    $newsItems = $pdo->query("SELECT * FROM news_announcements WHERE target_audience IN ('public', 'all') AND is_published = 1 AND deleted_at IS NULL ORDER BY display_order ASC, created_at DESC")->fetchAll();
 } catch (Exception $e) {}
 
 $logoSrc = BASE_URL . '/public/logo.jpg';

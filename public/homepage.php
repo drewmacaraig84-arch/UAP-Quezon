@@ -70,7 +70,7 @@ $contactAddress = get_site_setting($pdo, 'contact_address', 'Lucena City, Quezon
 // Fetch news from database
 $newsItems = [];
 try {
-    $newsItems = $pdo->query("SELECT * FROM news_announcements WHERE is_published = 1 AND deleted_at IS NULL ORDER BY display_order ASC LIMIT 4")->fetchAll();
+    $newsItems = $pdo->query("SELECT * FROM news_announcements WHERE target_audience IN ('public', 'all') AND is_published = 1 AND deleted_at IS NULL ORDER BY display_order ASC LIMIT 4")->fetchAll();
 } catch (Exception $e) {}
 
 // Fetch milestones

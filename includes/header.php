@@ -208,6 +208,10 @@ require_once __DIR__ . '/icons.php';
 
         <div class="nav-category">Communications &amp; Settings</div>
         <div class="nav-section">
+          <a class="nav-item<?php echo $nav_active('announcements.php'); ?>" href="<?php echo BASE_URL; ?>/admin/announcements.php">
+            <span class="nav-icon"><?php echo icon('newspaper'); ?></span>
+            <span>Chapter Bulletins</span>
+          </a>
           <a class="nav-item<?php echo $nav_active('inquiries.php'); ?>" href="<?php echo BASE_URL; ?>/admin/inquiries.php">
             <span class="nav-icon"><?php echo icon('mail'); ?></span>
             <span>Contact Inquiries</span>
@@ -235,6 +239,10 @@ require_once __DIR__ . '/icons.php';
           <a class="nav-item<?php echo $nav_active('dashboard.php'); ?>" href="<?php echo BASE_URL; ?>/member/dashboard.php">
             <span class="nav-icon"><?php echo icon('dashboard'); ?></span>
             <span>Dashboard</span>
+          </a>
+          <a class="nav-item<?php echo $nav_active('announcements.php'); ?>" href="<?php echo BASE_URL; ?>/member/announcements.php">
+            <span class="nav-icon"><?php echo icon('newspaper'); ?></span>
+            <span>Chapter Bulletins</span>
           </a>
           <a class="nav-item<?php echo $nav_active('events.php'); ?>" href="<?php echo BASE_URL; ?>/member/events.php">
             <span class="nav-icon"><?php echo icon('calendar'); ?></span>
