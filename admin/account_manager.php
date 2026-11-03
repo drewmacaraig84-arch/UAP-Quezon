@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($companyName || $specialty) {
                     try {
-                        $wmStmt = $pdo->prepare("INSERT INTO website_members (user_id, name, prc_number, specialty, company_name, is_active, created_at) VALUES (?, ?, ?, ?, ?, 1, NOW())");
+                        $wmStmt = $pdo->prepare("INSERT INTO website_members (user_id, name, prc_number, specialty, company_name, is_published, created_at) VALUES (?, ?, ?, ?, ?, 1, NOW())");
                         $wmStmt->execute([$newUserId, $name, $prc_number, $specialty ?: null, $companyName ?: null]);
                     } catch (Throwable $e) {}
                 }

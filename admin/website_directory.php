@@ -257,7 +257,18 @@ $paymentApps = $pdo->query("SELECT da.*, u.name, u.id_number, md.status as payme
     ORDER BY da.updated_at DESC")->fetchAll();
 
 // 3. Fetch Active Paid Directory Members
-$activeMembers = $pdo->query("SELECT COALESCE(wm.id, da.user_id) as id, wm.id as wm_id, u.id as user_id, u.name, u.id_number, wm.role_title, wm.specialty, wm.company_name, wm.link_url, wm.link_type, wm.photo_path, wm.gallery_json, wm.updated_at as profile_updated, da.id as app_id
+try {
+    $colG = $pdo->query("SHOW COLUMNS FROM website_members LIKE 'gallery_json'")->fetch();
+    if (!$colG) {
+        $pdo->exec("ALTER TABLE website_members ADD COLUMN gallery_json LONGTEXT NULL");
+    }
+    $colP = $pdo->query("SHOW COLUMNS FROM website_members LIKE 'projects_json'")->fetch();
+    if (!$colP) {
+        $pdo->exec("ALTER TABLE website_members ADD COLUMN projects_json LONGTEXT NULL");
+    }
+} catch (Throwable $e) {}
+
+$activeMembers = $pdo->query("SELECT wm.*, COALESCE(wm.id, da.user_id) as id, wm.id as wm_id, u.id as user_id, u.name, u.id_number, wm.created_at as profile_updated, da.id as app_id
     FROM website_members wm
     JOIN users u ON wm.user_id = u.id
     LEFT JOIN directory_applications da ON da.user_id = u.id

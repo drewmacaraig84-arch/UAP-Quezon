@@ -153,12 +153,13 @@ try {
     }
     $colCheck = $pdo->query("SHOW COLUMNS FROM website_members LIKE 'projects_json'")->fetch();
     if (!$colCheck) {
-        $pdo->exec("ALTER TABLE website_members ADD COLUMN projects_json LONGTEXT NULL AFTER gallery_json");
+        $pdo->exec("ALTER TABLE website_members ADD COLUMN gallery_json LONGTEXT NULL");
+        $pdo->exec("ALTER TABLE website_members ADD COLUMN projects_json LONGTEXT NULL");
         echo "Added column 'projects_json' to 'website_members' table.\n";
     }
     $colCheck = $pdo->query("SHOW COLUMNS FROM website_members LIKE 'qr_code_path'")->fetch();
     if (!$colCheck) {
-        $pdo->exec("ALTER TABLE website_members ADD COLUMN qr_code_path VARCHAR(255) NULL AFTER projects_json");
+        $pdo->exec("ALTER TABLE website_members ADD COLUMN qr_code_path VARCHAR(255) NULL");
         echo "Added column 'qr_code_path' to 'website_members' table.\n";
     }
 } catch (Throwable $e) {
