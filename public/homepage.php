@@ -1053,7 +1053,185 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             .hero h1 { font-size: 1.45rem; }
             .stat-value { font-size: 1.6rem; }
         }
+
+        /* ============ LRP 10 PILLARS CAROUSEL ============ */
+        .lrp-carousel-section {
+            width: 100%;
+            max-width: 1100px;
+            margin: 2.8rem auto 0;
+            padding: 24px 20px 22px;
+            background: rgba(19, 29, 51, 0.55);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .lrp-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .lrp-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 9999px;
+            background: rgba(229, 138, 19, 0.12);
+            border: 1px solid rgba(229, 138, 19, 0.35);
+            color: var(--quezon-gold);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .lrp-title {
+            color: #ffffff;
+            font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+            font-family: var(--font-heading);
+            font-weight: 700;
+            margin-top: 6px;
+            margin-bottom: 0;
+            letter-spacing: -0.01em;
+        }
+
+        .lrp-carousel-wrapper {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .lrp-viewport {
+            overflow: hidden;
+            width: 100%;
+            border-radius: 14px;
+        }
+
+        .lrp-track {
+            display: flex;
+            gap: 16px;
+            transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+            will-change: transform;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .lrp-slide {
+            flex: 0 0 calc((100% - (16px * 3)) / 4);
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 992px) {
+            .lrp-slide {
+                flex: 0 0 calc((100% - (16px * 2)) / 3);
+            }
+        }
+
+        @media (max-width: 680px) {
+            .lrp-slide {
+                flex: 0 0 calc((100% - 16px) / 2);
+            }
+        }
+
+        @media (max-width: 440px) {
+            .lrp-slide {
+                flex: 0 0 calc(85% - 16px);
+            }
+        }
+
+        .lrp-card {
+            aspect-ratio: 1 / 1;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lrp-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(229, 138, 19, 0.55);
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55), 0 0 20px rgba(229, 138, 19, 0.25);
+        }
+
+        .lrp-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+
+        .lrp-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(11, 17, 32, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+        }
+
+        .lrp-nav-btn:hover {
+            background: var(--quezon-amber);
+            color: #0b1120;
+            border-color: var(--quezon-gold);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .lrp-prev { left: -18px; }
+        .lrp-next { right: -18px; }
+
+        @media (max-width: 600px) {
+            .lrp-prev { left: -8px; width: 34px; height: 34px; font-size: 0.95rem; }
+            .lrp-next { right: -8px; width: 34px; height: 34px; font-size: 0.95rem; }
+        }
+
+        .lrp-dots {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 18px;
+        }
+
+        .lrp-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.22);
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lrp-dot.active {
+            width: 24px;
+            background: var(--quezon-gold);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
     </style>
+
 </head>
 <body>
 
@@ -1114,6 +1292,54 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 <div class="stat-value" style="color: #fbbf24;">50th</div>
                 <div class="stat-label">Golden Anniversary</div>
             </div>
+        </div>
+
+        <!-- UAP 2025-2035 LONG RANGE PLAN (10 STRATEGIC PILLARS) CAROUSEL -->
+        <div class="lrp-carousel-section" id="lrpSection">
+            <div class="lrp-header">
+                <span class="lrp-badge">UAP 2025–2035 Long Range Plan</span>
+                <h3 class="lrp-title">10 Strategic Pillars of the Architectural Profession</h3>
+            </div>
+
+            <div class="lrp-carousel-wrapper" id="lrpWrapper">
+                <button type="button" class="lrp-nav-btn lrp-prev" id="lrpPrevBtn" aria-label="Previous Slide">
+                    &#10094;
+                </button>
+
+                <div class="lrp-viewport" id="lrpViewport">
+                    <div class="lrp-track" id="lrpTrack">
+                        <?php
+                        $lrpPillars = [
+                            ['num' => '1', 'title' => 'Be Seen', 'sub' => 'Accountable, Transparent, Stable Governance', 'cat' => 'Profession', 'img' => 'lrp_pillar_01.jpg'],
+                            ['num' => '2', 'title' => 'Go Global', 'sub' => 'World-class Standards, Ethical Practice', 'cat' => 'Profession', 'img' => 'lrp_pillar_02.jpg'],
+                            ['num' => '3', 'title' => 'Break Boundaries', 'sub' => 'Innovation, Leadership, New Opportunities', 'cat' => 'Profession', 'img' => 'lrp_pillar_03.jpg'],
+                            ['num' => '4', 'title' => 'Stay Sharp', 'sub' => 'Lifelong Mastery and Specialization', 'cat' => 'Professional', 'img' => 'lrp_pillar_04.jpg'],
+                            ['num' => '5', 'title' => 'Ready to Lead', 'sub' => 'Practice Readiness, Strategic Networking', 'cat' => 'Professional', 'img' => 'lrp_pillar_05.jpg'],
+                            ['num' => '6', 'title' => 'Lead with Trust', 'sub' => 'Leadership, Accountability, and Organizational Credibility', 'cat' => "Prof'l. Organization", 'img' => 'lrp_pillar_06.jpg'],
+                            ['num' => '7', 'title' => 'Stronger Together', 'sub' => 'Member Solidarity, Active Participation', 'cat' => "Prof'l. Organization", 'img' => 'lrp_pillar_07.jpg'],
+                            ['num' => '8', 'title' => 'Future-Ready', 'sub' => 'Efficiency, Modern System, Long-Term Growth', 'cat' => "Prof'l. Organization", 'img' => 'lrp_pillar_08.jpg'],
+                            ['num' => '9', 'title' => 'Design Excellence', 'sub' => 'Pushing The Limits of World-Class Quality', 'cat' => 'Professional Product', 'img' => 'lrp_pillar_09.jpg'],
+                            ['num' => '10', 'title' => 'Pinas Pride', 'sub' => 'Filipino Design and Cultural Pride', 'cat' => 'Professional Product', 'img' => 'lrp_pillar_10.jpg'],
+                        ];
+                        foreach ($lrpPillars as $p): ?>
+                            <div class="lrp-slide">
+                                <div class="lrp-card">
+                                    <img src="<?php echo BASE_URL; ?>/public/images/lrp/<?php echo $p['img']; ?>" 
+                                         alt="Pillar <?php echo $p['num']; ?>: <?php echo htmlspecialchars($p['title']); ?> - <?php echo htmlspecialchars($p['sub']); ?>" 
+                                         loading="lazy">
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <button type="button" class="lrp-nav-btn lrp-next" id="lrpNextBtn" aria-label="Next Slide">
+                    &#10095;
+                </button>
+            </div>
+
+            <!-- Indicator Dots -->
+            <div class="lrp-dots" id="lrpDots"></div>
         </div>
     </section>
 
@@ -1346,5 +1572,177 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
     </div>
 
     <?php require __DIR__ . '/../includes/public_footer.php'; ?>
+
+    <!-- LRP Carousel Script -->
+    <script>
+    (function() {
+        const track = document.getElementById('lrpTrack');
+        const viewport = document.getElementById('lrpViewport');
+        const prevBtn = document.getElementById('lrpPrevBtn');
+        const nextBtn = document.getElementById('lrpNextBtn');
+        const dotsContainer = document.getElementById('lrpDots');
+        const wrapper = document.getElementById('lrpWrapper');
+
+        if (!track || !viewport) return;
+
+        const slides = Array.from(track.querySelectorAll('.lrp-slide'));
+        const totalSlides = slides.length;
+        let currentIndex = 0;
+        let autoPlayTimer = null;
+        let isHovered = false;
+
+        function getVisibleCount() {
+            const w = window.innerWidth;
+            if (w <= 440) return 1;
+            if (w <= 680) return 2;
+            if (w <= 992) return 3;
+            return 4;
+        }
+
+        function getMaxIndex() {
+            const visible = getVisibleCount();
+            return Math.max(0, totalSlides - visible);
+        }
+
+        function updateCarousel(instant) {
+            const maxIdx = getMaxIndex();
+            if (currentIndex > maxIdx) currentIndex = 0;
+            if (currentIndex < 0) currentIndex = maxIdx;
+
+            if (instant) {
+                track.style.transition = 'none';
+            } else {
+                track.style.transition = 'transform 0.55s cubic-bezier(0.25, 1, 0.5, 1)';
+            }
+
+            const slideWidth = slides[0].getBoundingClientRect().width;
+            const gap = 16;
+            const offset = currentIndex * (slideWidth + gap);
+            track.style.transform = `translateX(-${offset}px)`;
+
+            // Update dots
+            if (dotsContainer) {
+                const dots = dotsContainer.querySelectorAll('.lrp-dot');
+                dots.forEach((dot, idx) => {
+                    dot.classList.toggle('active', idx === currentIndex);
+                });
+            }
+        }
+
+        function buildDots() {
+            if (!dotsContainer) return;
+            dotsContainer.innerHTML = '';
+            const maxIdx = getMaxIndex();
+            const totalDots = maxIdx + 1;
+
+            for (let i = 0; i < totalDots; i++) {
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = 'lrp-dot' + (i === currentIndex ? ' active' : '');
+                dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+                dot.addEventListener('click', () => {
+                    currentIndex = i;
+                    updateCarousel();
+                    restartTimer();
+                });
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        function nextSlide() {
+            const maxIdx = getMaxIndex();
+            if (currentIndex >= maxIdx) {
+                currentIndex = 0;
+            } else {
+                currentIndex++;
+            }
+            updateCarousel();
+        }
+
+        function prevSlide() {
+            const maxIdx = getMaxIndex();
+            if (currentIndex <= 0) {
+                currentIndex = maxIdx;
+            } else {
+                currentIndex--;
+            }
+            updateCarousel();
+        }
+
+        function startTimer() {
+            stopTimer();
+            autoPlayTimer = setInterval(() => {
+                if (!isHovered) {
+                    nextSlide();
+                }
+            }, 3200);
+        }
+
+        function stopTimer() {
+            if (autoPlayTimer) clearInterval(autoPlayTimer);
+        }
+
+        function restartTimer() {
+            stopTimer();
+            startTimer();
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                nextSlide();
+                restartTimer();
+            });
+        }
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                prevSlide();
+                restartTimer();
+            });
+        }
+
+        if (wrapper) {
+            wrapper.addEventListener('mouseenter', () => { isHovered = true; });
+            wrapper.addEventListener('mouseleave', () => { isHovered = false; });
+        }
+
+        // Touch Swipe Gestures
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        viewport.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            isHovered = true;
+        }, { passive: true });
+
+        viewport.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            isHovered = false;
+            handleSwipe();
+            restartTimer();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 40) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            buildDots();
+            updateCarousel(true);
+        });
+
+        buildDots();
+        updateCarousel(true);
+        startTimer();
+    })();
+    </script>
 </body>
+
 </html>
