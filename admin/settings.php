@@ -225,8 +225,15 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $products_json = !empty($products) ? json_encode($products) : null;
 
             if (empty($error)) {
-                $stmt = $pdo->prepare("INSERT INTO sponsors (name, logo_path, description, url, is_platinum, products_json, display_order) VALUES (?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(display_order), 0) + 1 FROM sponsors s2))");
-                $stmt->execute([$sponsor_name, $logo_path ?: null, $_POST['sponsor_desc'] ?? '', $_POST['sponsor_url'] ?? '', $is_platinum, $products_json]);
+                $tier = $is_platinum ? 'platinum' : 'gold';
+                $sponsorUrl = trim($_POST['sponsor_url'] ?? '');
+                $sponsorDesc = trim($_POST['sponsor_desc'] ?? '');
+
+                $stmt = $pdo->prepare("
+                    INSERT INTO sponsors (name, tier, logo_path, description, website_url, url, is_platinum, products_json, display_order) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(display_order), 0) + 1 FROM sponsors s2))
+                ");
+                $stmt->execute([$sponsor_name, $tier, $logo_path ?: null, $sponsorDesc, $sponsorUrl, $sponsorUrl, $is_platinum, $products_json]);
                 $success = 'Sponsor partner added successfully.';
             }
         }
@@ -306,12 +313,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $products = array_slice($products, 0, $maxProducts);
         $products_json = !empty($products) ? json_encode($products) : null;
 
+        $tier = $is_platinum ? 'platinum' : 'gold';
         if ($logo_path) {
-            $stmt = $pdo->prepare("UPDATE sponsors SET name = ?, description = ?, url = ?, is_platinum = ?, products_json = ?, logo_path = ? WHERE id = ?");
-            $stmt->execute([$sponsor_name, $sponsor_desc, $sponsor_url, $is_platinum, $products_json, $logo_path, $sponsor_id]);
+            $stmt = $pdo->prepare("UPDATE sponsors SET name = ?, tier = ?, description = ?, website_url = ?, url = ?, is_platinum = ?, products_json = ?, logo_path = ? WHERE id = ?");
+            $stmt->execute([$sponsor_name, $tier, $sponsor_desc, $sponsor_url, $sponsor_url, $is_platinum, $products_json, $logo_path, $sponsor_id]);
         } else {
-            $stmt = $pdo->prepare("UPDATE sponsors SET name = ?, description = ?, url = ?, is_platinum = ?, products_json = ? WHERE id = ?");
-            $stmt->execute([$sponsor_name, $sponsor_desc, $sponsor_url, $is_platinum, $products_json, $sponsor_id]);
+            $stmt = $pdo->prepare("UPDATE sponsors SET name = ?, tier = ?, description = ?, website_url = ?, url = ?, is_platinum = ?, products_json = ? WHERE id = ?");
+            $stmt->execute([$sponsor_name, $tier, $sponsor_desc, $sponsor_url, $sponsor_url, $is_platinum, $products_json, $sponsor_id]);
         }
         $success = 'Sponsor partner updated successfully.';
     }
@@ -461,7 +469,7 @@ $office_hours_weekdays_val = $settings_rows['office_hours_weekdays'] ?? '9:00 AM
 $office_hours_saturday_val = $settings_rows['office_hours_saturday'] ?? '9:00 AM – 12:00 PM';
 $office_hours_sunday_val = $settings_rows['office_hours_sunday'] ?? 'Closed';
 
-$sponsors = $pdo->query("SELECT * FROM sponsors WHERE is_active = 1 ORDER BY display_order ASC")->fetchAll();
+$sponsors = $pdo->query("SELECT * FROM sponsors WHERE is_active = 1 AND deleted_at IS NULL ORDER BY display_order ASC")->fetchAll();
 $news = $pdo->query("SELECT * FROM news_announcements WHERE is_active = 1 ORDER BY display_order ASC, id DESC")->fetchAll();
 $milestones = [];
 try {

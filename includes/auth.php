@@ -66,9 +66,66 @@ function ensure_user_profile_photo_column($pdo) {
                     message LIKE '%chapter_events%doesn%t exist%' 
                     OR message LIKE '%Unknown column%qr_code_path%' 
                     OR message LIKE '%Unknown column%gallery_json%'
+                    OR message LIKE '%Unknown column%url%'
+                    OR message LIKE '%Unknown column%is_platinum%'
+                    OR message LIKE '%Unknown column%products_json%'
                   )
             ");
         } catch (Throwable $e) {}
+        $sponsorsTableCheck = $pdo->query("SHOW TABLES LIKE 'sponsors'")->fetch();
+        if ($sponsorsTableCheck) {
+            $sCols = $pdo->query("DESCRIBE sponsors")->fetchAll(PDO::FETCH_ASSOC);
+            $sFields = array_column($sCols, 'Field');
+            
+            if (!in_array('url', $sFields, true)) {
+                try {
+                    $pdo->exec("ALTER TABLE sponsors ADD COLUMN url VARCHAR(255) NULL AFTER logo_path");
+                    if (in_array('website_url', $sFields, true)) {
+                        $pdo->exec("UPDATE sponsors SET url = website_url WHERE url IS NULL");
+                    }
+                } catch (Throwable $e) {}
+            }
+            if (!in_array('website_url', $sFields, true)) {
+                try {
+                    $pdo->exec("ALTER TABLE sponsors ADD COLUMN website_url VARCHAR(255) NULL AFTER logo_path");
+                    if (in_array('url', $sFields, true)) {
+                        $pdo->exec("UPDATE sponsors SET website_url = url WHERE website_url IS NULL");
+                    }
+                } catch (Throwable $e) {}
+            }
+            if (!in_array('is_platinum', $sFields, true)) {
+                try {
+                    $pdo->exec("ALTER TABLE sponsors ADD COLUMN is_platinum TINYINT(1) NOT NULL DEFAULT 0");
+                    if (in_array('tier', $sFields, true)) {
+                        $pdo->exec("UPDATE sponsors SET is_platinum = (CASE WHEN tier = 'platinum' THEN 1 ELSE 0 END)");
+                    }
+                } catch (Throwable $e) {}
+            }
+            if (!in_array('tier', $sFields, true)) {
+                try {
+                    $pdo->exec("ALTER TABLE sponsors ADD COLUMN tier ENUM('platinum','gold','silver','bronze') NOT NULL DEFAULT 'gold'");
+                    if (in_array('is_platinum', $sFields, true)) {
+                        $pdo->exec("UPDATE sponsors SET tier = (CASE WHEN is_platinum = 1 THEN 'platinum' ELSE 'gold' END)");
+                    }
+                } catch (Throwable $e) {}
+            }
+            if (!in_array('products_json', $sFields, true)) {
+                try {
+                    $pdo->exec("ALTER TABLE sponsors ADD COLUMN products_json LONGTEXT NULL");
+                } catch (Throwable $e) {}
+            }
+            if (!in_array('deleted_at', $sFields, true)) {
+                try {
+                    $pdo->exec("ALTER TABLE sponsors ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL");
+                } catch (Throwable $e) {}
+            }
+            if (!in_array('deleted_by', $sFields, true)) {
+                try {
+                    $pdo->exec("ALTER TABLE sponsors ADD COLUMN deleted_by INT NULL");
+                } catch (Throwable $e) {}
+            }
+        }
+
         $newsTableCheck = $pdo->query("SHOW TABLES LIKE 'news_announcements'")->fetch();
         if ($newsTableCheck) {
             $colNewsImg = $pdo->query("SHOW COLUMNS FROM news_announcements LIKE 'image_path'")->fetch();
