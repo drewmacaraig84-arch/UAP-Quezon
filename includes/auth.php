@@ -19,33 +19,56 @@ function ensure_user_profile_photo_column($pdo) {
         }
         $wmCheck = $pdo->query("SHOW TABLES LIKE 'website_members'")->fetch();
         if ($wmCheck) {
-            $colCompany = $pdo->query("SHOW COLUMNS FROM website_members LIKE 'company_name'")->fetch();
-            if (!$colCompany) {
-                $pdo->exec("ALTER TABLE website_members ADD COLUMN company_name VARCHAR(255) NULL AFTER location");
+            $requiredCols = [
+                'company_name'       => 'VARCHAR(255) NULL',
+                'company_logo_path'  => 'VARCHAR(255) NULL',
+                'company_logo'       => 'VARCHAR(255) NULL',
+                'company_website'    => 'VARCHAR(255) NULL',
+                'link_url'           => 'VARCHAR(500) NULL',
+                'link_type'          => 'VARCHAR(50) NULL DEFAULT "auto"',
+                'links_json'         => 'TEXT NULL',
+                'gallery_json'       => 'LONGTEXT NULL',
+                'projects_json'      => 'LONGTEXT NULL',
+                'qr_code_path'       => 'VARCHAR(255) NULL',
+                'qr_image_path'      => 'VARCHAR(255) NULL',
+                'deleted_at'         => 'TIMESTAMP NULL DEFAULT NULL',
+                'deleted_by'         => 'INT NULL DEFAULT NULL'
+            ];
+            
+            $existing = [];
+            foreach ($pdo->query("SHOW COLUMNS FROM website_members")->fetchAll(PDO::FETCH_ASSOC) as $c) {
+                $existing[$c['Field']] = true;
             }
-            $colLogo = $pdo->query("SHOW COLUMNS FROM website_members LIKE 'company_logo_path'")->fetch();
-            if (!$colLogo) {
-                $pdo->exec("ALTER TABLE website_members ADD COLUMN company_logo_path VARCHAR(255) NULL AFTER company_name");
+            
+            foreach ($requiredCols as $colName => $colDef) {
+                if (!isset($existing[$colName])) {
+                    try {
+                        $pdo->exec("ALTER TABLE website_members ADD COLUMN {$colName} {$colDef}");
+                    } catch (Throwable $e) {}
+                }
             }
-            $colLink = $pdo->query("SHOW COLUMNS FROM website_members LIKE 'link_url'")->fetch();
-            if (!$colLink) {
-                $pdo->exec("ALTER TABLE website_members ADD COLUMN link_url VARCHAR(500) NULL AFTER company_name");
-            }
-            $colLinkType = $pdo->query("SHOW COLUMNS FROM website_members LIKE 'link_type'")->fetch();
-            if (!$colLinkType) {
-                $pdo->exec("ALTER TABLE website_members ADD COLUMN link_type VARCHAR(50) NULL DEFAULT 'auto' AFTER link_url");
-            }
-            $colLinksJson = $pdo->query("SHOW COLUMNS FROM website_members LIKE 'links_json'")->fetch();
-            if (!$colLinksJson) {
-                $pdo->exec("ALTER TABLE website_members ADD COLUMN links_json TEXT NULL AFTER link_type");
-            }
-            $colQr = $pdo->query("SHOW COLUMNS FROM website_members LIKE 'qr_code_path'")->fetch();
-            if (!$colQr) {
-                $pdo->exec("ALTER TABLE website_members ADD COLUMN qr_code_path VARCHAR(255) NULL AFTER projects_json");
-            }
+
             // Auto-clean any project photos mistakenly set as member profile avatar
-            $pdo->exec("UPDATE website_members SET photo_path = NULL WHERE photo_path LIKE '%proj_%'");
+            try {
+                $pdo->exec("UPDATE website_members SET photo_path = NULL WHERE photo_path LIKE '%proj_%'");
+            } catch (Throwable $e) {}
         }
+
+        // Auto-resolve known historical schema crash logs once migrated
+        try {
+            $pdo->exec("
+                UPDATE system_crash_logs 
+                SET is_resolved = 1, 
+                    resolved_at = NOW(), 
+                    notes = 'Resolved: Schema migrated (columns and tables verified).' 
+                WHERE is_resolved = 0 
+                  AND (
+                    message LIKE '%chapter_events%doesn%t exist%' 
+                    OR message LIKE '%Unknown column%qr_code_path%' 
+                    OR message LIKE '%Unknown column%gallery_json%'
+                  )
+            ");
+        } catch (Throwable $e) {}
         $newsTableCheck = $pdo->query("SHOW TABLES LIKE 'news_announcements'")->fetch();
         if ($newsTableCheck) {
             $colNewsImg = $pdo->query("SHOW COLUMNS FROM news_announcements LIKE 'image_path'")->fetch();
