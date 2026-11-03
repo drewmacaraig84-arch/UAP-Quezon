@@ -63,7 +63,7 @@ include __DIR__ . '/../includes/header.php';
     </div>
     <div style="display: flex; gap: 10px; align-items: center;">
       <span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-weight: 700; font-size: 12px; padding: 6px 12px;">
-        ⭐ Special Points: <?php echo number_format($c['special_points'], 1); ?> pts
+        Special Points: <?php echo number_format($c['special_points'], 1); ?> pts
       </span>
       <a href="#points-system" class="btn btn-sm btn-outline" style="font-size: 12px;">View Reso Points</a>
     </div>
@@ -157,7 +157,7 @@ include __DIR__ . '/../includes/header.php';
   <div class="card" style="padding: 24px; margin: 0; position: relative; <?php echo $isF2FActiveScheme ? 'border: 2px solid #10b981; box-shadow: 0 4px 20px rgba(16,185,129,0.12);' : ''; ?>">
     <?php if ($isF2FActiveScheme): ?>
       <span class="badge" style="position: absolute; top: 16px; right: 16px; background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid #10b981; font-weight: 800; font-size: 10.5px;">
-        ✓ QUALIFIED SCHEME
+        QUALIFIED SCHEME
       </span>
     <?php endif; ?>
 
@@ -222,7 +222,7 @@ include __DIR__ . '/../includes/header.php';
   <div class="card" style="padding: 24px; margin: 0; position: relative; <?php echo $isHybridActiveScheme ? 'border: 2px solid #06b6d4; box-shadow: 0 4px 20px rgba(6,182,212,0.12);' : ''; ?>">
     <?php if ($isHybridActiveScheme): ?>
       <span class="badge" style="position: absolute; top: 16px; right: 16px; background: rgba(6,182,212,0.15); color: #06b6d4; border: 1px solid #06b6d4; font-weight: 800; font-size: 10.5px;">
-        ✓ QUALIFIED SCHEME
+        QUALIFIED SCHEME
       </span>
     <?php endif; ?>
 
@@ -303,10 +303,10 @@ include __DIR__ . '/../includes/header.php';
     </div>
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
       <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); font-weight: 700;">
-        ⭐ 5 Points = 1 Missed GMM
+        5 Points = 1 Missed GMM
       </span>
       <span class="badge" style="background: rgba(139,92,246,0.12); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.25); font-weight: 700;">
-        ⭐ 7 Points = 1 Missed Major Event
+        7 Points = 1 Missed Major Event
       </span>
     </div>
   </div>
@@ -403,7 +403,7 @@ include __DIR__ . '/../includes/header.php';
             Total Special Event Points Accumulated:
           </th>
           <th style="text-align: right; font-size: 15px; font-weight: 900; color: #f59e0b;">
-            ⭐ <?php echo number_format($c['special_points'], 1); ?> pts
+            <?php echo number_format($c['special_points'], 1); ?> pts
           </th>
         </tr>
       </tfoot>

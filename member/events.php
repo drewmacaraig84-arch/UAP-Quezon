@@ -133,7 +133,7 @@ include __DIR__ . '/../includes/header.php';
 
             <?php if ($ev['venue_name']): ?>
               <div style="display: flex; align-items: center; gap: 8px; color: var(--text-secondary);">
-                📍 <span><?php echo htmlspecialchars($ev['venue_name']); ?></span>
+                <?php echo icon('map_pin', '', 12); ?> <span><?php echo htmlspecialchars($ev['venue_name']); ?></span>
               </div>
             <?php endif; ?>
           </div>
@@ -152,12 +152,12 @@ include __DIR__ . '/../includes/header.php';
             <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
               <?php if (!empty($ev['member_checkin_time'])): ?>
                 <span class="badge" style="background: rgba(16,185,129,0.18); color: #10b981; font-size: 11px; font-weight: 700; border: 1px solid rgba(16,185,129,0.4); white-space: nowrap;" title="Checked In">
-                  ✓ Checked In (<?php echo date('h:i A', strtotime($ev['member_checkin_time'])); ?>)
+                  Checked In (<?php echo date('h:i A', strtotime($ev['member_checkin_time'])); ?>)
                 </span>
               <?php endif; ?>
               <?php if ((int)$ev['counts_for_standing'] === 1): ?>
-                <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 10.5px; white-space: nowrap;" title="Counts toward 7+ Active Standing">
-                  ✓ Standing Credit
+                <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 10.5px; white-space: nowrap;" title="Counts toward Active Standing">
+                  Standing Credit
                 </span>
               <?php endif; ?>
               <?php if ($ev['cpd_units'] > 0): ?>
@@ -233,7 +233,7 @@ include __DIR__ . '/../includes/header.php';
               <td>
                 <?php if ($pCheckedIn): ?>
                   <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; font-weight: 800; font-size: 11px;">
-                    ✓ ATTENDED
+                    ATTENDED
                   </span>
                 <?php else: ?>
                   <span class="badge" style="background: rgba(239,68,68,0.12); color: #ef4444; font-size: 11px;">

@@ -284,8 +284,16 @@ include __DIR__ . '/../includes/header.php';
       <tbody>
         <?php if (empty($events)): ?>
           <tr>
-            <td colspan="7" style="text-align: center; padding: 36px; color: var(--text-secondary);">
-              No chapter meetings found matching criteria. Click <strong>+ Schedule Meeting</strong> to create one!
+            <td colspan="7" style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+              <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
+                No Chapter Meetings or Events Scheduled
+              </div>
+              <p style="margin: 0 auto 16px; font-size: 13px; max-width: 480px; line-height: 1.5; color: var(--text-secondary);">
+                Schedule your next monthly General Membership Meeting (GMM), CPD seminar, or major fellowship. Scheduled meetings sync with the QR attendance scanner and the member portal.
+              </p>
+              <button type="button" onclick="openCreateModal()" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; font-weight: 700;">
+                <?php echo icon('sparkles', '', 14); ?> <span>+ Schedule Meeting Now</span>
+              </button>
             </td>
           </tr>
         <?php else: ?>
@@ -325,8 +333,8 @@ include __DIR__ . '/../includes/header.php';
                 
                 <div style="display: flex; gap: 4px; align-items: center; margin-top: 6px; flex-wrap: wrap;">
                   <?php if ((int)$e['counts_for_standing'] === 1): ?>
-                    <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 10px;" title="Attending counts towards 7+ active member requirement">
-                      ✓ Active Credit
+                    <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 10px;" title="Attending counts towards active member requirement">
+                      Active Credit
                     </span>
                   <?php else: ?>
                     <span class="badge" style="background: rgba(255,255,255,0.06); color: var(--text-secondary); font-size: 10px;">
@@ -345,14 +353,15 @@ include __DIR__ . '/../includes/header.php';
               <td>
                 <div style="font-size: 12.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px;">
                   <?php 
-                    if ($e['location_type'] === 'f2f') echo '🏛 In-Person (F2F)';
-                    elseif ($e['location_type'] === 'zoom') echo '💻 Zoom Webinar';
-                    else echo '🌐 Hybrid (F2F + Zoom)';
+                    if ($e['location_type'] === 'f2f') echo 'In-Person (F2F)';
+                    elseif ($e['location_type'] === 'zoom') echo 'Zoom Webinar';
+                    else echo 'Hybrid (F2F + Zoom)';
                   ?>
                 </div>
                 <?php if ($e['venue_name']): ?>
-                  <div style="font-size: 12px; color: var(--text-secondary);">
-                    📍 <?php echo htmlspecialchars($e['venue_name']); ?>
+                  <div style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+                    <?php echo icon('map_pin', '', 12); ?>
+                    <span><?php echo htmlspecialchars($e['venue_name']); ?></span>
                   </div>
                 <?php endif; ?>
                 <?php if ($e['meeting_link']): ?>

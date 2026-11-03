@@ -394,7 +394,7 @@ include __DIR__ . '/../includes/header.php';
           </div>
           <div style="text-align: right;">
             <span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: 12px; font-weight: 800; padding: 5px 12px;">
-              ⭐ Total Special Points: <?php echo number_format($sc['special_points'], 1); ?> pts
+              Total Special Points: <?php echo number_format($sc['special_points'], 1); ?> pts
             </span>
           </div>
         </div>
@@ -501,7 +501,7 @@ include __DIR__ . '/../includes/header.php';
               </td>
               <td>
                 <span class="badge" style="background: rgba(245,158,11,0.12); color: #f59e0b; font-weight: 700; font-size: 11.5px; padding: 3px 8px; border: 1px solid rgba(245,158,11,0.25);">
-                  ⭐ <?php echo number_format((float)$mem['special_points'], 1); ?> pts
+                  <?php echo number_format((float)$mem['special_points'], 1); ?> pts
                 </span>
               </td>
               <td>
