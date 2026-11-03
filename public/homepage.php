@@ -75,9 +75,10 @@ $aboutUsText = get_site_setting(
 $contactEmail = get_site_setting($pdo, 'contact_email', 'uap.qpc@gmail.com');
 $contactPhone = get_site_setting($pdo, 'contact_phone', '09399125237 / 09175939781');
 $contactAddress = get_site_setting($pdo, 'contact_address', 'Lucena City, Quezon Province, Philippines');
-$heroBadge = get_site_setting($pdo, 'hero_badge', 'DISTRICT - B4 • QUEZON PROVINCE');
+$heroBadge = get_site_setting($pdo, 'hero_badge', 'DISTRICT B4 • QUEZON PROVINCE');
+if (in_array($heroBadge, ['District B4 • Quezon Province', 'Area B • Quezon Province', 'Area B • Southern Luzon Region', 'District B4', 'DISTRICT - B4 • QUEZON PROVINCE', 'District - B4 • Quezon Province'], true)) { $heroBadge = 'DISTRICT B4 • QUEZON PROVINCE'; }
 if (in_array($heroBadge, ['District B4 • Quezon Province', 'Area B • Quezon Province', 'Area B • Southern Luzon Region', 'District B4'], true)) { $heroBadge = 'DISTRICT - B4 • QUEZON PROVINCE'; }
-$heroTitle = get_site_setting($pdo, 'hero_title', '“TAGUYOD”');
+$heroTitle = get_site_setting($pdo, 'hero_title', '&ldquo;TAGUYOD&rdquo;');
 $heroTagline = get_site_setting($pdo, 'hero_tagline', 'MOVERS OF PROGRESS 2.0');
 
 // Fetch news from database
@@ -1231,6 +1232,27 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             background: var(--quezon-gold);
             box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
         }
+
+        .hero-title-taguyod {
+            font-size: clamp(2.8rem, 7vw, 4.8rem);
+            font-family: var(--font-heading);
+            font-weight: 800;
+            line-height: 1.1;
+            margin: 0.2rem auto 0.6rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-tagline {
+            font-size: clamp(1.05rem, 2.5vw, 1.45rem);
+            font-family: var(--font-heading);
+            font-weight: 800;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin: 0 auto 1.3rem;
+            max-width: 800px;
+        }
+    
     </style>
 
 </head>
@@ -1244,19 +1266,13 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             <?php echo icon('landmark', '', 14); ?> <?php echo htmlspecialchars($heroBadge); ?>
         </div>
 
-        <!-- Official TAGUYOD Chapter Theme Banner -->
-        <div class="hero-theme-showcase">
-            <img src="<?php echo BASE_URL; ?>/public/images/theme_taguyod.jpg" alt="TAGUYOD - Paghuhubog ng Kahusayan, Pagpapalakas ng Samahan (Shaping Excellence, Strengthening Fellowship)" class="hero-taguyod-banner" onerror="this.style.display='none'; document.getElementById('heroTextTaguyod').style.display='block';">
-            
-            <div id="heroTextTaguyod" style="display: none;">
-                <h1 class="hero-title-taguyod">
-                    <span class="highlight-gold">TAGUYOD</span>
-                </h1>
-                <div class="hero-taguyod-sub">
-                    Paghuhubog ng Kahusayan, Pagpapalakas ng Samahan<br>
-                    <small>(Shaping Excellence, Strengthening Fellowship)</small>
-                </div>
-            </div>
+        <h1 class="hero-title-taguyod">
+            <span class="highlight-gold">&ldquo;TAGUYOD&rdquo;</span>
+        </h1>
+
+        <div class="hero-taguyod-sub">
+            Paghuhubog ng Kahusayan, Pagpapalakas ng Samahan<br>
+            <small>(Shaping Excellence, Strengthening Fellowship)</small>
         </div>
 
         <!-- Architectural Triple Accent Lines -->
@@ -1266,9 +1282,8 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             <span class="accent-line line-3"></span>
         </div>
 
-        <!-- Official Movers of Progress 2.0 National Campaign Banner -->
-        <div class="hero-movers-showcase">
-            <img src="<?php echo BASE_URL; ?>/public/images/theme_movers_progress.jpg" alt="Movers of Progress 2.0 - Justice to the Profession, Visionary Initiatives, Member Empowerment" class="hero-movers-banner">
+        <div class="hero-tagline">
+            <?php echo htmlspecialchars($heroTagline); ?>
         </div>
 
         <p class="lead">
