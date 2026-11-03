@@ -1043,6 +1043,7 @@ function switchSettingsTab(tabId, btn) {
     <form method="post" enctype="multipart/form-data" style="background: var(--bg-secondary); padding: 18px; border-radius: 12px; border: 1px solid var(--border-color);">
       <?php echo csrf_field(); ?>
       <input type="hidden" name="action" value="add_sponsor">
+      <input type="hidden" name="current_tab" value="sponsorsTab">
       <div class="grid-2" style="gap: 14px; margin-bottom: 14px;">
         <div class="field" style="margin: 0;">
           <label>Sponsor / Partner Name <span style="color:var(--c-gold)">*</span></label>
