@@ -37,9 +37,13 @@ $cActivity = $attendance['computed'];
 // Fetch upcoming chapter meetings
 $upcomingEventsStmt = $pdo->prepare("
     SELECT ce.*, 
-           (SELECT attended_at FROM event_attendance_logs WHERE user_id = ? AND event_key = CONCAT('ce_', ce.id) LIMIT 1) as attended_at
+           (SELECT scanned_at FROM event_attendance_logs WHERE user_id = ? AND event_key = CONCAT('ce_', ce.id) LIMIT 1) as attended_at
     FROM chapter_events ce
-    WHERE ce.event_status = 'upcoming' AND ce.event_date >= CURDATE()
+    WHERE ce.deleted_at IS NULL 
+      AND ce.is_published = 1 
+      AND ce.status != 'completed' 
+      AND ce.status != 'cancelled'
+      AND ce.event_date >= CURDATE()
     ORDER BY ce.event_date ASC, ce.start_time ASC
     LIMIT 2
 ");
@@ -338,10 +342,13 @@ include __DIR__ . '/../includes/header.php';
               <div style="display: flex; align-items: center; gap: 6px;">
                 <span style="color: #10b981;"><?php echo icon('map_pin', '', 14); ?></span>
                 <span><?php echo htmlspecialchars($ev['venue_name'] ?: 'To be announced'); ?></span>
-                <?php if ($ev['format'] === 'hybrid'): ?>
+                <?php 
+                  $locType = $ev['location_type'] ?? ($ev['format'] ?? 'f2f');
+                  if ($locType === 'hybrid'): 
+                ?>
                   <span class="badge" style="font-size: 9.5px; background: rgba(168,85,247,0.15); color: #c084fc;">Hybrid</span>
-                <?php elseif ($ev['format'] === 'online'): ?>
-                  <span class="badge" style="font-size: 9.5px; background: rgba(59,130,246,0.15); color: #60a5fa;">Online</span>
+                <?php elseif ($locType === 'zoom' || $locType === 'online'): ?>
+                  <span class="badge" style="font-size: 9.5px; background: rgba(59,130,246,0.15); color: #60a5fa;">Online (Zoom)</span>
                 <?php endif; ?>
               </div>
             </div>
@@ -359,9 +366,12 @@ include __DIR__ . '/../includes/header.php';
             <?php endif; ?>
 
             <div style="display: flex; gap: 6px;">
-              <?php if (!empty($ev['zoom_link'])): ?>
-                <a href="<?php echo htmlspecialchars($ev['zoom_link']); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
-                  <?php echo icon('external_link', '', 11); ?> Zoom
+              <?php 
+                $meetingLink = !empty($ev['meeting_link']) ? $ev['meeting_link'] : ($ev['zoom_link'] ?? '');
+                if (!empty($meetingLink)): 
+              ?>
+                <a href="<?php echo htmlspecialchars($meetingLink); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
+                  <?php echo icon('external_link', '', 11); ?> Online Link
                 </a>
               <?php endif; ?>
               <a href="attendance_pass.php" class="btn btn-sm btn-secondary" style="font-size: 11px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
