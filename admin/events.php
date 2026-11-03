@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/attendance_helper.php';
 require_admin();
+ensure_chapter_events_schema($pdo);
 
 $adminId = current_user_id();
 $fy = get_active_fiscal_year();

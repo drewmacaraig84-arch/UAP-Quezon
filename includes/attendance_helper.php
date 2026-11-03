@@ -55,8 +55,87 @@ if (!function_exists('ensure_member_attendance_table')) {
     }
 }
 
+if (!function_exists('ensure_chapter_events_schema')) {
+    function ensure_chapter_events_schema(PDO $pdo) {
+        static $checked = false;
+        if ($checked || !$pdo) return;
+        $checked = true;
+
+        try {
+            $chk = $pdo->query("SHOW TABLES LIKE 'chapter_events'")->fetch();
+            if (!$chk) {
+                $pdo->exec("
+                    CREATE TABLE IF NOT EXISTS chapter_events (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        title VARCHAR(255) NOT NULL,
+                        event_type ENUM('gmm', 'board_meeting', 'cpd_seminar', 'fellowship', 'assembly', 'major', 'special') NOT NULL DEFAULT 'gmm',
+                        fiscal_year VARCHAR(20) NOT NULL DEFAULT '2026-2027',
+                        event_date DATE NOT NULL,
+                        start_time TIME NULL,
+                        end_time TIME NULL,
+                        location_type ENUM('f2f', 'zoom', 'hybrid') NOT NULL DEFAULT 'f2f',
+                        venue_name VARCHAR(255) NULL,
+                        meeting_link VARCHAR(500) NULL,
+                        description TEXT NULL,
+                        banner_image VARCHAR(255) NULL,
+                        cpd_units DECIMAL(4,1) DEFAULT 0.0,
+                        counts_for_standing TINYINT(1) NOT NULL DEFAULT 1,
+                        is_published TINYINT(1) NOT NULL DEFAULT 1,
+                        status ENUM('upcoming', 'ongoing', 'completed', 'cancelled') NOT NULL DEFAULT 'upcoming',
+                        created_by INT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        deleted_at TIMESTAMP NULL DEFAULT NULL,
+                        deleted_by INT NULL DEFAULT NULL,
+                        KEY idx_event_date (event_date),
+                        KEY idx_event_type (event_type),
+                        KEY idx_status (status),
+                        KEY idx_fiscal_year (fiscal_year)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ");
+
+                $cnt = (int)$pdo->query("SELECT COUNT(*) FROM chapter_events")->fetchColumn();
+                if ($cnt === 0) {
+                    $pdo->exec("
+                        INSERT INTO chapter_events 
+                        (title, event_type, fiscal_year, event_date, start_time, end_time, location_type, venue_name, description, cpd_units, counts_for_standing, is_published, status)
+                        VALUES 
+                        ('Special GMM: Architectural Heritage Preservation in Quezon', 'gmm', '2026-2027', '2026-11-20', '18:00:00', '21:00:00', 'hybrid', 'Quezon Premier Hotel & Convention Center, Lucena City', 'Discussion on historical preservation guidelines and chapter milestones.', 1.5, 1, 1, 'upcoming'),
+                        ('CPD Masterclass: Climate-Resilient Tropical Architecture', 'cpd_seminar', '2026-2027', '2026-12-10', '13:00:00', '17:00:00', 'hybrid', 'Lucena Grand Central Terminal Pavilion', 'Specialized Continuing Professional Development seminar on sustainable provincial developments.', 3.0, 1, 1, 'upcoming')
+                    ");
+                }
+            }
+
+            $chk2 = $pdo->query("SHOW TABLES LIKE 'event_attendance_logs'")->fetch();
+            if (!$chk2) {
+                $pdo->exec("
+                    CREATE TABLE IF NOT EXISTS event_attendance_logs (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        user_id INT NOT NULL,
+                        fiscal_year VARCHAR(20) NOT NULL DEFAULT '2026-2027',
+                        event_key VARCHAR(50) NOT NULL,
+                        event_title VARCHAR(255) NOT NULL,
+                        attendance_mode ENUM('f2f', 'zoom') NOT NULL DEFAULT 'f2f',
+                        scanned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        scanned_by INT NULL,
+                        verification_method VARCHAR(50) NOT NULL DEFAULT 'qr_scan',
+                        notes VARCHAR(255) NULL,
+                        created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE KEY uniq_user_event_fy (user_id, fiscal_year, event_key),
+                        KEY idx_event_key (event_key),
+                        KEY idx_fiscal_year (fiscal_year),
+                        KEY idx_scanned_at (scanned_at),
+                        KEY idx_user_id (user_id)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ");
+            }
+        } catch (Throwable $e) {}
+    }
+}
+
 if (isset($pdo) && $pdo instanceof PDO) {
     ensure_member_attendance_table($pdo);
+    ensure_chapter_events_schema($pdo);
 }
 
 if (!function_exists('get_active_fiscal_year')) {
