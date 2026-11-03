@@ -37,6 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 $contactEmail = get_site_setting($pdo, 'contact_email', 'quezon@united-architects.ph');
 $contactPhone = get_site_setting($pdo, 'contact_phone', '+63 917 555 UAPQ');
 $contactAddress = get_site_setting($pdo, 'contact_address', 'Lucena City, Quezon Province, Philippines');
+$hoursWeekdays = get_site_setting($pdo, 'office_hours_weekdays', '9:00 AM – 5:00 PM');
+$hoursSaturday = get_site_setting($pdo, 'office_hours_saturday', '9:00 AM – 12:00 PM');
+$hoursSunday = get_site_setting($pdo, 'office_hours_sunday', 'Closed');
 $logoSrc = BASE_URL . '/public/logo.jpg';
 ?>
 <!DOCTYPE html>
@@ -162,8 +165,8 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                     <div class="info-point-icon"><?php echo icon('clock', '', 20); ?></div>
                     <div>
                         <strong style="color: #ffffff; display: block; font-size: 0.95rem; margin-bottom: 2px;">Secretariat Hours</strong>
-                        <p style="color: #cbd5e1; font-size: 0.88rem;">Monday &ndash; Friday: 9:00 AM &ndash; 5:00 PM</p>
-                        <p style="color: var(--text-muted); font-size: 0.82rem;">Saturday: 9:00 AM &ndash; 12:00 PM &bull; Sunday: Closed</p>
+                        <p style="color: #cbd5e1; font-size: 0.88rem;">Monday &ndash; Friday: <?php echo htmlspecialchars($hoursWeekdays); ?></p>
+                        <p style="color: var(--text-muted); font-size: 0.82rem;">Saturday: <?php echo htmlspecialchars($hoursSaturday); ?> &bull; Sunday: <?php echo htmlspecialchars($hoursSunday); ?></p>
                     </div>
                 </div>
 

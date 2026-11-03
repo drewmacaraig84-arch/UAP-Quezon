@@ -49,6 +49,11 @@ try {
     $rows = $stmt->fetchAll();
 
     foreach ($rows as $wm) {
+        if (!empty($wm['user_id']) && function_exists('is_good_member')) {
+            if (!is_good_member($pdo, (int)$wm['user_id'])) {
+                continue;
+            }
+        }
         $members[] = [
             'id' => $wm['id'],
             'name' => $wm['name'],

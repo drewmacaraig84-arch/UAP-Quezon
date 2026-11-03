@@ -6,6 +6,9 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 $contactEmail = $contactEmail ?? get_site_setting($pdo, 'contact_email', 'quezon@united-architects.ph');
 $contactPhone = $contactPhone ?? get_site_setting($pdo, 'contact_phone', '+63 917 555 UAPQ');
 $contactAddress = $contactAddress ?? get_site_setting($pdo, 'contact_address', 'Lucena City, Quezon Province, Philippines');
+$hoursWeekdays = $hoursWeekdays ?? get_site_setting($pdo, 'office_hours_weekdays', '9:00 AM – 5:00 PM');
+$hoursSaturday = $hoursSaturday ?? get_site_setting($pdo, 'office_hours_saturday', '9:00 AM – 12:00 PM');
+$hoursSunday = $hoursSunday ?? get_site_setting($pdo, 'office_hours_sunday', 'Closed');
 ?>
 <!-- FOOTER -->
 <footer>
@@ -53,7 +56,7 @@ $contactAddress = $contactAddress ?? get_site_setting($pdo, 'contact_address', '
                 </li>
                 <li style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 0.88rem;">
                     <span style="color: var(--quezon-gold); flex-shrink: 0;"><?php echo icon('clock', '', 15); ?></span>
-                    <span>Mon &ndash; Fri &bull; 9:00 AM &ndash; 5:00 PM</span>
+                    <span>Mon &ndash; Fri &bull; <?php echo htmlspecialchars($hoursWeekdays); ?></span>
                 </li>
                 <li style="margin-top: 6px;">
                     <a href="<?php echo BASE_URL; ?>/public/contact.php" style="display: inline-flex; align-items: center; gap: 6px; color: var(--quezon-green-light); font-weight: 700; font-size: 0.85rem; text-decoration: none;">
