@@ -129,6 +129,15 @@ if (!function_exists('ensure_chapter_events_schema')) {
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 ");
             }
+
+            // One-time self-healing repair for any attendance records saved before timezone synchronization
+            try {
+                $pdo->exec("
+                    UPDATE event_attendance_logs 
+                    SET scanned_at = DATE_ADD(scanned_at, INTERVAL 16 HOUR) 
+                    WHERE scanned_at >= '2026-11-02 17:00:00' AND scanned_at < '2026-11-03 00:00:00'
+                ");
+            } catch (Throwable $eTz) {}
         } catch (Throwable $e) {}
     }
 }
@@ -685,13 +694,14 @@ if (!function_exists('record_event_scan_attendance')) {
             ];
         }
 
-        // 3. Insert into event_attendance_logs
+        // 3. Insert into event_attendance_logs (using explicit Philippine Standard Time)
+        $scannedAtNow = date('Y-m-d H:i:s');
         $logStmt = $pdo->prepare("
             INSERT INTO event_attendance_logs 
             (user_id, fiscal_year, event_key, event_title, attendance_mode, scanned_at, scanned_by, verification_method, notes)
-            VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $logStmt->execute([$userId, $fy, $eventKey, $eventTitle, $mode, $adminId, $method, $notes]);
+        $logStmt->execute([$userId, $fy, $eventKey, $eventTitle, $mode, $scannedAtNow, $adminId, $method, $notes]);
         $newLogId = (int)$pdo->lastInsertId();
 
         // 4. Update official member_attendance compliance record

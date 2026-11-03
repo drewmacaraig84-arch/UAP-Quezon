@@ -1,4 +1,7 @@
 <?php
+// Set Philippine Standard Time (UTC+8) across the entire application
+date_default_timezone_set('Asia/Manila');
+
 function load_env_file() {
     $envFile = dirname(__DIR__) . '/.env';
 
@@ -298,7 +301,7 @@ try {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4, sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))"
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4, time_zone = '+08:00', sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))"
         ]
     );
 } catch (PDOException $e) {
@@ -323,7 +326,7 @@ try {
                         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                         PDO::ATTR_EMULATE_PREPARES => false,
-                        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4, sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))"
+                        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4, time_zone = '+08:00', sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))"
                     ]
                 );
                 $pdoError = null;
@@ -360,6 +363,9 @@ try {
 // Auto-initialize tables from schema.sql if database exists but tables haven't been created yet
 if ($pdo instanceof PDO) {
     try {
+        $pdo->exec("SET time_zone = '+08:00'");
+    } catch (Throwable $tzE) {}
+    try {
         $userCheck = $pdo->query("SHOW TABLES LIKE 'users'")->fetch();
         if (!$userCheck) {
             $schemaPath = dirname(__DIR__) . '/schema.sql';
@@ -386,6 +392,9 @@ if ($pdo instanceof PDO) {
 
 // Ensure member_attendance exists if tables were previously created
 if ($pdo instanceof PDO) {
+    try {
+        $pdo->exec("SET time_zone = '+08:00'");
+    } catch (Throwable $tzE) {}
     try {
         $attCheck = $pdo->query("SHOW TABLES LIKE 'member_attendance'")->fetch();
         if (!$attCheck) {
@@ -432,6 +441,9 @@ if ($pdo instanceof PDO) {
 
 // Ensure directory_applications has required columns (member_due_id, notes, updated_at)
 if ($pdo instanceof PDO) {
+    try {
+        $pdo->exec("SET time_zone = '+08:00'");
+    } catch (Throwable $tzE) {}
     try {
         $daCheck = $pdo->query("SHOW TABLES LIKE 'directory_applications'")->fetch();
         if ($daCheck) {

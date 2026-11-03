@@ -371,12 +371,12 @@ include __DIR__ . '/../includes/header.php';
                 if (!empty($meetingLink)): 
               ?>
                 <?php if (empty($ev['attended_at'])): ?>
-                  <a href="join_meeting.php?id=<?php echo (int)$ev['id']; ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="font-size: 11px; padding: 5px 10px; display: inline-flex; align-items: center; gap: 5px; background: #2563eb; color: #ffffff; border: none; font-weight: 700; box-shadow: 0 2px 8px rgba(37,99,235,0.35);">
+                  <a href="join_meeting.php?id=<?php echo (int)$ev['id']; ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="font-size: 11px; padding: 5px 10px; display: inline-flex; align-items: center; gap: 5px; background: #2563eb; color: #ffffff; border: none; font-weight: 700; white-space: nowrap; box-shadow: 0 2px 8px rgba(37,99,235,0.35);">
                     <?php echo icon('video', '', 12); ?> Join Zoom &amp; Check In
                   </a>
                 <?php else: ?>
-                  <a href="join_meeting.php?id=<?php echo (int)$ev['id']; ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px; border-color: #3b82f6; color: #3b82f6;">
-                    <?php echo icon('video', '', 11); ?> Join Meeting
+                  <a href="join_meeting.php?id=<?php echo (int)$ev['id']; ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px; border-color: #3b82f6; color: #3b82f6; white-space: nowrap;">
+                    <?php echo icon('video', '', 11); ?> Launch Zoom &rarr;
                   </a>
                 <?php endif; ?>
               <?php endif; ?>

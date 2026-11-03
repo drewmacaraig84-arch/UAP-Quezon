@@ -148,39 +148,39 @@ include __DIR__ . '/../includes/header.php';
           <?php endif; ?>
 
           <!-- Bottom Action Bar -->
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; pt: 12px; border-top: 1px solid var(--border-color); margin-top: auto; padding-top: 14px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; pt: 12px; border-top: 1px solid var(--border-color); margin-top: auto; padding-top: 14px; flex-wrap: wrap;">
             <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
               <?php if (!empty($ev['member_checkin_time'])): ?>
-                <span class="badge" style="background: rgba(16,185,129,0.18); color: #10b981; font-size: 11px; font-weight: 700; border: 1px solid rgba(16,185,129,0.4);" title="Checked In">
+                <span class="badge" style="background: rgba(16,185,129,0.18); color: #10b981; font-size: 11px; font-weight: 700; border: 1px solid rgba(16,185,129,0.4); white-space: nowrap;" title="Checked In">
                   ✓ Checked In (<?php echo date('h:i A', strtotime($ev['member_checkin_time'])); ?>)
                 </span>
               <?php endif; ?>
               <?php if ((int)$ev['counts_for_standing'] === 1): ?>
-                <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 10.5px;" title="Counts toward 7+ Active Standing">
+                <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 10.5px; white-space: nowrap;" title="Counts toward 7+ Active Standing">
                   ✓ Standing Credit
                 </span>
               <?php endif; ?>
               <?php if ($ev['cpd_units'] > 0): ?>
-                <span class="badge" style="background: rgba(59,130,246,0.12); color: #3b82f6; font-size: 10.5px;">
+                <span class="badge" style="background: rgba(59,130,246,0.12); color: #3b82f6; font-size: 10.5px; white-space: nowrap;">
                   <?php echo $ev['cpd_units']; ?> CPD Pts
                 </span>
               <?php endif; ?>
             </div>
 
-            <div style="display: flex; gap: 8px; align-items: center;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
               <?php if (!empty($ev['meeting_link'])): ?>
                 <?php if (empty($ev['member_checkin_time'])): ?>
-                  <a href="join_meeting.php?id=<?php echo (int)$ev['id']; ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary" style="background: #2563eb; border-color: #2563eb; font-size: 11.5px; padding: 7px 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(37,99,235,0.35);">
+                  <a href="join_meeting.php?id=<?php echo (int)$ev['id']; ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary" style="background: #2563eb; border-color: #2563eb; font-size: 11.5px; padding: 7px 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; box-shadow: 0 2px 8px rgba(37,99,235,0.35);">
                     <?php echo icon('video', '', 13); ?> Join Zoom &amp; Check In
                   </a>
                 <?php else: ?>
-                  <a href="join_meeting.php?id=<?php echo (int)$ev['id']; ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline" style="border-color: #3b82f6; color: #3b82f6; font-size: 11.5px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 5px;">
-                    <?php echo icon('video', '', 12); ?> Join Zoom &rarr;
+                  <a href="join_meeting.php?id=<?php echo (int)$ev['id']; ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline" style="border-color: #3b82f6; color: #3b82f6; font-size: 11.5px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
+                    <?php echo icon('video', '', 12); ?> Launch Zoom &rarr;
                   </a>
                 <?php endif; ?>
               <?php endif; ?>
               
-              <a href="attendance_pass.php" class="btn btn-sm btn-secondary" style="font-size: 11.5px; padding: 6px 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+              <a href="attendance_pass.php" class="btn btn-sm btn-secondary" style="font-size: 11.5px; padding: 6px 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
                 <?php echo icon('qr_codes', '', 12); ?> Pass
               </a>
             </div>
