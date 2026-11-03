@@ -157,6 +157,26 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             <?php endforeach; ?>
         </div>
 
+        <!-- OFFICIAL COMMEMORATIVE INFOGRAPHIC: BUILT THROUGH TIME -->
+        <section class="section-box" style="margin-top: 2.5rem; text-align: center;">
+            <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 1.2rem;">
+                <h2><?php echo icon('award', '', 22); ?> Official Commemorative Poster &bull; <span>Built Through Time</span></h2>
+            </div>
+            <p style="color: var(--text-muted); max-width: 720px; margin: 0 auto 1.5rem; font-size: 0.95rem; line-height: 1.6;">
+                The complete visual chronicle celebrating our founding on November 11, 1977, the legacy of our 27 Chapter Presidents, and our approaching Golden 50th Anniversary.
+            </p>
+            <div style="max-width: 760px; margin: 0 auto; border-radius: 16px; overflow: hidden; border: 2px solid var(--quezon-border-gold); box-shadow: 0 16px 40px rgba(0,0,0,0.55); background: #0b1120;">
+                <a href="<?php echo BASE_URL; ?>/public/images/uap_quezon_history_poster.jpg" target="_blank" title="Click to view full high-resolution commemorative poster">
+                    <img src="<?php echo BASE_URL; ?>/public/images/uap_quezon_history_poster.jpg" alt="UAP Quezon Province Chapter - Built Through Time History Poster" style="width: 100%; height: auto; display: block; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.015)'" onmouseout="this.style.transform='scale(1)'">
+                </a>
+            </div>
+            <div style="margin-top: 16px;">
+                <a href="<?php echo BASE_URL; ?>/public/images/uap_quezon_history_poster.jpg" target="_blank" class="btn-outline-quezon" style="font-size: 0.85rem; padding: 8px 18px; display: inline-flex; align-items: center; gap: 6px;">
+                    <?php echo icon('eye', '', 14); ?> Open Full-Resolution Commemorative Poster &rarr;
+                </a>
+            </div>
+        </section>
+
         <!-- LEADERSHIP & COMMUNITY IMPACT -->
         <section class="section-box" style="margin-top: 2.5rem;">
             <div class="section-header">
