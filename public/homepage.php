@@ -1253,6 +1253,76 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             max-width: 800px;
         }
     
+
+        /* ============ HERO INTRO SIDE-BY-SIDE (IMAGE | TEXT) ============ */
+        .hero-intro-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(20px, 3vw, 32px);
+            max-width: 960px;
+            margin: 1.6rem auto 2.5rem;
+            padding: 18px 24px;
+            background: rgba(19, 29, 51, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            text-align: left;
+            box-sizing: border-box;
+        }
+
+        .hero-intro-media {
+            flex: 0 0 clamp(220px, 28vw, 300px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-intro-img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+            display: block;
+            background: #ffffff;
+        }
+
+        .hero-intro-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .hero-intro-text .lead {
+            font-size: clamp(0.95rem, 1.35vw, 1.08rem) !important;
+            color: #cbd5e1 !important;
+            line-height: 1.65 !important;
+            margin: 0 !important;
+            text-align: left !important;
+        }
+
+        @media (max-width: 768px) {
+            .hero-intro-row {
+                flex-direction: column;
+                text-align: center;
+                gap: 14px;
+                padding: 14px;
+                margin: 1.2rem auto 1.8rem;
+            }
+            .hero-intro-media {
+                flex: 0 0 auto;
+                width: 100%;
+            }
+            .hero-intro-img {
+                max-width: 250px;
+            }
+            .hero-intro-text .lead {
+                text-align: center !important;
+                font-size: 0.92rem !important;
+            }
+        }
+
     </style>
 
 </head>
@@ -1282,13 +1352,19 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             <span class="accent-line line-3"></span>
         </div>
 
-        <div class="hero-tagline">
-            <?php echo htmlspecialchars($heroTagline); ?>
+        <!-- Side-by-Side: Movers of Progress 2.0 Image & Chapter Lead Text -->
+        <div class="hero-intro-row">
+            <div class="hero-intro-media">
+                <img src="<?php echo BASE_URL; ?>/public/images/theme_movers_progress.jpg" 
+                     alt="Movers of Progress 2.0 - Justice to the Profession, Visionary Initiatives, Member Empowerment" 
+                     class="hero-intro-img">
+            </div>
+            <div class="hero-intro-text">
+                <p class="lead">
+                    The official digital hub of the United Architects of the Philippines - Quezon Province Chapter. Uniting registered architects across Lucena City, Tayabas, Sariaya, and the four legislative districts of Quezon Province.
+                </p>
+            </div>
         </div>
-
-        <p class="lead">
-            The official digital hub of the United Architects of the Philippines - Quezon Province Chapter. Uniting registered architects across Lucena City, Tayabas, Sariaya, and the four legislative districts of Quezon Province.
-        </p>
 
         <!-- STATS -->
         <div class="stats-bar">
