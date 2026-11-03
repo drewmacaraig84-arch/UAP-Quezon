@@ -107,6 +107,80 @@ if ($isUserLoggedIn) {
         @media (max-width: 400px) {
             .header-badges { display: none !important; }
         }
+
+        /* Desktop Nav & Single-Line Spacing */
+        .desktop-nav ul {
+            display: flex !important;
+            align-items: center !important;
+            gap: clamp(0.55rem, 1.1vw, 1.25rem) !important;
+            list-style: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .desktop-nav li {
+            margin: 0 !important;
+            padding: 0 !important;
+            white-space: nowrap !important;
+        }
+        .desktop-nav a {
+            font-size: clamp(0.76rem, 0.85vw, 0.84rem) !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.03em !important;
+            color: #cbd5e1 !important;
+            text-decoration: none !important;
+            white-space: nowrap !important;
+            display: inline-block !important;
+            padding: 4px 2px !important;
+            transition: color 0.2s ease !important;
+        }
+        .desktop-nav a:hover,
+        .desktop-nav a.active {
+            color: var(--quezon-gold, #f59e0b) !important;
+        }
+        .header-actions {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            flex-shrink: 0 !important;
+        }
+        .btn-portal {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 5px !important;
+            padding: 0.38rem 0.75rem !important;
+            background: var(--gradient-brand, linear-gradient(135deg, #e58a13 0%, #15803d 100%)) !important;
+            color: #ffffff !important;
+            border-radius: 6px !important;
+            font-size: 0.72rem !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.04em !important;
+            text-decoration: none !important;
+            box-shadow: 0 3px 10px rgba(229, 138, 19, 0.25) !important;
+            transition: all 0.2s ease !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+            line-height: 1.1 !important;
+        }
+        .btn-portal span {
+            white-space: nowrap !important;
+            display: inline !important;
+        }
+        .btn-portal svg {
+            width: 13px !important;
+            height: 13px !important;
+            flex-shrink: 0 !important;
+        }
+        .btn-portal:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 14px rgba(21, 128, 61, 0.4) !important;
+            color: #ffffff !important;
+        }
+        @media (max-width: 1040px) {
+            .desktop-nav { display: none !important; }
+            .mobile-menu-btn { display: inline-flex !important; }
+        }
     </style>
     <div class="header-container" style="max-width: 100%; margin: 0; padding: 0.75rem 2rem; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;">
         <div class="brand-group" style="display: flex; align-items: center; gap: 14px; flex-shrink: 0;">

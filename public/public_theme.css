@@ -140,18 +140,19 @@
         nav ul {
             display: flex;
             align-items: center;
-            gap: 1.8rem;
+            gap: clamp(0.55rem, 1.1vw, 1.25rem);
             list-style: none;
         }
 
         nav a {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.03em;
             color: #cbd5e1;
             transition: all 0.2s ease;
             position: relative;
+            white-space: nowrap;
         }
 
         nav a:hover { color: var(--quezon-gold); }
@@ -913,7 +914,7 @@
         }
 
         /* RESPONSIVE BREAKPOINTS (Tablets & Mobile Devices) */
-        @media (max-width: 960px) {
+        @media (max-width: 1040px) {
             .header-badges { gap: 6px; padding-left: 10px; }
             .header-badge-box { width: 36px; height: 36px; }
             .content-grid { grid-template-columns: minmax(0, 1fr); }
