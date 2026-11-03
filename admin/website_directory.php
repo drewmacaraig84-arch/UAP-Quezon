@@ -272,7 +272,9 @@ $activeMembers = $pdo->query("SELECT wm.*, COALESCE(wm.id, da.user_id) as id, wm
     FROM website_members wm
     JOIN users u ON wm.user_id = u.id
     LEFT JOIN directory_applications da ON da.user_id = u.id
-    WHERE wm.is_published = 1 OR da.status = 'paid'
+    WHERE (wm.is_published = 1 OR da.status = 'paid')
+      AND wm.deleted_at IS NULL
+      AND u.deleted_at IS NULL
     ORDER BY u.name ASC")->fetchAll();
 
 // 4. Fetch Declined Applications History
@@ -282,6 +284,7 @@ try {
         FROM directory_applications da
         JOIN users u ON da.user_id = u.id
         WHERE da.status = 'rejected'
+          AND u.deleted_at IS NULL
         ORDER BY da.rejected_at DESC, da.updated_at DESC")->fetchAll();
 } catch (Throwable $e) {
     try {

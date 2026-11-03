@@ -32,7 +32,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // Fetch website directory members from database
 $members = [];
 try {
-    $publishedMembers = $pdo->query("SELECT * FROM website_members WHERE is_published = 1 AND deleted_at IS NULL ORDER BY name ASC")->fetchAll();
+    $publishedMembers = $pdo->query("
+        SELECT wm.* 
+        FROM website_members wm
+        JOIN users u ON wm.user_id = u.id
+        WHERE wm.is_published = 1 
+          AND wm.deleted_at IS NULL 
+          AND u.deleted_at IS NULL 
+          AND u.status = 'approved' 
+        ORDER BY wm.name ASC
+    ")->fetchAll();
     if (!empty($publishedMembers)) {
         foreach ($publishedMembers as $wm) {
             $members[] = [

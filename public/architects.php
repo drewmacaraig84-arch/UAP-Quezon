@@ -11,13 +11,25 @@ $filterSpec = trim($_GET['specialty'] ?? '');
 
 $members = [];
 try {
+    // Auto-synchronize and unpublish directory listings of deleted or unapproved accounts
+    $pdo->exec("
+        UPDATE website_members 
+        SET is_published = 0, deleted_at = NOW() 
+        WHERE deleted_at IS NULL 
+          AND user_id IS NOT NULL 
+          AND user_id NOT IN (SELECT id FROM users WHERE deleted_at IS NULL AND status = 'approved')
+    ");
+
     $sql = "SELECT wm.*, 
                    COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path,
                    u.email as user_email,
                    u.phone as user_phone 
             FROM website_members wm 
-            LEFT JOIN users u ON wm.user_id = u.id 
-            WHERE wm.is_published = 1 AND wm.deleted_at IS NULL";
+            JOIN users u ON wm.user_id = u.id 
+            WHERE wm.is_published = 1 
+              AND wm.deleted_at IS NULL 
+              AND u.deleted_at IS NULL 
+              AND u.status = 'approved'";
     $params = [];
 
     if ($search !== '') {
@@ -258,16 +270,22 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
                                 <?php 
                                     $photoSrc = '';
                                     if (!empty($m['photo_path'])) {
-                                        $photoSrc = str_starts_with($m['photo_path'], 'http') 
-                                            ? $m['photo_path'] 
-                                            : BASE_URL . '/' . ltrim($m['photo_path'], '/');
+                                        if (str_starts_with($m['photo_path'], 'http')) {
+                                            $photoSrc = $m['photo_path'];
+                                        } else {
+                                            $cleanPath = ltrim($m['photo_path'], '/');
+                                            $localFs = __DIR__ . '/../' . $cleanPath;
+                                            if (file_exists($localFs)) {
+                                                $photoSrc = BASE_URL . '/' . $cleanPath;
+                                            }
+                                        }
                                     }
                                 ?>
                                 <?php if (!empty($photoSrc)): ?>
-                                    <img src="<?php echo htmlspecialchars($photoSrc); ?>" alt="<?php echo htmlspecialchars($m['name']); ?>" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
-                                    <div class="arch-fallback-initials" style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--quezon-gold); font-weight: 700;"><?php echo htmlspecialchars($initials); ?></div>
+                                    <img src="<?php echo htmlspecialchars($photoSrc); ?>" alt="" onerror="this.remove(); var el=document.getElementById('arch-init-<?php echo $m['id']; ?>'); if(el) el.style.display='flex';">
+                                    <div id="arch-init-<?php echo $m['id']; ?>" class="arch-fallback-initials" style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--quezon-gold); font-weight: 700;"><?php echo htmlspecialchars($initials); ?></div>
                                 <?php else: ?>
-                                    <?php echo htmlspecialchars($initials); ?>
+                                    <div class="arch-fallback-initials" style="display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--quezon-gold); font-weight: 700;"><?php echo htmlspecialchars($initials); ?></div>
                                 <?php endif; ?>
                             </div>
                             <div>

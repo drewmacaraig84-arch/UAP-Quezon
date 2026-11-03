@@ -259,6 +259,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $pdo->prepare("UPDATE users SET deleted_at = NOW() WHERE id = ?")->execute([$user_id]);
                 }
+                $pdo->prepare("UPDATE website_members SET is_published = 0, deleted_at = NOW() WHERE user_id = ?")->execute([$user_id]);
+                $pdo->prepare("UPDATE directory_applications SET status = 'rejected', notes = 'Account deleted', deleted_at = NOW() WHERE user_id = ?")->execute([$user_id]);
                 $success = 'Account for ' . htmlspecialchars($target['name']) . ' safely moved to Trash Bin.';
             }
         }

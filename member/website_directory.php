@@ -1,10 +1,20 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/attendance_helper.php';
 require_member();
 
 $userId = current_user_id();
 $app = get_directory_application($pdo, $userId);
 $isUnlocked = has_unlocked_website_directory($pdo, $userId);
+
+// Chapter Rules: Member must be an Active Member (Attendance) and in Good Standing (Finance)
+$standing = get_member_standing_details($pdo, $userId);
+$isGoodStanding = !empty($standing['is_good']);
+
+$attendance = get_or_create_member_attendance($pdo, $userId);
+$isActiveMember = ($attendance['activity_status'] ?? '') === 'active' || ($attendance['computed']['status'] ?? '') === 'active';
+
+$isEligibleToApply = ($isActiveMember && $isGoodStanding);
 
 $error = '';
 $success = '';
@@ -12,7 +22,10 @@ $success = '';
 // Handle Application Submission & Re-application
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['apply_directory', 'reapply_directory'], true)) {
     require_csrf();
-    if (!$app) {
+
+    if (!$isEligibleToApply) {
+        $error = 'Ineligible to apply: Under chapter policy, you must be an Active Member (meeting attendance compliance) and in Good Standing (annual dues settled) to apply for the Website Directory listing.';
+    } elseif (!$app) {
         $stmt = $pdo->prepare("INSERT INTO directory_applications (user_id, status) VALUES (?, 'pending_fee')
                                ON DUPLICATE KEY UPDATE status = 'pending_fee'");
         $stmt->execute([$userId]);
@@ -415,17 +428,74 @@ include __DIR__ . '/../includes/header.php';
   <?php if (!$isUnlocked): ?>
     <!-- Application & Unlock Flow -->
     <?php if (!$app): ?>
-      <div style="background: rgba(245,158,11,0.05); border: 1px dashed rgba(245,158,11,0.3); border-radius: 12px; padding: 24px; text-align: center;">
-        <div style="font-size: 32px; color: var(--accent-primary, #f5b800); margin-bottom: 8px;">★</div>
-        <h3 style="margin-bottom: 8px;">Unlock Your Official Website Directory Listing</h3>
-        <p class="muted" style="max-width: 540px; margin: 0 auto 20px; font-size: 14px;">
-          Promote your architectural practice, services, portfolio, and contact links directly on the public UAP Quezon Website.
+      <div style="background: rgba(245,158,11,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 28px 24px; text-align: center; margin-bottom: 20px;">
+        <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 8px 0; color: var(--text-primary);">
+          Official Website Directory Listing
+        </h2>
+        <p class="muted" style="max-width: 580px; margin: 0 auto 20px; font-size: 13.5px; line-height: 1.5;">
+          Promote your architectural practice, services, portfolio, and contact credentials directly on the public UAP Quezon Chapter website directory.
         </p>
-        <form method="POST" style="display: inline-block;">
-          <?php echo csrf_field(); ?>
-          <input type="hidden" name="action" value="apply_directory">
-          <button class="btn btn-primary" type="submit" style="padding: 10px 24px; font-weight:700;">Apply for Directory Feature</button>
-        </form>
+
+        <!-- Eligibility Checklist Card -->
+        <div style="max-width: 620px; margin: 0 auto 24px; text-align: left; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 18px 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+            <strong style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">Application Eligibility Requirements</strong>
+            <span class="badge" style="font-size: 10.5px; padding: 2px 8px; <?php echo $isEligibleToApply ? 'background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);' : 'background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3);'; ?>">
+              <?php echo $isEligibleToApply ? 'ELIGIBLE TO APPLY' : 'REQUIREMENTS INCOMPLETE'; ?>
+            </span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+            <!-- Rule 1: Active Member -->
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+              <div>
+                <strong style="color: var(--text-primary); display: block;">1. Active Chapter Member</strong>
+                <span class="muted" style="font-size: 11.5px;">Compliant with required GMMs and Major Events under Chapter Board Resolution.</span>
+              </div>
+              <div>
+                <?php if ($isActiveMember): ?>
+                  <span class="badge-pill badge-paid" style="font-size: 11px;">Active Member</span>
+                <?php else: ?>
+                  <a href="chapter_status.php" class="badge-pill badge-unpaid" style="font-size: 11px; text-decoration: none;">Inactive &rarr;</a>
+                <?php endif; ?>
+              </div>
+            </div>
+
+            <!-- Rule 2: Good Standing -->
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+              <div>
+                <strong style="color: var(--text-primary); display: block;">2. Good Standing Status</strong>
+                <span class="muted" style="font-size: 11.5px;">Fiscal year chapter dues and official financial obligations settled.</span>
+              </div>
+              <div>
+                <?php if ($isGoodStanding): ?>
+                  <span class="badge-pill badge-paid" style="font-size: 11px;">Good Standing</span>
+                <?php else: ?>
+                  <a href="dues.php" class="badge-pill badge-unpaid" style="font-size: 11px; text-decoration: none;">Settle Dues &rarr;</a>
+                <?php endif; ?>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <?php if ($isEligibleToApply): ?>
+          <form method="POST" style="display: inline-block; margin: 0;">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="action" value="apply_directory">
+            <button class="btn btn-primary" type="submit" style="padding: 10px 28px; font-weight:700; font-size: 13.5px;">
+              Apply for Website Directory Listing
+            </button>
+          </form>
+        <?php else: ?>
+          <div>
+            <button class="btn btn-secondary" type="button" disabled style="padding: 10px 24px; opacity: 0.6; cursor: not-allowed; font-weight: 700; font-size: 13.5px;">
+              Application Locked (Incomplete Requirements)
+            </button>
+            <p class="muted" style="font-size: 12px; margin: 8px 0 0 0;">
+              Please complete your chapter meeting attendance and settle any pending dues to qualify for directory application.
+            </p>
+          </div>
+        <?php endif; ?>
       </div>
 
     <?php elseif ($app['status'] === 'pending_fee'): ?>
@@ -500,6 +570,13 @@ include __DIR__ . '/../includes/header.php';
                 <div style="display:flex; align-items:center; gap:8px; color:var(--text-secondary); font-size:13px;">
                   <?php echo icon('clock', '', 16); ?>
                   <span>You can re-apply on or after <strong><?php echo date('F d, Y', strtotime($reapplyDate)); ?></strong>.</span>
+                </div>
+              <?php elseif (!$isEligibleToApply): ?>
+                <div style="width: 100%; margin-top: 8px;">
+                  <div style="padding: 12px 14px; background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.25); border-radius: 8px; font-size: 13px; color: var(--text-secondary);">
+                    <strong style="color: #eab308; display: block; margin-bottom: 4px;">Re-application Locked: Eligibility Compliance Required</strong>
+                    To submit a new directory application, chapter policy requires you to currently maintain <strong>Active Member</strong> status and be in <strong>Good Standing</strong>. Please check your <a href="chapter_status.php" style="color: #60a5fa; text-decoration: underline;">attendance</a> and <a href="dues.php" style="color: #60a5fa; text-decoration: underline;">dues</a> records.
+                  </div>
                 </div>
               <?php else: ?>
                 <div>

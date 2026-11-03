@@ -17,8 +17,12 @@ if ($memberId > 0) {
                                   u.phone as user_phone,
                                   u.address as user_address
                            FROM website_members wm 
-                           LEFT JOIN users u ON wm.user_id = u.id 
-                           WHERE (wm.id = ? OR wm.user_id = ?) AND wm.is_published = 1 AND wm.deleted_at IS NULL");
+                           JOIN users u ON wm.user_id = u.id 
+                           WHERE (wm.id = ? OR wm.user_id = ?) 
+                             AND wm.is_published = 1 
+                             AND wm.deleted_at IS NULL
+                             AND u.deleted_at IS NULL
+                             AND u.status = 'approved'");
     $stmt->execute([$memberId, $memberId]);
     $member = $stmt->fetch();
 } elseif ($prcNumber !== '') {
@@ -28,8 +32,12 @@ if ($memberId > 0) {
                                   u.phone as user_phone,
                                   u.address as user_address
                            FROM website_members wm 
-                           LEFT JOIN users u ON wm.user_id = u.id 
-                           WHERE (wm.prc_number = ? OR wm.id_number = ?) AND wm.is_published = 1 AND wm.deleted_at IS NULL");
+                           JOIN users u ON wm.user_id = u.id 
+                           WHERE (wm.prc_number = ? OR wm.id_number = ?) 
+                             AND wm.is_published = 1 
+                             AND wm.deleted_at IS NULL
+                             AND u.deleted_at IS NULL
+                             AND u.status = 'approved'");
     $stmt->execute([$prcNumber, $prcNumber]);
     $member = $stmt->fetch();
 } elseif ($nameQuery !== '') {
@@ -39,8 +47,12 @@ if ($memberId > 0) {
                                   u.phone as user_phone,
                                   u.address as user_address
                            FROM website_members wm 
-                           LEFT JOIN users u ON wm.user_id = u.id 
-                           WHERE wm.name = ? AND wm.is_published = 1 AND wm.deleted_at IS NULL");
+                           JOIN users u ON wm.user_id = u.id 
+                           WHERE wm.name = ? 
+                             AND wm.is_published = 1 
+                             AND wm.deleted_at IS NULL
+                             AND u.deleted_at IS NULL
+                             AND u.status = 'approved'");
     $stmt->execute([$nameQuery]);
     $member = $stmt->fetch();
 }
@@ -352,14 +364,20 @@ $activePage = 'architects';
                     <?php 
                         $profilePhotoSrc = '';
                         if (!empty($member['photo_path'])) {
-                            $profilePhotoSrc = str_starts_with($member['photo_path'], 'http')
-                                ? $member['photo_path']
-                                : BASE_URL . '/' . ltrim($member['photo_path'], '/');
+                            if (str_starts_with($member['photo_path'], 'http')) {
+                                $profilePhotoSrc = $member['photo_path'];
+                            } else {
+                                $cleanPhoto = ltrim($member['photo_path'], '/');
+                                $localFs = __DIR__ . '/../' . $cleanPhoto;
+                                if (file_exists($localFs)) {
+                                    $profilePhotoSrc = BASE_URL . '/' . $cleanPhoto;
+                                }
+                            }
                         }
                     ?>
                     <?php if (!empty($profilePhotoSrc)): ?>
-                        <img src="<?php echo htmlspecialchars($profilePhotoSrc); ?>" alt="<?php echo htmlspecialchars($member['name']); ?>" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
-                        <div class="profile-avatar-initials" style="display: none;"><?php echo htmlspecialchars($initials); ?></div>
+                        <img src="<?php echo htmlspecialchars($profilePhotoSrc); ?>" alt="" onerror="this.remove(); var el=document.getElementById('prof-init-fallback'); if(el) el.style.display='flex';">
+                        <div id="prof-init-fallback" class="profile-avatar-initials" style="display: none;"><?php echo htmlspecialchars($initials); ?></div>
                     <?php else: ?>
                         <div class="profile-avatar-initials"><?php echo htmlspecialchars($initials); ?></div>
                     <?php endif; ?>
@@ -559,9 +577,27 @@ $activePage = 'architects';
                     This professional profile is certified and publicly verified under the United Architects of the Philippines &ndash; Quezon Province Chapter (IAPOA Chapter 121).
                 </p>
 
-                <?php if (!empty($member['qr_image_path'])): ?>
+                <?php 
+                    $qrCandidate = !empty($member['qr_image_path']) ? $member['qr_image_path'] : (!empty($member['qr_code_path']) ? $member['qr_code_path'] : '');
+                    $qrValid = false;
+                    $qrSrc = '';
+                    if (!empty($qrCandidate)) {
+                        if (str_starts_with($qrCandidate, 'http')) {
+                            $qrValid = true;
+                            $qrSrc = $qrCandidate;
+                        } else {
+                            $cleanQr = ltrim($qrCandidate, '/');
+                            $localQrFs = __DIR__ . '/../' . $cleanQr;
+                            if (file_exists($localQrFs)) {
+                                $qrValid = true;
+                                $qrSrc = BASE_URL . '/' . $cleanQr;
+                            }
+                        }
+                    }
+                ?>
+                <?php if ($qrValid): ?>
                     <div style="margin: 0 auto 10px; width: 140px; height: 140px; padding: 8px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-                        <img src="<?php echo BASE_URL; ?>/<?php echo htmlspecialchars($member['qr_image_path']); ?>" alt="Architect Verification QR" style="width: 100%; height: 100%; object-fit: contain;">
+                        <img src="<?php echo htmlspecialchars($qrSrc); ?>" alt="Architect Verification QR" style="width: 100%; height: 100%; object-fit: contain;">
                     </div>
                     <span style="font-size: 0.8rem; color: var(--text-muted);">Scan to verify official chapter credentials</span>
                 <?php else: ?>
