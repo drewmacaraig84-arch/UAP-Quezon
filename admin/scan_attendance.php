@@ -264,8 +264,9 @@ include __DIR__ . '/../includes/header.php';
             <span><strong>PRC No:</strong> <span id="resultMemberPrc">0012345</span></span> &bull; 
             <span><strong>ID:</strong> <span id="resultMemberId">001</span></span>
           </div>
-          <div>
+          <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
             <span id="resultStandingBadge" class="badge"></span>
+            <span id="resultSchemeBadge" class="badge" style="display:none; font-size: 10px; background: rgba(255,255,255,0.08); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.15);"></span>
           </div>
         </div>
       </div>
@@ -733,6 +734,16 @@ function renderScanResult(data, type) {
       badgeEl.style.color = data.activity.badge_color;
       badgeEl.style.border = '1px solid ' + data.activity.badge_border;
       badgeEl.style.fontWeight = '800';
+
+      const schemeEl = document.getElementById('resultSchemeBadge');
+      if (schemeEl) {
+        if (data.activity.scheme_label && data.activity.scheme_label !== 'Inactive' && data.activity.scheme_label !== 'In Progress') {
+          schemeEl.textContent = data.activity.scheme_label;
+          schemeEl.style.display = 'inline-block';
+        } else {
+          schemeEl.style.display = 'none';
+        }
+      }
     } else {
       badgeEl.textContent = 'MEMBER';
       badgeEl.style.background = 'rgba(245,158,11,0.15)';

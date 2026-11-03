@@ -25,3 +25,4 @@ if ($id > 0) {
 // Fallback to Architects Directory
 require __DIR__ . '/../public/architects.php';
 exit;
+

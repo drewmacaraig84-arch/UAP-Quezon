@@ -259,9 +259,9 @@ include __DIR__ . '/../includes/header.php';
 
         <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">
           <span class="muted">Chapter Standing:</span>
-          <strong style="color: var(--text-primary);">
-            <?php echo $cActivity['is_active'] ? '<span style="color:#10b981;">Active Status</span>' : ($cActivity['is_inactive'] ? '<span style="color:#ef4444;">Inactive Status</span>' : '<span style="color:#f59e0b;">Partially Active</span>'); ?>
-          </strong>
+          <a href="chapter_status.php" style="text-decoration:none;" title="View Board Resolution Compliance Breakdown">
+            <?php echo render_activity_badge($attendance); ?>
+          </a>
         </div>
       </div>
 

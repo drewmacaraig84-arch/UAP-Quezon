@@ -38,11 +38,16 @@ if (!function_exists('ensure_member_attendance_table')) {
                     event_nca TINYINT(1) NOT NULL DEFAULT 0,
                     event_pafnam TINYINT(1) NOT NULL DEFAULT 0,
                     event_natcon TINYINT(1) NOT NULL DEFAULT 0,
+                    event_aba TINYINT(1) NOT NULL DEFAULT 0,
                     event_summer_outing TINYINT(1) NOT NULL DEFAULT 0,
                     event_csr TINYINT(1) NOT NULL DEFAULT 0,
+                    cpd_seminars_count INT NOT NULL DEFAULT 0,
                     total_f2f INT NOT NULL DEFAULT 0,
                     total_zoom INT NOT NULL DEFAULT 0,
                     total_attended INT NOT NULL DEFAULT 0,
+                    special_points DECIMAL(4,1) NOT NULL DEFAULT 0.0,
+                    points_used DECIMAL(4,1) NOT NULL DEFAULT 0.0,
+                    scheme_qualified VARCHAR(50) NULL DEFAULT NULL,
                     activity_status ENUM('active','inactive','probationary') NOT NULL DEFAULT 'inactive',
                     updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
@@ -51,6 +56,30 @@ if (!function_exists('ensure_member_attendance_table')) {
                     KEY idx_activity_status (activity_status)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             ");
+
+            // Self-healing migration for existing databases
+            $existingCols = [];
+            $colsQuery = $pdo->query("DESCRIBE member_attendance");
+            if ($colsQuery) {
+                while ($c = $colsQuery->fetch(PDO::FETCH_ASSOC)) {
+                    $existingCols[$c['Field']] = true;
+                }
+            }
+            if (!isset($existingCols['event_aba'])) {
+                $pdo->exec("ALTER TABLE member_attendance ADD COLUMN event_aba TINYINT(1) NOT NULL DEFAULT 0 AFTER event_natcon");
+            }
+            if (!isset($existingCols['cpd_seminars_count'])) {
+                $pdo->exec("ALTER TABLE member_attendance ADD COLUMN cpd_seminars_count INT NOT NULL DEFAULT 0 AFTER event_csr");
+            }
+            if (!isset($existingCols['special_points'])) {
+                $pdo->exec("ALTER TABLE member_attendance ADD COLUMN special_points DECIMAL(4,1) NOT NULL DEFAULT 0.0 AFTER total_attended");
+            }
+            if (!isset($existingCols['points_used'])) {
+                $pdo->exec("ALTER TABLE member_attendance ADD COLUMN points_used DECIMAL(4,1) NOT NULL DEFAULT 0.0 AFTER special_points");
+            }
+            if (!isset($existingCols['scheme_qualified'])) {
+                $pdo->exec("ALTER TABLE member_attendance ADD COLUMN scheme_qualified VARCHAR(50) NULL DEFAULT NULL AFTER activity_status");
+            }
         } catch (Throwable $e) {}
     }
 }
@@ -185,12 +214,83 @@ if (!function_exists('get_major_events_list')) {
 if (!function_exists('get_special_events_list')) {
     function get_special_events_list(): array {
         return [
-            'event_wad'           => 'WAD (World Architecture Day)',
-            'event_nca'           => 'NCA (National Conference of Architects)',
-            'event_pafnam'        => 'PAFNAM / Area Assembly Convention',
-            'event_natcon'        => 'NATCON (UAP National Convention)',
-            'event_summer_outing' => 'Summer Outing & Sports Fellowship',
-            'event_csr'           => 'CSR (Corporate Social Responsibility & Community Project)',
+            'event_natcon'        => 'NATCON (National Convention) — 3.0 pts',
+            'event_aba'           => 'ABA (Area-B Assembly) — 2.0 pts',
+            'event_nca'           => 'NCA (National Conference of Architects) — 2.0 pts',
+            'event_pafnam'        => 'PAFNAM / Architecture Month — 2.0 pts',
+            'event_wad'           => 'WAD (World Architecture Day) — 1.0 pt',
+            'event_csr'           => 'CSR Projects (Community Outreach) — 1.0 pt',
+            'event_summer_outing' => 'Summer Outing & Fellowship — 1.0 pt',
+        ];
+    }
+}
+
+if (!function_exists('get_resolution_special_event_points')) {
+    function get_resolution_special_event_points(): array {
+        return [
+            'event_natcon' => [
+                'col'         => 'event_natcon',
+                'title'       => 'NATCON (National Convention)',
+                'acronym'     => 'NATCON',
+                'points'      => 3.0,
+                'category'    => 'National Convention',
+                'icon'        => 'users',
+                'badge_color' => '#3b82f6',
+            ],
+            'event_aba' => [
+                'col'         => 'event_aba',
+                'title'       => 'ABA (Area-B Assembly)',
+                'acronym'     => 'ABA',
+                'points'      => 2.0,
+                'category'    => 'Regional Assembly',
+                'icon'        => 'user_check',
+                'badge_color' => '#8b5cf6',
+            ],
+            'event_nca' => [
+                'col'         => 'event_nca',
+                'title'       => 'NCA (National Conference of Architects)',
+                'acronym'     => 'NCA',
+                'points'      => 2.0,
+                'category'    => 'National Conference',
+                'icon'        => 'building',
+                'badge_color' => '#06b6d4',
+            ],
+            'event_pafnam' => [
+                'col'         => 'event_pafnam',
+                'title'       => 'PAFNAM (Philippine Architecture Festival National Architecture Month)',
+                'acronym'     => 'PAFNAM',
+                'points'      => 2.0,
+                'category'    => 'National Festival',
+                'icon'        => 'sparkles',
+                'badge_color' => '#ec4899',
+            ],
+            'event_wad' => [
+                'col'         => 'event_wad',
+                'title'       => 'WAD (World Architecture Day)',
+                'acronym'     => 'WAD',
+                'points'      => 1.0,
+                'category'    => 'Global Observance',
+                'icon'        => 'globe',
+                'badge_color' => '#10b981',
+            ],
+            'event_csr' => [
+                'col'         => 'event_csr',
+                'title'       => 'CSR Projects',
+                'acronym'     => 'CSR Projects',
+                'points'      => 1.0,
+                'category'    => 'Community Service',
+                'icon'        => 'heart',
+                'badge_color' => '#14b8a6',
+            ],
+            'event_summer_outing' => [
+                'col'         => 'event_summer_outing',
+                'title'       => 'Summer Outing & Sports Fellowship',
+                'acronym'     => 'Summer Outing',
+                'points'      => 1.0,
+                'category'    => 'Chapter Fellowship',
+                'icon'        => 'sun',
+                'badge_color' => '#f59e0b',
+            ],
         ];
     }
 }
@@ -221,6 +321,10 @@ if (!function_exists('calculate_and_sync_activity_status')) {
             return get_or_create_member_attendance($pdo, $rowOrUserId);
         }
         $row = $rowOrUserId;
+        $userId = (int)($row['user_id'] ?? 0);
+        $fy = $row['fiscal_year'] ?? get_active_fiscal_year();
+
+        // 1. Monthly General Membership Meetings (GMMs)
         $months = get_member_attendance_months();
         $monthlyF2F = 0;
         $monthlyZoom = 0;
@@ -234,119 +338,279 @@ if (!function_exists('calculate_and_sync_activity_status')) {
             }
         }
 
-        $majorEvents = get_major_events_list();
-        $majorCount = 0;
-        foreach ($majorEvents as $col => $name) {
-            if (!empty($row[$col])) {
-                $majorCount++;
-            }
-        }
+        // 2. Custom chapter events & meetings attended from event_attendance_logs
+        $customGmmF2F = 0;
+        $customGmmZoom = 0;
+        $customMajorF2F = 0;
+        $customCpdCount = 0;
+        $customSpecialCount = 0;
 
-        $specialEvents = get_special_events_list();
-        $specialCount = 0;
-        foreach ($specialEvents as $col => $name) {
-            if (!empty($row[$col])) {
-                $specialCount++;
-            }
-        }
+        if ($userId > 0) {
+            try {
+                $cStmt = $pdo->prepare("
+                    SELECT ce.id, ce.title, ce.event_type, ce.cpd_units, l.attendance_mode
+                    FROM event_attendance_logs l
+                    JOIN chapter_events ce ON l.event_key = CONCAT('ce_', ce.id)
+                    WHERE l.user_id = ? AND l.fiscal_year = ? AND ce.counts_for_standing = 1 AND ce.deleted_at IS NULL
+                ");
+                $cStmt->execute([$userId, $fy]);
+                while ($cRow = $cStmt->fetch(PDO::FETCH_ASSOC)) {
+                    $evType = $cRow['event_type'] ?? 'gmm';
+                    $mode = $cRow['attendance_mode'] ?? 'f2f';
 
-        // Count custom scheduled meetings attended from event_attendance_logs
-        $customMeetingsCount = 0;
-        $customMeetingsZoom = 0;
-        $customMeetingsF2F = 0;
-        try {
-            $cStmt = $pdo->prepare("
-                SELECT l.attendance_mode, COUNT(*) as cnt
-                FROM event_attendance_logs l
-                JOIN chapter_events ce ON l.event_key = CONCAT('ce_', ce.id)
-                WHERE l.user_id = ? AND l.fiscal_year = ? AND ce.counts_for_standing = 1 AND ce.deleted_at IS NULL
-                GROUP BY l.attendance_mode
-            ");
-            $cStmt->execute([$row['user_id'], $row['fiscal_year']]);
-            while ($cRow = $cStmt->fetch()) {
-                if ($cRow['attendance_mode'] === 'zoom') {
-                    $customMeetingsZoom += (int)$cRow['cnt'];
-                } else {
-                    $customMeetingsF2F += (int)$cRow['cnt'];
+                    if ($evType === 'gmm') {
+                        if ($mode === 'zoom') {
+                            $customGmmZoom++;
+                        } else {
+                            $customGmmF2F++;
+                        }
+                    } elseif ($evType === 'major') {
+                        $customMajorF2F++;
+                    } elseif ($evType === 'cpd_seminar' || (float)($cRow['cpd_units'] ?? 0) > 0) {
+                        $customCpdCount++;
+                    } elseif ($evType === 'special') {
+                        $customSpecialCount++;
+                    }
                 }
+            } catch (Throwable $e) {}
+        }
+
+        $totalGmmF2F = $monthlyF2F + $customGmmF2F;
+        $totalGmmZoom = $monthlyZoom + $customGmmZoom;
+        $totalGmmAttended = $totalGmmF2F + $totalGmmZoom;
+
+        // 3. Major Chapter Events (Induction, Anniversary, Christmas Party - Sec. 2 & 3)
+        $majorInduction = !empty($row['event_induction']);
+        $majorAnniversary = !empty($row['event_anniversary']);
+        $majorChristmas = !empty($row['event_christmas_party']);
+        $majorDirectCount = ($majorInduction ? 1 : 0) + ($majorAnniversary ? 1 : 0) + ($majorChristmas ? 1 : 0);
+        $totalMajorEvents = min(3, $majorDirectCount + $customMajorF2F);
+
+        // 4. Special Events Points & CPD Seminars (Sec. 5)
+        $specialConfig = get_resolution_special_event_points();
+        $specialPointsFromEvents = 0.0;
+        $specialEventsAttendedCount = 0;
+        $specialBreakdown = [];
+
+        foreach ($specialConfig as $col => $meta) {
+            $isAttended = !empty($row[$col]);
+            if ($isAttended) {
+                $specialEventsAttendedCount++;
+                $specialPointsFromEvents += (float)$meta['points'];
             }
-            $customMeetingsCount = $customMeetingsZoom + $customMeetingsF2F;
-        } catch (Throwable $e) {}
+            $specialBreakdown[$col] = [
+                'meta'     => $meta,
+                'attended' => $isAttended,
+                'points'   => $isAttended ? (float)$meta['points'] : 0.0,
+            ];
+        }
 
-        $monthlyTotal = $monthlyF2F + $monthlyZoom;
-        $totalAttended = $monthlyTotal + $majorCount + $specialCount + $customMeetingsCount;
-        $totalF2F = $monthlyF2F + $majorCount + $specialCount + $customMeetingsF2F;
-        $totalZoom = $monthlyZoom + $customMeetingsZoom;
+        // CPD Seminars & Tours: 1.0 point each (Sec. 5)
+        $manualCpd = (int)($row['cpd_seminars_count'] ?? 0);
+        $totalCpdCount = max($manualCpd, $customCpdCount);
+        $cpdPoints = $totalCpdCount * 1.0;
 
-        // Determine Status based on client rule:
-        // >= 7 => ACTIVE
-        // <= 2 => INACTIVE
-        // 3 to 6 => PARTIALLY ACTIVE (In progress to 7)
-        if ($totalAttended >= 7) {
+        $totalSpecialPoints = round($specialPointsFromEvents + $cpdPoints, 1);
+
+        // 5. Evaluate Schemes (Board Reso. Sec. 2, 3, 4, 5)
+        // Scheme 1: Face-to-Face Scheme (Sec. 2)
+        // Requires: >= 7 In-Person GMMs AND >= 2 Major Chapter Events
+        $defGmmF2F = max(0, 7 - $totalGmmF2F);
+        $defMajorF2F = max(0, 2 - $totalMajorEvents);
+        $pointsNeededF2F = ($defGmmF2F * 5) + ($defMajorF2F * 7);
+        $isF2FDirect = ($defGmmF2F === 0 && $defMajorF2F === 0);
+        $isF2FCompensated = (!$isF2FDirect && $totalSpecialPoints >= $pointsNeededF2F);
+        $isF2FQualified = ($isF2FDirect || $isF2FCompensated);
+
+        // Scheme 2: Hybrid Attendance Scheme (Sec. 3)
+        // Requires: >= 4 In-Person GMMs, >= 6 Zoom GMMs, AND >= 2 Major Chapter Events
+        $defF2FHybrid = max(0, 4 - $totalGmmF2F);
+        $defZoomHybrid = max(0, 6 - $totalGmmZoom);
+        $defMajorHybrid = max(0, 2 - $totalMajorEvents);
+        $defGmmHybrid = $defF2FHybrid + $defZoomHybrid;
+        $pointsNeededHybrid = ($defGmmHybrid * 5) + ($defMajorHybrid * 7);
+        $isHybridDirect = ($defF2FHybrid === 0 && $defZoomHybrid === 0 && $defMajorHybrid === 0);
+        $isHybridCompensated = (!$isHybridDirect && $totalSpecialPoints >= $pointsNeededHybrid);
+        $isHybridQualified = ($isHybridDirect || $isHybridCompensated);
+
+        // Totals for general activity display
+        $totalAttended = $totalGmmAttended + $totalMajorEvents + $specialEventsAttendedCount + $totalCpdCount + $customSpecialCount;
+        $totalF2F = $totalGmmF2F + $totalMajorEvents + $specialEventsAttendedCount + $totalCpdCount + $customSpecialCount;
+        $totalZoom = $totalGmmZoom;
+
+        // Qualification Determination
+        $schemeQualified = null;
+        $schemeLabel = 'Not Qualified';
+        $pointsUsed = 0.0;
+        $qualificationNote = '';
+        $status = 'inactive';
+        $badgeColor = '#ef4444';
+        $badgeBg = 'rgba(239, 68, 68, 0.15)';
+        $badgeBorder = '#ef4444';
+        $badgeLabel = 'INACTIVE';
+        $statusClass = 'badge-unpaid';
+
+        if ($isF2FDirect) {
+            $schemeQualified = 'f2f_scheme';
+            $schemeLabel = 'Face-to-Face Scheme';
             $status = 'active';
             $badgeColor = '#10b981';
             $badgeBg = 'rgba(16, 185, 129, 0.15)';
             $badgeBorder = '#10b981';
             $badgeLabel = 'ACTIVE';
             $statusClass = 'badge-paid';
-            $description = 'Active Member (7+ meetings/events attended)';
-        } elseif ($totalAttended <= 2) {
-            $status = 'inactive';
-            $badgeColor = '#ef4444';
-            $badgeBg = 'rgba(239, 68, 68, 0.15)';
-            $badgeBorder = '#ef4444';
-            $badgeLabel = 'INACTIVE';
-            $statusClass = 'badge-unpaid';
-            $description = 'Inactive Member (Less than 2 meetings/events attended)';
+            $pointsUsed = 0.0;
+            $qualificationNote = 'Fully compliant under Reso. Sec. 2 (7+ In-Person GMMs & 2 Major Events attended).';
+        } elseif ($isHybridDirect) {
+            $schemeQualified = 'hybrid_scheme';
+            $schemeLabel = 'Hybrid Attendance Scheme';
+            $status = 'active';
+            $badgeColor = '#10b981';
+            $badgeBg = 'rgba(16, 185, 129, 0.15)';
+            $badgeBorder = '#10b981';
+            $badgeLabel = 'ACTIVE';
+            $statusClass = 'badge-paid';
+            $pointsUsed = 0.0;
+            $qualificationNote = 'Fully compliant under Reso. Sec. 3 (4+ In-Person GMMs, 6+ Zoom GMMs & 2 Major Events attended).';
+        } elseif ($isF2FCompensated && (!$isHybridCompensated || $pointsNeededF2F <= $pointsNeededHybrid)) {
+            $schemeQualified = 'f2f_compensated';
+            $schemeLabel = 'Face-to-Face Scheme (Compensated)';
+            $status = 'active';
+            $badgeColor = '#10b981';
+            $badgeBg = 'rgba(16, 185, 129, 0.15)';
+            $badgeBorder = '#10b981';
+            $badgeLabel = 'ACTIVE';
+            $statusClass = 'badge-paid';
+            $pointsUsed = (float)$pointsNeededF2F;
+            $qualificationNote = "Active via Point Substitution (Reso. Sec. 4 & 5): {$pointsNeededF2F} of {$totalSpecialPoints} Special Points applied for missing attendances.";
+        } elseif ($isHybridCompensated) {
+            $schemeQualified = 'hybrid_compensated';
+            $schemeLabel = 'Hybrid Scheme (Compensated)';
+            $status = 'active';
+            $badgeColor = '#10b981';
+            $badgeBg = 'rgba(16, 185, 129, 0.15)';
+            $badgeBorder = '#10b981';
+            $badgeLabel = 'ACTIVE';
+            $statusClass = 'badge-paid';
+            $pointsUsed = (float)$pointsNeededHybrid;
+            $qualificationNote = "Active via Point Substitution (Reso. Sec. 4 & 5): {$pointsNeededHybrid} of {$totalSpecialPoints} Special Points applied for missing attendances.";
         } else {
-            $status = 'probationary';
-            $badgeColor = '#f59e0b';
-            $badgeBg = 'rgba(245, 158, 11, 0.15)';
-            $badgeBorder = '#f59e0b';
-            $badgeLabel = 'PARTIALLY ACTIVE';
-            $statusClass = 'badge-partial';
-            $description = "$totalAttended of 7 events attended (Needs " . (7 - $totalAttended) . " more to achieve Active status)";
+            // Check closer scheme
+            $closerScheme = ($pointsNeededF2F <= $pointsNeededHybrid) ? 'f2f' : 'hybrid';
+            $deficit = ($closerScheme === 'f2f') ? max(0, $pointsNeededF2F - $totalSpecialPoints) : max(0, $pointsNeededHybrid - $totalSpecialPoints);
+            $totalAttendedAny = $totalGmmAttended + $totalMajorEvents + $specialEventsAttendedCount + $totalCpdCount;
+
+            if ($totalAttendedAny > 0 || $totalSpecialPoints > 0) {
+                $status = 'probationary';
+                $badgeColor = '#f59e0b';
+                $badgeBg = 'rgba(245, 158, 11, 0.15)';
+                $badgeBorder = '#f59e0b';
+                $badgeLabel = 'PARTIALLY ACTIVE';
+                $statusClass = 'badge-partial';
+                $schemeLabel = 'In Progress';
+                $qualificationNote = "In Progress: Deficient by {$deficit} points (or attend remaining GMMs / Major Events) to qualify for Active Status.";
+            } else {
+                $status = 'inactive';
+                $badgeColor = '#ef4444';
+                $badgeBg = 'rgba(239, 68, 68, 0.15)';
+                $badgeBorder = '#ef4444';
+                $badgeLabel = 'INACTIVE';
+                $statusClass = 'badge-unpaid';
+                $schemeLabel = 'Inactive';
+                $qualificationNote = "Inactive: No attendance recorded yet for FY {$fy}. Requires 7 F2F GMMs + 2 Major Events (or 4 F2F + 6 Zoom + 2 Major Events).";
+            }
         }
+
+        $remainingSpecialPoints = max(0, round($totalSpecialPoints - $pointsUsed, 1));
 
         // Sync to DB if cached values differ
         if (
-            (int)$row['total_f2f'] !== $totalF2F ||
-            (int)$row['total_zoom'] !== $totalZoom ||
-            (int)$row['total_attended'] !== $totalAttended ||
-            $row['activity_status'] !== $status
+            (int)($row['total_f2f'] ?? 0) !== $totalF2F ||
+            (int)($row['total_zoom'] ?? 0) !== $totalZoom ||
+            (int)($row['total_attended'] ?? 0) !== $totalAttended ||
+            (float)($row['special_points'] ?? 0) !== (float)$totalSpecialPoints ||
+            (float)($row['points_used'] ?? 0) !== (float)$pointsUsed ||
+            ($row['scheme_qualified'] ?? null) !== $schemeQualified ||
+            ($row['activity_status'] ?? '') !== $status
         ) {
-            $upd = $pdo->prepare("
-                UPDATE member_attendance 
-                SET total_f2f = ?, total_zoom = ?, total_attended = ?, activity_status = ? 
-                WHERE id = ?
-            ");
-            $upd->execute([$totalF2F, $totalZoom, $totalAttended, $status, $row['id']]);
+            try {
+                $upd = $pdo->prepare("
+                    UPDATE member_attendance 
+                    SET total_f2f = ?, total_zoom = ?, total_attended = ?, special_points = ?, points_used = ?, scheme_qualified = ?, activity_status = ? 
+                    WHERE id = ?
+                ");
+                $upd->execute([$totalF2F, $totalZoom, $totalAttended, $totalSpecialPoints, $pointsUsed, $schemeQualified, $status, $row['id']]);
+            } catch (Throwable $eSync) {}
 
             $row['total_f2f'] = $totalF2F;
             $row['total_zoom'] = $totalZoom;
             $row['total_attended'] = $totalAttended;
+            $row['special_points'] = $totalSpecialPoints;
+            $row['points_used'] = $pointsUsed;
+            $row['scheme_qualified'] = $schemeQualified;
             $row['activity_status'] = $status;
         }
 
         $row['computed'] = [
-            'monthly_f2f'     => $monthlyF2F,
-            'monthly_zoom'    => $monthlyZoom,
-            'monthly_total'   => $monthlyTotal,
-            'major_count'     => $majorCount,
-            'special_count'   => $specialCount,
-            'custom_count'    => $customMeetingsCount,
-            'total_attended'  => $totalAttended,
-            'total_f2f'       => $totalF2F,
-            'total_zoom'      => $totalZoom,
-            'status'          => $status,
-            'badge_label'     => $badgeLabel,
-            'badge_color'     => $badgeColor,
-            'badge_bg'        => $badgeBg,
-            'badge_border'    => $badgeBorder,
-            'status_class'    => $statusClass,
-            'description'     => $description,
-            'is_active'       => ($status === 'active'),
-            'is_inactive'     => ($status === 'inactive'),
+            'monthly_f2f'            => $monthlyF2F,
+            'monthly_zoom'           => $monthlyZoom,
+            'monthly_total'          => $monthlyF2F + $monthlyZoom,
+            'custom_gmm_f2f'         => $customGmmF2F,
+            'custom_gmm_zoom'        => $customGmmZoom,
+            'total_gmm_f2f'          => $totalGmmF2F,
+            'total_gmm_zoom'         => $totalGmmZoom,
+            'total_gmm_attended'     => $totalGmmAttended,
+            'major_count'            => $totalMajorEvents,
+            'special_count'          => $specialEventsAttendedCount,
+            'cpd_count'              => $totalCpdCount,
+            'special_points'         => $totalSpecialPoints,
+            'points_used'            => $pointsUsed,
+            'remaining_points'       => $remainingSpecialPoints,
+            'total_attended'         => $totalAttended,
+            'total_f2f'              => $totalF2F,
+            'total_zoom'             => $totalZoom,
+            'status'                 => $status,
+            'scheme_qualified'       => $schemeQualified,
+            'scheme_label'           => $schemeLabel,
+            'qualification_note'     => $qualificationNote,
+            'badge_label'            => $badgeLabel,
+            'badge_color'            => $badgeColor,
+            'badge_bg'               => $badgeBg,
+            'badge_border'           => $badgeBorder,
+            'status_class'           => $statusClass,
+            'description'            => $qualificationNote,
+            'is_active'              => ($status === 'active'),
+            'is_inactive'            => ($status === 'inactive'),
+            'is_probationary'        => ($status === 'probationary'),
+            'special_breakdown'      => $specialBreakdown,
+            'f2f_scheme'             => [
+                'gmm_f2f'            => $totalGmmF2F,
+                'gmm_req'            => 7,
+                'major_events'       => $totalMajorEvents,
+                'major_req'          => 2,
+                'def_gmm'            => $defGmmF2F,
+                'def_major'          => $defMajorF2F,
+                'points_needed'      => $pointsNeededF2F,
+                'is_direct'          => $isF2FDirect,
+                'is_compensated'     => $isF2FCompensated,
+                'is_qualified'       => $isF2FQualified,
+            ],
+            'hybrid_scheme'          => [
+                'gmm_f2f'            => $totalGmmF2F,
+                'f2f_req'            => 4,
+                'gmm_zoom'           => $totalGmmZoom,
+                'zoom_req'           => 6,
+                'major_events'       => $totalMajorEvents,
+                'major_req'          => 2,
+                'def_f2f'            => $defF2FHybrid,
+                'def_zoom'           => $defZoomHybrid,
+                'def_gmm'            => $defGmmHybrid,
+                'def_major'          => $defMajorHybrid,
+                'points_needed'      => $pointsNeededHybrid,
+                'is_direct'          => $isHybridDirect,
+                'is_compensated'     => $isHybridCompensated,
+                'is_qualified'       => $isHybridQualified,
+            ],
         ];
 
         return $row;
@@ -361,7 +625,8 @@ if (!function_exists('render_activity_badge')) {
         $bg = $c['badge_bg'] ?? 'rgba(239, 68, 68, 0.15)';
         $border = $c['badge_border'] ?? '#ef4444';
         $icon = ($c['status'] ?? '') === 'active' ? 'check' : (($c['status'] ?? '') === 'inactive' ? 'alert' : 'clock');
-        $desc = $c['description'] ?? '';
+        $desc = $c['qualification_note'] ?? ($c['description'] ?? '');
+        $schemeLabel = $c['scheme_label'] ?? '';
 
         $html = '<span class="badge" style="background: ' . $bg . '; color: ' . $color . '; border: 1px solid ' . $border . '; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;" title="' . htmlspecialchars($desc) . '">';
         if (function_exists('icon')) {
@@ -371,7 +636,11 @@ if (!function_exists('render_activity_badge')) {
         $html .= '</span>';
 
         if ($showDetails) {
-            $html .= '<span class="muted" style="font-size: 12px; margin-left: 6px;">(' . ($c['total_attended'] ?? 0) . ' events attended: ' . ($c['total_f2f'] ?? 0) . ' F2F, ' . ($c['total_zoom'] ?? 0) . ' Zoom)</span>';
+            $extra = '';
+            if (!empty($schemeLabel) && $schemeLabel !== 'Inactive' && $schemeLabel !== 'In Progress') {
+                $extra = htmlspecialchars($schemeLabel) . ' &bull; ';
+            }
+            $html .= '<span class="muted" style="font-size: 12px; margin-left: 6px;">(' . $extra . ($c['total_attended'] ?? 0) . ' events, ' . ($c['special_points'] ?? 0) . ' pts)</span>';
         }
 
         return $html;
@@ -422,14 +691,15 @@ if (!function_exists('get_available_chapter_events')) {
                 ]
             ],
             'special' => [
-                'title' => 'National & Special Programs',
+                'title' => 'National & Special Programs (Board Reso. Sec. 5)',
                 'events' => [
-                    'event_wad'           => ['label' => 'World Architecture Day (WAD)', 'month' => 10, 'year' => 2026],
-                    'event_nca'           => ['label' => 'National Conference of Architects (NCA)', 'month' => 10, 'year' => 2026],
-                    'event_pafnam'        => ['label' => 'PAFNAM / Area Assembly Convention', 'month' => 2, 'year' => 2027],
-                    'event_natcon'        => ['label' => 'NATCON (UAP National Convention)', 'month' => 4, 'year' => 2027],
-                    'event_summer_outing' => ['label' => 'Summer Outing & Sports Fellowship', 'month' => 5, 'year' => 2027],
-                    'event_csr'           => ['label' => 'Community Service Project / CSR', 'month' => 3, 'year' => 2027],
+                    'event_natcon'        => ['label' => 'NATCON (National Convention) [3.0 pts]', 'month' => 4, 'year' => 2027],
+                    'event_aba'           => ['label' => 'ABA (Area-B Assembly) [2.0 pts]', 'month' => 1, 'year' => 2027],
+                    'event_nca'           => ['label' => 'National Conference of Architects (NCA) [2.0 pts]', 'month' => 10, 'year' => 2026],
+                    'event_pafnam'        => ['label' => 'PAFNAM / National Architecture Month [2.0 pts]', 'month' => 2, 'year' => 2027],
+                    'event_wad'           => ['label' => 'World Architecture Day (WAD) [1.0 pt]', 'month' => 10, 'year' => 2026],
+                    'event_csr'           => ['label' => 'Community Service Project / CSR [1.0 pt]', 'month' => 3, 'year' => 2027],
+                    'event_summer_outing' => ['label' => 'Summer Outing & Sports Fellowship [1.0 pt]', 'month' => 5, 'year' => 2027],
                 ]
             ]
         ];
