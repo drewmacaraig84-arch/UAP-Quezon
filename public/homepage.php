@@ -321,6 +321,88 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             letter-spacing: -0.02em;
         }
 
+        .hero-theme-showcase {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0.6rem auto 1rem;
+        }
+
+        .hero-taguyod-banner {
+            max-width: 680px;
+            width: 92%;
+            height: auto;
+            border-radius: 14px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 25px rgba(229, 138, 19, 0.25);
+            border: 1px solid rgba(229, 138, 19, 0.4);
+            display: block;
+        }
+
+        .hero-taguyod-sub {
+            font-size: clamp(0.95rem, 2.5vw, 1.25rem);
+            font-weight: 600;
+            color: #f1f5f9;
+            margin: 0.5rem auto 0;
+            line-height: 1.5;
+            max-width: 680px;
+        }
+
+        .hero-taguyod-sub small {
+            display: block;
+            font-size: 0.88em;
+            color: var(--quezon-gold);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .hero-accent-lines {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            margin: 1.1rem auto 1.3rem;
+            max-width: 380px;
+            width: 88%;
+        }
+
+        .hero-accent-lines .accent-line {
+            display: block;
+            border-radius: 9999px;
+        }
+
+        .hero-accent-lines .line-1 {
+            width: 100%;
+            height: 2.5px;
+            background: linear-gradient(90deg, transparent, rgba(229, 138, 19, 0.95), transparent);
+        }
+
+        .hero-accent-lines .line-2 {
+            width: 72%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #fbbf24, transparent);
+        }
+
+        .hero-accent-lines .line-3 {
+            width: 44%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.85), transparent);
+        }
+
+        .hero-movers-showcase {
+            margin: 0.8rem auto 1.8rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .hero-movers-banner {
+            max-width: 500px;
+            width: 86%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            display: block;
+        }
+
         .hero h1 .highlight-gold {
             background: linear-gradient(135deg, #f59e0b, #fbbf24);
             -webkit-background-clip: text;
@@ -982,9 +1064,20 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             <?php echo icon('landmark', '', 14); ?> <?php echo htmlspecialchars($heroBadge); ?>
         </div>
 
-        <h1 class="hero-title-taguyod">
-            <span class="highlight-gold"><?php echo htmlspecialchars($heroTitle); ?></span>
-        </h1>
+        <!-- Official TAGUYOD Chapter Theme Banner -->
+        <div class="hero-theme-showcase">
+            <img src="<?php echo BASE_URL; ?>/public/images/theme_taguyod.jpg" alt="TAGUYOD - Paghuhubog ng Kahusayan, Pagpapalakas ng Samahan (Shaping Excellence, Strengthening Fellowship)" class="hero-taguyod-banner" onerror="this.style.display='none'; document.getElementById('heroTextTaguyod').style.display='block';">
+            
+            <div id="heroTextTaguyod" style="display: none;">
+                <h1 class="hero-title-taguyod">
+                    <span class="highlight-gold">TAGUYOD</span>
+                </h1>
+                <div class="hero-taguyod-sub">
+                    Paghuhubog ng Kahusayan, Pagpapalakas ng Samahan<br>
+                    <small>(Shaping Excellence, Strengthening Fellowship)</small>
+                </div>
+            </div>
+        </div>
 
         <!-- Architectural Triple Accent Lines -->
         <div class="hero-accent-lines" aria-hidden="true">
@@ -993,8 +1086,9 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             <span class="accent-line line-3"></span>
         </div>
 
-        <div class="hero-tagline">
-            <?php echo htmlspecialchars($heroTagline); ?>
+        <!-- Official Movers of Progress 2.0 National Campaign Banner -->
+        <div class="hero-movers-showcase">
+            <img src="<?php echo BASE_URL; ?>/public/images/theme_movers_progress.jpg" alt="Movers of Progress 2.0 - Justice to the Profession, Visionary Initiatives, Member Empowerment" class="hero-movers-banner">
         </div>
 
         <p class="lead">
