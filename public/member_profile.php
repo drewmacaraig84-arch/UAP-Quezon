@@ -18,8 +18,8 @@ if ($memberId > 0) {
                                   u.address as user_address
                            FROM website_members wm 
                            LEFT JOIN users u ON wm.user_id = u.id 
-                           WHERE wm.id = ? AND wm.is_published = 1 AND wm.deleted_at IS NULL");
-    $stmt->execute([$memberId]);
+                           WHERE (wm.id = ? OR wm.user_id = ?) AND wm.is_published = 1 AND wm.deleted_at IS NULL");
+    $stmt->execute([$memberId, $memberId]);
     $member = $stmt->fetch();
 } elseif ($prcNumber !== '') {
     $stmt = $pdo->prepare("SELECT wm.*, 

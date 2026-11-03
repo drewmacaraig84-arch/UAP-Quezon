@@ -66,12 +66,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } elseif ($_FILES['profile_photo']['error'] !== UPLOAD_ERR_OK) {
                     $error = 'Failed to upload photo (error code: ' . $_FILES['profile_photo']['error'] . '). Please try again.';
                 } else {
-                    $allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+                    $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'jfif', 'pjpeg', 'gif', 'bmp', 'avif', 'heic'];
                     $fileTmp = $_FILES['profile_photo']['tmp_name'];
                     $fileSize = $_FILES['profile_photo']['size'];
-                    $ext = strtolower(pathinfo($_FILES['profile_photo']['name'], PATHINFO_EXTENSION));
+                    $ext = strtolower(trim(pathinfo($_FILES['profile_photo']['name'], PATHINFO_EXTENSION)));
+                    $imgInfo = @getimagesize($fileTmp);
+                    $mime = function_exists('mime_content_type') ? @mime_content_type($fileTmp) : '';
+                    $isImageMime = str_starts_with($mime, 'image/');
 
-                    if (!in_array($ext, $allowedExts)) {
+                    if (!in_array($ext, $allowedExts) && !$imgInfo && !$isImageMime) {
                         $error = 'Invalid photo format. Please upload JPG, PNG, or WebP.';
                     } elseif ($fileSize > 25 * 1024 * 1024) {
                         $error = 'Photo file size exceeds 25MB limit.';
@@ -81,7 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             @mkdir($uploadDir, 0775, true);
                         }
 
-                        $uniqueFilename = 'avatar_member_' . $userId . '_' . time() . '_' . bin2hex(random_bytes(3)) . '.' . $ext;
+                        $targetExt = in_array($ext, ['png', 'webp', 'gif']) ? $ext : 'jpg';
+                        $uniqueFilename = 'avatar_member_' . $userId . '_' . time() . '_' . bin2hex(random_bytes(3)) . '.' . $targetExt;
                         $targetPath = $uploadDir . $uniqueFilename;
 
                         if (move_uploaded_file($fileTmp, $targetPath)) {
@@ -388,7 +392,8 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
             1x1 Profile Picture / Architect Portrait
           </label>
           <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-            <input type="file" name="profile_photo" id="memberPhotoInput" accept="image/png, image/jpeg, image/webp" class="form-control" style="flex: 1; min-width: 220px;" onchange="previewAvatar(this)">
+            <input type="file" name="profile_photo" id="memberPhotoInput" accept="image/*, .jpg, .jpeg, .png, .webp, .jfif" class="form-control" style="flex: 1; min-width: 220px;" onchange="previewAvatar(this)">
+            <div id="selectedPhotoName" style="display:none; width:100%; margin-top:8px; font-size:12.5px; color:#10b981; font-weight:700;"></div>
             <?php if ($avatarUrl): ?>
               <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #ef4444; cursor: pointer;">
                 <input type="checkbox" name="remove_photo" value="1">
@@ -516,6 +521,11 @@ function previewAvatar(input) {
       const wrap = document.querySelector('.profile-avatar-large-wrap');
       wrap.innerHTML = '<img src="' + e.target.result + '" alt="Avatar Preview" class="profile-avatar-large-img" style="width: 100%; height: 100%; object-fit: cover;">';
     };
+      const label = document.getElementById('selectedPhotoName');
+      if (label) {
+        label.textContent = '✓ Ready: Photo selected. Click "Save Profile Details" below to save.';
+        label.style.display = 'block';
+      }
     reader.readAsDataURL(input.files[0]);
   }
 }

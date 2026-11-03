@@ -16,6 +16,11 @@ DirectoryIndex index.html index.php
     RewriteRule ^login/?$ auth/login.php [QSA,L]
     RewriteRule ^register/?$ auth/register.php [QSA,L]
 
+    # Clean URLs for public architect profiles (/profile/123 -> public/member_profile.php?id=123)
+    RewriteRule ^profile/([0-9]+)/?$ public/member_profile.php?id=$1 [QSA,L]
+    RewriteRule ^profile/?$ public/architects.php [QSA,L]
+    RewriteRule ^directory/?$ public/architects.php [QSA,L]
+
     # Pass through PHP backend routes and static directories
     RewriteCond %{REQUEST_URI} ^/(admin|member|auth|includes|uploads|public|database)/ [NC]
     RewriteRule ^ - [L]
@@ -26,7 +31,10 @@ DirectoryIndex index.html index.php
     RewriteRule ^ - [L]
 
     # Single Page Application (SPA) fallback for React routes (/, /about, /directory, /news, /sponsors, /contact, etc.)
+    # Fallback to index.php (or index.html if built)
+    RewriteCond %{DOCUMENT_ROOT}/index.html -f
     RewriteRule ^.*$ index.html [L]
+    RewriteRule ^.*$ index.php [L]
 </IfModule>
 
 # Security & MIME settings
