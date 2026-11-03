@@ -206,7 +206,11 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
     <p class="page-subtitle">Manage your personal profile picture, chapter identity, demographic credentials, and account settings.</p>
   </div>
   <div class="hero-badge">
-    <?php echo icon('members', '', 14); ?> <span>PRC #<?php echo htmlspecialchars($user['prc_number'] ?: $user['id_number']); ?></span>
+    <?php if (!empty($user['prc_number'])): ?>
+      <?php echo icon('members', '', 14); ?> <span>PRC #<?php echo htmlspecialchars($user['prc_number']); ?></span>
+    <?php else: ?>
+      <?php echo icon('members', '', 14); ?> <span>ID #<?php echo htmlspecialchars($user['id_number']); ?></span>
+    <?php endif; ?>
   </div>
 </div>
 
@@ -237,7 +241,12 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
       <?php endif; ?>
     </div>
 
-    <span class="badge" style="display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); padding: 3px 8px; border-radius: 4px; margin-bottom: 8px;">1x1 Official Portrait</span>
+    <div style="display: flex; gap: 6px; justify-content: center; align-items: center; margin-bottom: 8px;">
+      <span class="badge" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); padding: 3px 8px; border-radius: 4px;">1x1 Official Portrait</span>
+      <label for="memberPhotoInput" style="cursor: pointer; font-size: 10px; background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); padding: 3px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;" title="Click to select new photo">
+        <?php echo icon('camera', '', 11); ?> Upload Photo
+      </label>
+    </div>
 
     <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">
       <?php echo htmlspecialchars($user['name']); ?>
@@ -279,8 +288,12 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
     <!-- Complete Member Details List -->
     <div style="width: 100%; border-top: 1px solid var(--border-color); padding-top: 16px; font-size: 12.5px; color: var(--text-secondary); text-align: left; display: flex; flex-direction: column; gap: 9px;">
       <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.06); padding-bottom: 6px;">
+        <span>Chapter Member ID:</span>
+        <strong style="color: var(--accent-primary);"><?php echo htmlspecialchars($user['id_number'] ?: '—'); ?></strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.06); padding-bottom: 6px;">
         <span>PRC License #:</span>
-        <strong style="color: var(--accent-primary);"><?php echo htmlspecialchars($user['prc_number'] ?: $user['id_number']); ?></strong>
+        <strong style="color: var(--text-primary);"><?php echo htmlspecialchars($user['prc_number'] ?: '—'); ?></strong>
       </div>
       <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.06); padding-bottom: 6px;">
         <span>Gender:</span>
@@ -323,7 +336,10 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
       </a>
 
       <?php if ($wmRecord && function_exists('has_unlocked_website_directory') && has_unlocked_website_directory($pdo, $userId)): 
-        $qrRelative = generate_member_directory_qr($pdo, (int)$wmRecord['id'], true);
+        $qrRelative = null;
+        try {
+            $qrRelative = generate_member_directory_qr($pdo, (int)$wmRecord['id'], true);
+        } catch (Throwable $eQr) {}
         $isRevoked = !empty($standing['is_revoked']) || !$isGoodStanding;
       ?>
         <!-- Public Directory QR Code Section -->
@@ -393,7 +409,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
           </div>
           <div class="form-group">
             <label class="form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">PRC License #</label>
-            <input type="text" name="prc_number" class="form-control" value="<?php echo htmlspecialchars($user['prc_number'] ?: $user['id_number']); ?>" placeholder="e.g. 0089452">
+            <input type="text" name="prc_number" class="form-control" value="<?php echo htmlspecialchars($user['prc_number'] ?? ''); ?>" placeholder="e.g. 0089452">
             <small style="font-size: 11px; color: var(--text-secondary);">Registered PRC License / ID number.</small>
           </div>
         </div>

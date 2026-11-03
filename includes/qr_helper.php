@@ -154,7 +154,8 @@ function generate_member_directory_qr(PDO $pdo, $websiteMemberId, $forceRegenera
     $relativePath = 'uploads/qr_codes/' . $filename;
 
     // Check if file already exists and not forced
-    if (!$forceRegenerate && file_exists($filePath) && filesize($filePath) > 100 && !empty($wm['qr_code_path'])) {
+    $existingQr = $wm['qr_code_path'] ?? ($wm['qr_image_path'] ?? null);
+    if (!$forceRegenerate && file_exists($filePath) && filesize($filePath) > 100 && !empty($existingQr)) {
         return $relativePath;
     }
 
@@ -168,8 +169,17 @@ function generate_member_directory_qr(PDO $pdo, $websiteMemberId, $forceRegenera
         @chmod($filePath, 0664);
 
         // Update database record
-        $upd = $pdo->prepare("UPDATE website_members SET qr_code_path = ? WHERE id = ?");
-        $upd->execute([$relativePath, $websiteMemberId]);
+        try {
+            $upd = $pdo->prepare("UPDATE website_members SET qr_code_path = ? WHERE id = ?");
+            $upd->execute([$relativePath, $websiteMemberId]);
+        } catch (Throwable $e1) {
+            try {
+                $upd2 = $pdo->prepare("UPDATE website_members SET qr_image_path = ? WHERE id = ?");
+                $upd2->execute([$relativePath, $websiteMemberId]);
+            } catch (Throwable $e2) {}
+        }
+
+
 
         return $relativePath;
     }
