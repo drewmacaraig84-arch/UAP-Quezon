@@ -13,6 +13,20 @@ $fy = get_active_fiscal_year();
 $attendance = get_or_create_member_attendance($pdo, $currentUid, $fy);
 $c = $attendance['computed'];
 
+// Load custom scheduled chapter meetings attended by this member
+$attendedMeetings = [];
+try {
+    $attendedMeetingsStmt = $pdo->prepare("
+        SELECT ce.id, ce.title, ce.event_type, ce.event_date, ce.start_time, ce.venue_name, ce.cpd_units, l.scanned_at, l.attendance_mode
+        FROM event_attendance_logs l
+        JOIN chapter_events ce ON l.event_key = CONCAT('ce_', ce.id)
+        WHERE l.user_id = ? AND l.fiscal_year = ? AND ce.deleted_at IS NULL
+        ORDER BY ce.event_date DESC
+    ");
+    $attendedMeetingsStmt->execute([$currentUid, $fy]);
+    $attendedMeetings = $attendedMeetingsStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {}
+
 $page_title = 'My Chapter Status & Attendance • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -220,6 +234,65 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <!-- ============================================================== -->
+<!-- 3B. SCHEDULED CHAPTER MEETINGS & CPD SEMINARS ATTENDED         -->
+<div class="card" style="margin-bottom: 24px; padding: 24px;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
+    <div>
+      <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+        <?php echo icon('calendar', '', 18); ?> Scheduled Chapter Meetings &amp; CPD Programs Attended
+      </h2>
+      <span class="muted" style="font-size: 12px;">Meetings scheduled through the chapter calendar and verified via QR attendance scanner</span>
+    </div>
+    <a href="events.php" class="btn btn-sm btn-outline" style="font-size: 12px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px;">
+      <?php echo icon('calendar', '', 12); ?> <span>Browse All Chapter Meetings</span>
+    </a>
+  </div>
+
+  <?php if (!empty($attendedMeetings)): ?>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <?php foreach ($attendedMeetings as $am): ?>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <span class="badge" style="font-size: 10px; background: rgba(59,130,246,0.12); color: #60a5fa; text-transform: uppercase;">
+                <?php echo htmlspecialchars($am['event_type']); ?>
+              </span>
+              <?php if ((float)$am['cpd_units'] > 0): ?>
+                <span class="badge" style="font-size: 10px; background: rgba(245,158,11,0.15); color: #fbbf24;">
+                  <?php echo (float)$am['cpd_units']; ?> CPD Units
+                </span>
+              <?php endif; ?>
+              <strong style="font-size: 13.5px; color: var(--text-primary);"><?php echo htmlspecialchars($am['title']); ?></strong>
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
+              <span><?php echo date('F d, Y', strtotime($am['event_date'])); ?></span>
+              <span class="muted">&bull;</span>
+              <span><?php echo htmlspecialchars($am['venue_name'] ?: 'Official Venue'); ?></span>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <span class="badge-pill badge-paid" style="font-size: 11.5px; display: inline-flex; align-items: center; gap: 5px;">
+              <?php echo icon('check', '', 12); ?> <strong>Verified Attended</strong>
+            </span>
+            <span class="muted" style="font-size: 11px; display: block; margin-top: 4px;">
+              Scanned: <?php echo date('M d, Y h:i A', strtotime($am['scanned_at'])); ?>
+            </span>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php else: ?>
+    <div style="text-align: center; padding: 24px 16px; background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px dashed var(--border-color);">
+      <p style="margin: 0 0 10px 0; font-size: 13px; color: var(--text-secondary);">
+        No scheduled chapter meetings or CPD seminars attended yet this fiscal year.
+      </p>
+      <a href="events.php" class="btn btn-sm btn-primary" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px;">
+        <?php echo icon('calendar', '', 12); ?> <span>View Upcoming Meetings &amp; Events</span>
+      </a>
+    </div>
+  <?php endif; ?>
+</div>
+
 <!-- 4. CHAPTER POLICY EXPLANATION BOX                              -->
 <!-- ============================================================== -->
 <div class="card" style="padding: 20px; background: rgba(245,158,11,0.04); border: 1px solid rgba(245,158,11,0.25);">
