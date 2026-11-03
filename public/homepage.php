@@ -1056,45 +1056,45 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             .stat-value { font-size: 1.6rem; }
         }
 
-        /* ============ LRP 10 PILLARS CAROUSEL ============ */
+        /* ============ LRP 10 PILLARS CAROUSEL (SLIMMER & LONGER) ============ */
         .lrp-carousel-section {
             width: 100%;
-            max-width: 1100px;
-            margin: 2.8rem auto 0;
-            padding: 24px 20px 22px;
+            max-width: 1360px;
+            margin: 1.8rem auto 0;
+            padding: 14px 22px 14px;
             background: rgba(19, 29, 51, 0.55);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
-            position: relative;
+            border: 1px solid rgba(229, 138, 19, 0.25);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
             box-sizing: border-box;
+            position: relative;
         }
 
         .lrp-header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
 
         .lrp-badge {
             display: inline-block;
-            padding: 4px 14px;
+            padding: 3px 12px;
             border-radius: 9999px;
             background: rgba(229, 138, 19, 0.12);
             border: 1px solid rgba(229, 138, 19, 0.35);
             color: var(--quezon-gold);
-            font-size: 0.72rem;
-            font-weight: 800;
-            letter-spacing: 0.12em;
+            font-size: 0.68rem;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
         .lrp-title {
             color: #ffffff;
-            font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+            font-size: clamp(0.92rem, 1.6vw, 1.12rem);
             font-family: var(--font-heading);
             font-weight: 700;
-            margin-top: 6px;
+            margin-top: 3px;
             margin-bottom: 0;
             letter-spacing: -0.01em;
         }
@@ -1109,59 +1109,74 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         .lrp-viewport {
             overflow: hidden;
             width: 100%;
-            border-radius: 14px;
+            border-radius: 12px;
         }
 
         .lrp-track {
             display: flex;
-            gap: 16px;
+            gap: 12px;
             transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1);
             will-change: transform;
             user-select: none;
-            -webkit-user-select: none;
         }
 
+        /* Default: 6 slides visible on wide screens (> 1280px) */
         .lrp-slide {
-            flex: 0 0 calc((100% - (16px * 3)) / 4);
+            flex: 0 0 calc((100% - (12px * 5)) / 6);
             min-width: 0;
             box-sizing: border-box;
         }
 
-        @media (max-width: 992px) {
+        /* 5 slides visible on desktop (1021px - 1280px) */
+        @media (max-width: 1280px) {
             .lrp-slide {
-                flex: 0 0 calc((100% - (16px * 2)) / 3);
+                flex: 0 0 calc((100% - (12px * 4)) / 5);
             }
         }
 
-        @media (max-width: 680px) {
+        /* 4 slides visible on laptops/tablets (768px - 1020px) */
+        @media (max-width: 1020px) {
             .lrp-slide {
-                flex: 0 0 calc((100% - 16px) / 2);
+                flex: 0 0 calc((100% - (12px * 3)) / 4);
             }
         }
 
-        @media (max-width: 440px) {
+        /* 3 slides visible on tablets/large phones (520px - 767px) */
+        @media (max-width: 767px) {
             .lrp-slide {
-                flex: 0 0 calc(85% - 16px);
+                flex: 0 0 calc((100% - (12px * 2)) / 3);
+            }
+        }
+
+        /* 2 slides visible on mobile phones (360px - 519px) */
+        @media (max-width: 519px) {
+            .lrp-slide {
+                flex: 0 0 calc((100% - 12px) / 2);
+            }
+        }
+
+        /* 1 slide visible on very narrow mobile (< 360px) */
+        @media (max-width: 359px) {
+            .lrp-slide {
+                flex: 0 0 100%;
             }
         }
 
         .lrp-card {
             aspect-ratio: 1 / 1;
-            border-radius: 14px;
+            border-radius: 10px;
             overflow: hidden;
             background: #0f172a;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
         }
 
         .lrp-card:hover {
-            transform: translateY(-5px) scale(1.02);
+            transform: translateY(-4px) scale(1.02);
             border-color: rgba(229, 138, 19, 0.55);
-            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55), 0 0 20px rgba(229, 138, 19, 0.25);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5), 0 0 16px rgba(229, 138, 19, 0.25);
         }
 
         .lrp-card img {
@@ -1176,50 +1191,51 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            background: rgba(11, 17, 32, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(229, 138, 19, 0.45);
             color: #ffffff;
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             z-index: 10;
             transition: all 0.2s ease;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            padding: 0;
+            line-height: 1;
         }
 
         .lrp-nav-btn:hover {
             background: var(--quezon-amber);
             color: #0b1120;
             border-color: var(--quezon-gold);
-            transform: translateY(-50%) scale(1.1);
+            transform: translateY(-50%) scale(1.08);
         }
 
-        .lrp-prev { left: -18px; }
-        .lrp-next { right: -18px; }
+        .lrp-prev { left: -14px; }
+        .lrp-next { right: -14px; }
 
         @media (max-width: 600px) {
-            .lrp-prev { left: -8px; width: 34px; height: 34px; font-size: 0.95rem; }
-            .lrp-next { right: -8px; width: 34px; height: 34px; font-size: 0.95rem; }
+            .lrp-prev { left: -6px; width: 28px; height: 28px; font-size: 0.8rem; }
+            .lrp-next { right: -6px; width: 28px; height: 28px; font-size: 0.8rem; }
         }
 
         .lrp-dots {
             display: flex;
-            gap: 6px;
+            gap: 5px;
             justify-content: center;
             align-items: center;
-            margin-top: 18px;
+            margin-top: 10px;
         }
 
         .lrp-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 4px;
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
             background: rgba(255, 255, 255, 0.22);
             border: none;
             padding: 0;
@@ -1228,9 +1244,9 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         }
 
         .lrp-dot.active {
-            width: 24px;
+            width: 18px;
             background: var(--quezon-gold);
-            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
         }
 
         .hero-title-taguyod {
@@ -1685,10 +1701,12 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 
         function getVisibleCount() {
             const w = window.innerWidth;
-            if (w <= 440) return 1;
-            if (w <= 680) return 2;
-            if (w <= 992) return 3;
-            return 4;
+            if (w <= 359) return 1;
+            if (w <= 519) return 2;
+            if (w <= 767) return 3;
+            if (w <= 1020) return 4;
+            if (w <= 1280) return 5;
+            return 6;
         }
 
         function getMaxIndex() {
@@ -1708,7 +1726,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             }
 
             const slideWidth = slides[0].getBoundingClientRect().width;
-            const gap = 16;
+            const gap = parseFloat(window.getComputedStyle(track).gap) || 12;
             const offset = currentIndex * (slideWidth + gap);
             track.style.transform = `translateX(-${offset}px)`;
 
