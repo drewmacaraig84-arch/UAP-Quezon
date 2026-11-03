@@ -1056,45 +1056,45 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             .stat-value { font-size: 1.6rem; }
         }
 
-        /* ============ LRP 10 PILLARS CAROUSEL (SLIMMER & LONGER) ============ */
+        /* ============ LRP 10 PILLARS CAROUSEL (COMPACT & SLEEK) ============ */
         .lrp-carousel-section {
             width: 100%;
-            max-width: 1360px;
-            margin: 1.8rem auto 0;
-            padding: 14px 22px 14px;
+            max-width: 1140px;
+            margin: 1.5rem auto 0;
+            padding: 12px 16px 10px;
             background: rgba(19, 29, 51, 0.55);
-            border: 1px solid rgba(229, 138, 19, 0.25);
-            border-radius: 16px;
+            border: 1px solid rgba(229, 138, 19, 0.22);
+            border-radius: 14px;
             backdrop-filter: blur(10px);
-            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
             box-sizing: border-box;
             position: relative;
         }
 
         .lrp-header {
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .lrp-badge {
             display: inline-block;
-            padding: 3px 12px;
+            padding: 2px 10px;
             border-radius: 9999px;
             background: rgba(229, 138, 19, 0.12);
             border: 1px solid rgba(229, 138, 19, 0.35);
             color: var(--quezon-gold);
-            font-size: 0.68rem;
+            font-size: 0.62rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.08em;
         }
 
         .lrp-title {
             color: #ffffff;
-            font-size: clamp(0.92rem, 1.6vw, 1.12rem);
+            font-size: clamp(0.85rem, 1.4vw, 1rem);
             font-family: var(--font-heading);
             font-weight: 700;
-            margin-top: 3px;
+            margin-top: 2px;
             margin-bottom: 0;
             letter-spacing: -0.01em;
         }
@@ -1104,58 +1104,60 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             width: 100%;
             display: flex;
             align-items: center;
+            padding: 0 36px;
+            box-sizing: border-box;
         }
 
         .lrp-viewport {
             overflow: hidden;
             width: 100%;
-            border-radius: 12px;
+            border-radius: 10px;
         }
 
         .lrp-track {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1);
             will-change: transform;
             user-select: none;
         }
 
-        /* Default: 6 slides visible on wide screens (> 1280px) */
+        /* Default: 6 slides visible on desktop (> 1050px) */
         .lrp-slide {
-            flex: 0 0 calc((100% - (12px * 5)) / 6);
+            flex: 0 0 calc((100% - (10px * 5)) / 6);
             min-width: 0;
             box-sizing: border-box;
         }
 
-        /* 5 slides visible on desktop (1021px - 1280px) */
-        @media (max-width: 1280px) {
+        /* 5 slides on 861px - 1050px */
+        @media (max-width: 1050px) {
             .lrp-slide {
-                flex: 0 0 calc((100% - (12px * 4)) / 5);
+                flex: 0 0 calc((100% - (10px * 4)) / 5);
             }
         }
 
-        /* 4 slides visible on laptops/tablets (768px - 1020px) */
-        @media (max-width: 1020px) {
+        /* 4 slides on 681px - 860px */
+        @media (max-width: 860px) {
             .lrp-slide {
-                flex: 0 0 calc((100% - (12px * 3)) / 4);
+                flex: 0 0 calc((100% - (10px * 3)) / 4);
             }
         }
 
-        /* 3 slides visible on tablets/large phones (520px - 767px) */
-        @media (max-width: 767px) {
+        /* 3 slides on 501px - 680px */
+        @media (max-width: 680px) {
             .lrp-slide {
-                flex: 0 0 calc((100% - (12px * 2)) / 3);
+                flex: 0 0 calc((100% - (10px * 2)) / 3);
             }
         }
 
-        /* 2 slides visible on mobile phones (360px - 519px) */
-        @media (max-width: 519px) {
+        /* 2 slides on 360px - 500px */
+        @media (max-width: 500px) {
             .lrp-slide {
-                flex: 0 0 calc((100% - 12px) / 2);
+                flex: 0 0 calc((100% - 10px) / 2);
             }
         }
 
-        /* 1 slide visible on very narrow mobile (< 360px) */
+        /* 1 slide on < 360px */
         @media (max-width: 359px) {
             .lrp-slide {
                 flex: 0 0 100%;
@@ -1164,19 +1166,19 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 
         .lrp-card {
             aspect-ratio: 1 / 1;
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
             background: #0f172a;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+            transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
             position: relative;
         }
 
         .lrp-card:hover {
-            transform: translateY(-4px) scale(1.02);
+            transform: translateY(-3px) scale(1.02);
             border-color: rgba(229, 138, 19, 0.55);
-            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5), 0 0 16px rgba(229, 138, 19, 0.25);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45), 0 0 12px rgba(229, 138, 19, 0.22);
         }
 
         .lrp-card img {
@@ -1191,13 +1193,13 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: rgba(15, 23, 42, 0.9);
             border: 1px solid rgba(229, 138, 19, 0.45);
             color: #ffffff;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1216,12 +1218,13 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             transform: translateY(-50%) scale(1.08);
         }
 
-        .lrp-prev { left: -14px; }
-        .lrp-next { right: -14px; }
+        .lrp-prev { left: 0; }
+        .lrp-next { right: 0; }
 
         @media (max-width: 600px) {
-            .lrp-prev { left: -6px; width: 28px; height: 28px; font-size: 0.8rem; }
-            .lrp-next { right: -6px; width: 28px; height: 28px; font-size: 0.8rem; }
+            .lrp-carousel-wrapper { padding: 0 28px; }
+            .lrp-prev { width: 24px; height: 24px; font-size: 0.75rem; }
+            .lrp-next { width: 24px; height: 24px; font-size: 0.75rem; }
         }
 
         .lrp-dots {
@@ -1229,12 +1232,12 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             gap: 5px;
             justify-content: center;
             align-items: center;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .lrp-dot {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
             border-radius: 3px;
             background: rgba(255, 255, 255, 0.22);
             border: none;
@@ -1244,9 +1247,9 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         }
 
         .lrp-dot.active {
-            width: 18px;
+            width: 16px;
             background: var(--quezon-gold);
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+            box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
         }
 
         .hero-title-taguyod {
@@ -1702,10 +1705,10 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         function getVisibleCount() {
             const w = window.innerWidth;
             if (w <= 359) return 1;
-            if (w <= 519) return 2;
-            if (w <= 767) return 3;
-            if (w <= 1020) return 4;
-            if (w <= 1280) return 5;
+            if (w <= 500) return 2;
+            if (w <= 680) return 3;
+            if (w <= 860) return 4;
+            if (w <= 1050) return 5;
             return 6;
         }
 
