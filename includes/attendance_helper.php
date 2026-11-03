@@ -397,7 +397,7 @@ if (!function_exists('get_available_chapter_events')) {
 
         $categories = [
             'monthly' => [
-                'title' => 'General Membership Meetings (GMM)',
+                'title' => 'General Membership Meetings (GMM Defaults)',
                 'events' => [
                     'month_july'      => ['label' => 'July 2026 GMM',      'month' => 7,  'year' => 2026],
                     'month_august'    => ['label' => 'August 2026 GMM',    'month' => 8,  'year' => 2026],
@@ -438,15 +438,24 @@ if (!function_exists('get_available_chapter_events')) {
         if ($conn instanceof PDO) {
             try {
                 $ceEvents = $conn->query("
-                    SELECT id, title, event_type, event_date, start_time, location_type, venue_name, status, counts_for_standing
+                    SELECT id, title, event_type, event_date, start_time, end_time, location_type, venue_name, status, counts_for_standing,
+                           CASE 
+                               WHEN event_date = CURDATE() THEN 0 
+                               WHEN event_date > CURDATE() THEN 1 
+                               ELSE 2 
+                           END as date_group
                     FROM chapter_events
                     WHERE deleted_at IS NULL
-                    ORDER BY event_date DESC, start_time DESC
-                    LIMIT 25
+                    ORDER BY date_group ASC, 
+                             CASE WHEN event_date >= CURDATE() THEN event_date END ASC,
+                             event_date DESC,
+                             start_time ASC
+                    LIMIT 40
                 ")->fetchAll(PDO::FETCH_ASSOC);
 
                 if (!empty($ceEvents)) {
                     $schedList = [];
+                    $todayDate = date('Y-m-d');
                     foreach ($ceEvents as $ce) {
                         $key = 'ce_' . $ce['id'];
                         $dateStr = date('M j, Y', strtotime($ce['event_date']));
@@ -455,21 +464,29 @@ if (!function_exists('get_available_chapter_events')) {
                             'fellowship' => 'FELLOWSHIP', 'assembly' => 'ASSEMBLY', 'major' => 'MAJOR', 'special' => 'SPECIAL'
                         ];
                         $typeBadge = $typeMap[$ce['event_type']] ?? strtoupper($ce['event_type']);
-                        $label = "[{$typeBadge}] {$ce['title']} ({$dateStr})";
+                        $isToday = ($ce['event_date'] === $todayDate);
+                        $prefix = $isToday ? '⭐️ [TODAY] ' : '';
+                        $timeStr = !empty($ce['start_time']) ? ' @ ' . date('h:i A', strtotime($ce['start_time'])) : '';
+                        $statusSuffix = ($ce['status'] === 'completed') ? ' [Completed]' : '';
+
+                        $label = "{$prefix}[{$typeBadge}] {$ce['title']} ({$dateStr}{$timeStr}){$statusSuffix}";
                         $schedList[$key] = [
                             'label'         => $label,
                             'title'         => $ce['title'],
                             'id'            => (int)$ce['id'],
                             'event_date'    => $ce['event_date'],
+                            'start_time'    => $ce['start_time'],
+                            'end_time'      => $ce['end_time'] ?? null,
                             'location_type' => $ce['location_type'],
                             'venue_name'    => $ce['venue_name'],
                             'status'        => $ce['status'],
+                            'is_today'      => $isToday,
                             'counts_for_standing' => (int)$ce['counts_for_standing']
                         ];
                     }
                     $categories = array_merge([
                         'scheduled' => [
-                            'title' => 'Scheduled Chapter Meetings & Assemblies',
+                            'title' => '📍 Scheduled Chapter Meetings & Assemblies (Active / Admin Created)',
                             'events' => $schedList
                         ]
                     ], $categories);
@@ -498,7 +515,7 @@ if (!function_exists('get_available_chapter_events')) {
                         ];
                     }
                     $categories['published'] = [
-                        'title' => 'Published Seminars & Chapter Articles',
+                        'title' => '📰 Published Seminars & Chapter Articles',
                         'events' => $customList
                     ];
                 }
@@ -510,9 +527,45 @@ if (!function_exists('get_available_chapter_events')) {
 }
 
 if (!function_exists('get_default_event_key')) {
-    function get_default_event_key(): string {
+    function get_default_event_key(?PDO $db = null): string {
+        global $pdo;
+        $conn = $db ?: ($pdo ?? null);
+
+        if ($conn instanceof PDO) {
+            try {
+                // 1. Prioritize meeting scheduled for TODAY (not cancelled or deleted)
+                $stmtToday = $conn->prepare("
+                    SELECT id FROM chapter_events 
+                    WHERE deleted_at IS NULL 
+                      AND event_date = CURDATE()
+                      AND status IN ('upcoming', 'ongoing')
+                    ORDER BY start_time ASC, id ASC 
+                    LIMIT 1
+                ");
+                $stmtToday->execute();
+                $todayId = $stmtToday->fetchColumn();
+                if ($todayId) {
+                    return 'ce_' . $todayId;
+                }
+
+                // 2. If no event today, check if there is an upcoming event within the next 30 days
+                $stmtUpcoming = $conn->prepare("
+                    SELECT id FROM chapter_events 
+                    WHERE deleted_at IS NULL 
+                      AND event_date >= CURDATE()
+                      AND status IN ('upcoming', 'ongoing')
+                    ORDER BY event_date ASC, start_time ASC, id ASC 
+                    LIMIT 1
+                ");
+                $stmtUpcoming->execute();
+                $upcomingId = $stmtUpcoming->fetchColumn();
+                if ($upcomingId) {
+                    return 'ce_' . $upcomingId;
+                }
+            } catch (Throwable $e) {}
+        }
+
         $curMonth = (int)date('n');
-        
         $monthMap = [
             7 => 'month_july', 8 => 'month_august', 9 => 'month_september',
             10 => 'month_october', 11 => 'month_november', 12 => 'month_december',
@@ -526,25 +579,32 @@ if (!function_exists('get_default_event_key')) {
 
 if (!function_exists('get_event_title_by_key')) {
     function get_event_title_by_key(string $key, ?PDO $pdo = null): string {
-        $cats = get_available_chapter_events($pdo);
+        global $pdo;
+        $conn = $pdo ?: ($GLOBALS['pdo'] ?? null);
+
+        if (str_starts_with($key, 'ce_') && $conn instanceof PDO) {
+            try {
+                $ceId = (int)substr($key, 3);
+                $stmt = $conn->prepare("SELECT title, event_type, event_date, start_time FROM chapter_events WHERE id = ?");
+                $stmt->execute([$ceId]);
+                $row = $stmt->fetch();
+                if ($row) {
+                    $typeMap = [
+                        'gmm' => 'GMM', 'board_meeting' => 'BOARD', 'cpd_seminar' => 'CPD',
+                        'fellowship' => 'FELLOWSHIP', 'assembly' => 'ASSEMBLY', 'major' => 'MAJOR', 'special' => 'SPECIAL'
+                    ];
+                    $badge = $typeMap[$row['event_type']] ?? strtoupper($row['event_type']);
+                    $timeStr = !empty($row['start_time']) ? ' @ ' . date('h:i A', strtotime($row['start_time'])) : '';
+                    return "[{$badge}] {$row['title']} (" . date('M j, Y', strtotime($row['event_date'])) . "{$timeStr})";
+                }
+            } catch (Throwable $e) {}
+        }
+
+        $cats = get_available_chapter_events($conn);
         foreach ($cats as $cat) {
             if (isset($cat['events'][$key])) {
                 return $cat['events'][$key]['label'];
             }
-        }
-
-        $pdo = $pdo ?? ($GLOBALS['pdo'] ?? null);
-        // Direct database lookup if ce_
-        if (str_starts_with($key, 'ce_') && $pdo) {
-            try {
-                $ceId = (int)substr($key, 3);
-                $stmt = $pdo->prepare("SELECT title, event_date FROM chapter_events WHERE id = ?");
-                $stmt->execute([$ceId]);
-                $row = $stmt->fetch();
-                if ($row) {
-                    return $row['title'] . ' (' . date('M j, Y', strtotime($row['event_date'])) . ')';
-                }
-            } catch (Throwable $e) {}
         }
 
         return ucwords(str_replace(['_', 'event', 'month', 'ce '], [' ', '', '', 'Meeting '], $key));

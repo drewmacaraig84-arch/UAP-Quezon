@@ -790,6 +790,31 @@ nav::-webkit-scrollbar-thumb {
 .btn-secondary:hover {
   background: var(--bg-tertiary) !important;
 }
+.btn-primary {
+  background: var(--button-bg) !important;
+  color: var(--button-text) !important;
+  box-shadow: var(--button-shadow) !important;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover) !important;
+  box-shadow: var(--button-hover-shadow) !important;
+  color: var(--button-text) !important;
+}
+
+.btn-outline {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: none !important;
+}
+
+.btn-outline:hover {
+  background: rgba(245, 158, 11, 0.08) !important;
+  border-color: var(--accent-primary) !important;
+  color: var(--accent-primary) !important;
+}
+
 
 /* Form Controls */
 .field {

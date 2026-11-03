@@ -6,10 +6,25 @@ require_admin();
 $fy = get_active_fiscal_year();
 $selectedEventKey = trim($_GET['event_key'] ?? '');
 if (empty($selectedEventKey)) {
-    $selectedEventKey = get_default_event_key();
+    $selectedEventKey = get_default_event_key($pdo);
 }
-$eventCategories = get_available_chapter_events();
-$selectedEventTitle = get_event_title_by_key($selectedEventKey);
+$eventCategories = get_available_chapter_events($pdo);
+$selectedEventTitle = get_event_title_by_key($selectedEventKey, $pdo);
+
+// Fetch active event metadata if this is a chapter_events meeting
+$activeEventMeta = null;
+$isActiveEventToday = false;
+if (str_starts_with($selectedEventKey, 'ce_')) {
+    try {
+        $ceId = (int)substr($selectedEventKey, 3);
+        $ceStmt = $pdo->prepare("SELECT * FROM chapter_events WHERE id = ?");
+        $ceStmt->execute([$ceId]);
+        $activeEventMeta = $ceStmt->fetch(PDO::FETCH_ASSOC);
+        if ($activeEventMeta && $activeEventMeta['event_date'] === date('Y-m-d')) {
+            $isActiveEventToday = true;
+        }
+    } catch (Throwable $e) {}
+}
 
 // Handle CSV Export
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
@@ -65,8 +80,8 @@ include __DIR__ . '/../includes/header.php';
     <p class="page-subtitle">Scan member digital passes for real-time verification, photo audit, and duplicate prevention.</p>
   </div>
   <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-    <a href="settings.php#newsTab" class="btn btn-sm btn-outline" style="border-color: rgba(245,158,11,0.5); color: #f59e0b; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; text-decoration: none;">
-      <?php echo icon('sparkles', '', 13); ?> <span>+ Create New Event</span>
+    <a href="events.php" class="btn btn-sm btn-primary" style="font-weight: 800; display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 14px rgba(245,158,11,0.35);">
+      <?php echo icon('plus', '', 14); ?> <span>+ Create New Event</span>
     </a>
     <div class="hero-badge" style="background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3);">
       <?php echo icon('check', '', 14); ?> <span id="attendeeCountBadge"><?php echo $totalAttendeesCount; ?> Present</span>
@@ -103,8 +118,8 @@ include __DIR__ . '/../includes/header.php';
         
         <!-- Attendance Mode (F2F vs Zoom) -->
         <select id="attendanceModeSelect" class="form-control" style="font-size: 13px; font-weight: 600; width: auto; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 8px;">
-          <option value="f2f" selected>Face-to-Face (F2F)</option>
-          <option value="zoom">Zoom Webinar</option>
+          <option value="f2f" <?php echo ($activeEventMeta && ($activeEventMeta['location_type'] ?? '') === 'zoom') ? '' : 'selected'; ?>>Face-to-Face (F2F)</option>
+          <option value="zoom" <?php echo ($activeEventMeta && ($activeEventMeta['location_type'] ?? '') === 'zoom') ? 'selected' : ''; ?>>Zoom Webinar</option>
         </select>
       </div>
     </div>
@@ -128,6 +143,28 @@ include __DIR__ . '/../includes/header.php';
       <a href="scan_attendance.php?export=csv&event_key=<?php echo urlencode($selectedEventKey); ?>" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px; padding: 9px 16px;">
         <?php echo icon('download', '', 14); ?> Export to CSV
       </a>
+    </div>
+
+    <!-- Active Event Confirmation Badge Strip -->
+    <div style="grid-column: 1 / -1; background: <?php echo $isActiveEventToday ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.08)'; ?>; border: 1px solid <?php echo $isActiveEventToday ? 'rgba(16,185,129,0.35)' : 'rgba(245,158,11,0.35)'; ?>; border-radius: 10px; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <span class="badge" style="background: <?php echo $isActiveEventToday ? '#10b981' : '#f59e0b'; ?>; color: #ffffff; font-weight: 800; font-size: 11px; padding: 4px 9px; letter-spacing: 0.5px;">
+          <?php echo $isActiveEventToday ? '🔴 LIVE EVENT TODAY' : 'ACTIVE TARGET ROSTER'; ?>
+        </span>
+        <strong style="color: var(--text-primary); font-size: 14px;"><?php echo htmlspecialchars($selectedEventTitle); ?></strong>
+        <?php if ($activeEventMeta): ?>
+          <span style="font-size: 12.5px; color: var(--text-secondary);">
+            &bull; <?php echo date('l, M j, Y', strtotime($activeEventMeta['event_date'])); ?>
+            <?php if (!empty($activeEventMeta['start_time'])): ?>
+              (<?php echo date('h:i A', strtotime($activeEventMeta['start_time'])); ?><?php echo !empty($activeEventMeta['end_time']) ? ' - ' . date('h:i A', strtotime($activeEventMeta['end_time'])) : ''; ?>)
+            <?php endif; ?>
+            &bull; 📍 <?php echo htmlspecialchars($activeEventMeta['venue_name'] ?: ($activeEventMeta['location_type'] === 'zoom' ? 'Zoom Webinar' : 'Chapter Venue')); ?>
+          </span>
+        <?php endif; ?>
+      </div>
+      <div style="font-size: 12px; color: #10b981; font-weight: 700; display: flex; align-items: center; gap: 5px;">
+        <?php echo icon('check', '', 13); ?> Attendance scans will credit directly to this meeting
+      </div>
     </div>
 
   </div>
