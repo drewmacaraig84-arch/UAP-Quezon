@@ -4,8 +4,8 @@
  */
 
 function set_flash($type, $message) {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+    if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+        @session_start();
     }
     $_SESSION['flash_messages'][] = [
         'type' => $type, // 'success', 'error', 'info', 'warning'
@@ -14,8 +14,8 @@ function set_flash($type, $message) {
 }
 
 function get_flash_messages() {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+    if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+        @session_start();
     }
     $messages = $_SESSION['flash_messages'] ?? [];
     unset($_SESSION['flash_messages']);

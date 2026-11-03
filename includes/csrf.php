@@ -4,8 +4,8 @@
  */
 
 function generate_csrf_token() {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+    if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+        @session_start();
     }
     if (empty($_SESSION['_csrf_token'])) {
         $_SESSION['_csrf_token'] = bin2hex(random_bytes(32));
@@ -23,8 +23,8 @@ function csrf_field() {
 }
 
 function validate_csrf_token($token = null) {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+    if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+        @session_start();
     }
     
     $token = $token ?? ($_POST['_csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? null));
