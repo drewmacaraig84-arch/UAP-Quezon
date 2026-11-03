@@ -80,6 +80,96 @@ if (!function_exists('ensure_member_attendance_table')) {
             if (!isset($existingCols['scheme_qualified'])) {
                 $pdo->exec("ALTER TABLE member_attendance ADD COLUMN scheme_qualified VARCHAR(50) NULL DEFAULT NULL AFTER activity_status");
             }
+            if (!isset($existingCols['custom_events_json'])) {
+                $pdo->exec("ALTER TABLE member_attendance ADD COLUMN custom_events_json LONGTEXT NULL AFTER cpd_seminars_count");
+            }
+        } catch (Throwable $e) {}
+    }
+}
+
+if (!function_exists('ensure_compliance_activities_schema')) {
+    function ensure_compliance_activities_schema(PDO $pdo): void {
+        static $checked = false;
+        if ($checked || !$pdo) return;
+        $checked = true;
+
+        try {
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS chapter_compliance_activities (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    fiscal_year VARCHAR(20) NOT NULL DEFAULT '2026-2027',
+                    activity_type ENUM('monthly_gmm', 'major_event', 'special_event') NOT NULL,
+                    activity_key VARCHAR(60) NOT NULL,
+                    title VARCHAR(255) NOT NULL,
+                    short_label VARCHAR(50) NULL,
+                    category VARCHAR(100) NULL,
+                    point_value DECIMAL(4,1) NOT NULL DEFAULT 1.0,
+                    event_date DATE NULL,
+                    venue_or_platform VARCHAR(255) NULL,
+                    is_active TINYINT(1) NOT NULL DEFAULT 1,
+                    sort_order INT NOT NULL DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    UNIQUE KEY uniq_act_fy_key (fiscal_year, activity_key),
+                    KEY idx_act_type (activity_type),
+                    KEY idx_is_active (is_active),
+                    KEY idx_sort_order (sort_order)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ");
+
+            // Seed default items if table is empty
+            $cnt = (int)$pdo->query("SELECT COUNT(*) FROM chapter_compliance_activities")->fetchColumn();
+            if ($cnt === 0) {
+                $fy = '2026-2027';
+                $stmt = $pdo->prepare("
+                    INSERT INTO chapter_compliance_activities 
+                    (fiscal_year, activity_type, activity_key, title, short_label, category, point_value, sort_order, is_active)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+                ");
+
+                // 1. 12 Monthly GMMs
+                $months = [
+                    ['july',      'July 2026',      'Jul 26', 'General Membership Meeting', 1.0, 1],
+                    ['august',    'August 2026',    'Aug 26', 'General Membership Meeting', 1.0, 2],
+                    ['september', 'September 2026', 'Sep 26', 'General Membership Meeting', 1.0, 3],
+                    ['october',   'October 2026',   'Oct 26', 'General Membership Meeting', 1.0, 4],
+                    ['november',  'November 2026',  'Nov 26', 'General Membership Meeting', 1.0, 5],
+                    ['december',  'December 2026',  'Dec 26', 'General Membership Meeting', 1.0, 6],
+                    ['january',   'January 2027',   'Jan 27', 'General Membership Meeting', 1.0, 7],
+                    ['february',  'February 2027',  'Feb 27', 'General Membership Meeting', 1.0, 8],
+                    ['march',     'March 2027',     'Mar 27', 'General Membership Meeting', 1.0, 9],
+                    ['april',     'April 2027',     'Apr 27', 'General Membership Meeting', 1.0, 10],
+                    ['may',       'May 2027',       'May 27', 'General Membership Meeting', 1.0, 11],
+                    ['june',      'June 2027',      'Jun 27', 'General Membership Meeting', 1.0, 12],
+                ];
+                foreach ($months as $m) {
+                    $stmt->execute([$fy, 'monthly_gmm', $m[0], $m[1], $m[2], $m[3], $m[4], $m[5]]);
+                }
+
+                // 2. 3 Major Events
+                $majors = [
+                    ['event_induction',       'Chapter Induction of Officers & New Members',           'Induction',       'Annual Official Chapter Event', 1.0, 1],
+                    ['event_anniversary',     'UAP Quezon Province Chapter Founding Anniversary',      'Anniversary',     'Annual Official Chapter Event', 1.0, 2],
+                    ['event_christmas_party', 'Annual Architects Fellowship & Christmas Party',        'Christmas Party', 'Annual Official Chapter Event', 1.0, 3],
+                ];
+                foreach ($majors as $maj) {
+                    $stmt->execute([$fy, 'major_event', $maj[0], $maj[1], $maj[2], $maj[3], $maj[4], $maj[5]]);
+                }
+
+                // 3. 7 Special Events
+                $specials = [
+                    ['event_natcon',        'NATCON (National Convention)',                                         'NATCON',        'National Convention', 3.0, 1],
+                    ['event_aba',           'ABA (Area-B Assembly)',                                                'ABA',           'Regional Assembly',   2.0, 2],
+                    ['event_nca',           'NCA (National Conference of Architects)',                              'NCA',           'National Conference', 2.0, 3],
+                    ['event_pafnam',        'PAFNAM (Philippine Architecture Festival National Architecture Month)','PAFNAM',        'National Festival',   2.0, 4],
+                    ['event_wad',           'WAD (World Architecture Day)',                                         'WAD',           'Global Observance',   1.0, 5],
+                    ['event_csr',           'CSR Projects',                                                         'CSR Projects',  'Community Service',   1.0, 6],
+                    ['event_summer_outing', 'Summer Outing & Sports Fellowship',                                    'Summer Outing', 'Chapter Fellowship',  1.0, 7],
+                ];
+                foreach ($specials as $sp) {
+                    $stmt->execute([$fy, 'special_event', $sp[0], $sp[1], $sp[2], $sp[3], $sp[4], $sp[5]]);
+                }
+            }
         } catch (Throwable $e) {}
     }
 }
@@ -173,6 +263,7 @@ if (!function_exists('ensure_chapter_events_schema')) {
 
 if (isset($pdo) && $pdo instanceof PDO) {
     ensure_member_attendance_table($pdo);
+    ensure_compliance_activities_schema($pdo);
     ensure_chapter_events_schema($pdo);
 }
 
@@ -183,7 +274,39 @@ if (!function_exists('get_active_fiscal_year')) {
 }
 
 if (!function_exists('get_member_attendance_months')) {
-    function get_member_attendance_months(): array {
+    function get_member_attendance_months(?PDO $db = null): array {
+        global $pdo;
+        $conn = $db ?: ($pdo ?? null);
+        $fy = get_active_fiscal_year();
+
+        if ($conn instanceof PDO) {
+            try {
+                $stmt = $conn->prepare("
+                    SELECT id, activity_key, title, short_label, event_date, venue_or_platform
+                    FROM chapter_compliance_activities
+                    WHERE fiscal_year = ? AND activity_type = 'monthly_gmm' AND is_active = 1
+                    ORDER BY sort_order ASC, id ASC
+                ");
+                $stmt->execute([$fy]);
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if (!empty($rows)) {
+                    $res = [];
+                    foreach ($rows as $r) {
+                        $key = $r['activity_key'];
+                        $res[$key] = [
+                            'id'         => (int)$r['id'],
+                            'key'        => $key,
+                            'label'      => $r['title'],
+                            'short'      => $r['short_label'] ?: substr($r['title'], 0, 6),
+                            'date'       => $r['event_date'],
+                            'venue'      => $r['venue_or_platform'],
+                        ];
+                    }
+                    return $res;
+                }
+            } catch (Throwable $e) {}
+        }
+
         return [
             'july'      => ['label' => 'July 2026',      'short' => 'Jul 26'],
             'august'    => ['label' => 'August 2026',    'short' => 'Aug 26'],
@@ -202,7 +325,31 @@ if (!function_exists('get_member_attendance_months')) {
 }
 
 if (!function_exists('get_major_events_list')) {
-    function get_major_events_list(): array {
+    function get_major_events_list(?PDO $db = null): array {
+        global $pdo;
+        $conn = $db ?: ($pdo ?? null);
+        $fy = get_active_fiscal_year();
+
+        if ($conn instanceof PDO) {
+            try {
+                $stmt = $conn->prepare("
+                    SELECT id, activity_key, title, short_label, category, event_date, venue_or_platform
+                    FROM chapter_compliance_activities
+                    WHERE fiscal_year = ? AND activity_type = 'major_event' AND is_active = 1
+                    ORDER BY sort_order ASC, id ASC
+                ");
+                $stmt->execute([$fy]);
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if (!empty($rows)) {
+                    $res = [];
+                    foreach ($rows as $r) {
+                        $res[$r['activity_key']] = $r['title'];
+                    }
+                    return $res;
+                }
+            } catch (Throwable $e) {}
+        }
+
         return [
             'event_induction'       => 'Chapter Induction of Officers & New Members',
             'event_anniversary'     => 'UAP Quezon Province Chapter Founding Anniversary',
@@ -211,22 +358,78 @@ if (!function_exists('get_major_events_list')) {
     }
 }
 
+if (!function_exists('get_major_events_metadata')) {
+    function get_major_events_metadata(?PDO $db = null): array {
+        global $pdo;
+        $conn = $db ?: ($pdo ?? null);
+        $fy = get_active_fiscal_year();
+
+        if ($conn instanceof PDO) {
+            try {
+                $stmt = $conn->prepare("
+                    SELECT id, activity_key, title, short_label, category, point_value, event_date, venue_or_platform, is_active, sort_order
+                    FROM chapter_compliance_activities
+                    WHERE fiscal_year = ? AND activity_type = 'major_event'
+                    ORDER BY sort_order ASC, id ASC
+                ");
+                $stmt->execute([$fy]);
+                return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (Throwable $e) {}
+        }
+        return [];
+    }
+}
+
 if (!function_exists('get_special_events_list')) {
-    function get_special_events_list(): array {
-        return [
-            'event_natcon'        => 'NATCON (National Convention) — 3.0 pts',
-            'event_aba'           => 'ABA (Area-B Assembly) — 2.0 pts',
-            'event_nca'           => 'NCA (National Conference of Architects) — 2.0 pts',
-            'event_pafnam'        => 'PAFNAM / Architecture Month — 2.0 pts',
-            'event_wad'           => 'WAD (World Architecture Day) — 1.0 pt',
-            'event_csr'           => 'CSR Projects (Community Outreach) — 1.0 pt',
-            'event_summer_outing' => 'Summer Outing & Fellowship — 1.0 pt',
-        ];
+    function get_special_events_list(?PDO $db = null): array {
+        $points = get_resolution_special_event_points($db);
+        $res = [];
+        foreach ($points as $k => $item) {
+            $pts = number_format((float)$item['points'], 1);
+            $res[$k] = "{$item['title']} - {$pts} pts";
+        }
+        return $res;
     }
 }
 
 if (!function_exists('get_resolution_special_event_points')) {
-    function get_resolution_special_event_points(): array {
+    function get_resolution_special_event_points(?PDO $db = null): array {
+        global $pdo;
+        $conn = $db ?: ($pdo ?? null);
+        $fy = get_active_fiscal_year();
+
+        if ($conn instanceof PDO) {
+            try {
+                $stmt = $conn->prepare("
+                    SELECT id, activity_key, title, short_label, category, point_value, event_date, venue_or_platform
+                    FROM chapter_compliance_activities
+                    WHERE fiscal_year = ? AND activity_type = 'special_event' AND is_active = 1
+                    ORDER BY sort_order ASC, id ASC
+                ");
+                $stmt->execute([$fy]);
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if (!empty($rows)) {
+                    $res = [];
+                    foreach ($rows as $r) {
+                        $key = $r['activity_key'];
+                        $res[$key] = [
+                            'id'          => (int)$r['id'],
+                            'col'         => $key,
+                            'title'       => $r['title'],
+                            'acronym'     => $r['short_label'] ?: $r['title'],
+                            'points'      => (float)$r['point_value'],
+                            'category'    => $r['category'] ?: 'Special Activity',
+                            'event_date'  => $r['event_date'],
+                            'venue'       => $r['venue_or_platform'],
+                            'icon'        => 'sparkles',
+                            'badge_color' => '#f59e0b',
+                        ];
+                    }
+                    return $res;
+                }
+            } catch (Throwable $e) {}
+        }
+
         return [
             'event_natcon' => [
                 'col'         => 'event_natcon',
@@ -295,6 +498,20 @@ if (!function_exists('get_resolution_special_event_points')) {
     }
 }
 
+if (!function_exists('recalculate_all_members_attendance')) {
+    function recalculate_all_members_attendance(PDO $pdo, string $fiscalYear = '2026-2027'): int {
+        ensure_compliance_activities_schema($pdo);
+        $stmt = $pdo->prepare("SELECT * FROM member_attendance WHERE fiscal_year = ?");
+        $stmt->execute([$fiscalYear]);
+        $count = 0;
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            calculate_and_sync_activity_status($pdo, $row);
+            $count++;
+        }
+        return $count;
+    }
+}
+
 if (!function_exists('get_or_create_member_attendance')) {
     function get_or_create_member_attendance(PDO $pdo, int $userId, string $fiscalYear = '2026-2027'): array {
         $stmt = $pdo->prepare("SELECT * FROM member_attendance WHERE user_id = ? AND fiscal_year = ? LIMIT 1");
@@ -324,13 +541,27 @@ if (!function_exists('calculate_and_sync_activity_status')) {
         $userId = (int)($row['user_id'] ?? 0);
         $fy = $row['fiscal_year'] ?? get_active_fiscal_year();
 
+        // Decode custom events JSON if present
+        $customEvents = !empty($row['custom_events_json']) ? json_decode($row['custom_events_json'], true) : [];
+        if (!is_array($customEvents)) {
+            $customEvents = [];
+        }
+
         // 1. Monthly General Membership Meetings (GMMs)
-        $months = get_member_attendance_months();
+        $months = get_member_attendance_months($pdo);
         $monthlyF2F = 0;
         $monthlyZoom = 0;
 
         foreach ($months as $key => $meta) {
-            $val = strtolower($row['month_' . $key] ?? 'absent');
+            $val = 'absent';
+            if (isset($row['month_' . $key])) {
+                $val = strtolower($row['month_' . $key] ?? 'absent');
+            } elseif (isset($customEvents['month_' . $key])) {
+                $val = strtolower($customEvents['month_' . $key] ?? 'absent');
+            } elseif (isset($customEvents[$key])) {
+                $val = is_array($customEvents[$key]) ? strtolower($customEvents[$key]['mode'] ?? 'absent') : strtolower($customEvents[$key]);
+            }
+
             if ($val === 'f2f') {
                 $monthlyF2F++;
             } elseif ($val === 'zoom') {
@@ -379,29 +610,49 @@ if (!function_exists('calculate_and_sync_activity_status')) {
         $totalGmmZoom = $monthlyZoom + $customGmmZoom;
         $totalGmmAttended = $totalGmmF2F + $totalGmmZoom;
 
-        // 3. Major Chapter Events (Induction, Anniversary, Christmas Party - Sec. 2 & 3)
-        $majorInduction = !empty($row['event_induction']);
-        $majorAnniversary = !empty($row['event_anniversary']);
-        $majorChristmas = !empty($row['event_christmas_party']);
-        $majorDirectCount = ($majorInduction ? 1 : 0) + ($majorAnniversary ? 1 : 0) + ($majorChristmas ? 1 : 0);
-        $totalMajorEvents = min(3, $majorDirectCount + $customMajorF2F);
+        // 3. Major Chapter Events (Board Reso. Sec. 2 & 3)
+        $majorEvents = get_major_events_list($pdo);
+        $majorDirectCount = 0;
+        $majorBreakdown = [];
+        foreach ($majorEvents as $col => $title) {
+            $isAtt = false;
+            if (isset($row[$col]) && !empty($row[$col])) {
+                $isAtt = true;
+            } elseif (!empty($customEvents[$col])) {
+                $isAtt = true;
+            }
+            if ($isAtt) {
+                $majorDirectCount++;
+            }
+            $majorBreakdown[$col] = [
+                'title'    => $title,
+                'attended' => $isAtt
+            ];
+        }
+        $totalMajorEvents = min(max(3, count($majorEvents)), $majorDirectCount + $customMajorF2F);
 
         // 4. Special Events Points & CPD Seminars (Sec. 5)
-        $specialConfig = get_resolution_special_event_points();
+        $specialConfig = get_resolution_special_event_points($pdo);
         $specialPointsFromEvents = 0.0;
         $specialEventsAttendedCount = 0;
         $specialBreakdown = [];
 
         foreach ($specialConfig as $col => $meta) {
-            $isAttended = !empty($row[$col]);
+            $isAttended = false;
+            if (isset($row[$col]) && !empty($row[$col])) {
+                $isAttended = true;
+            } elseif (!empty($customEvents[$col])) {
+                $isAttended = true;
+            }
+            $pts = (float)$meta['points'];
             if ($isAttended) {
                 $specialEventsAttendedCount++;
-                $specialPointsFromEvents += (float)$meta['points'];
+                $specialPointsFromEvents += $pts;
             }
             $specialBreakdown[$col] = [
                 'meta'     => $meta,
                 'attended' => $isAttended,
-                'points'   => $isAttended ? (float)$meta['points'] : 0.0,
+                'points'   => $isAttended ? $pts : 0.0,
             ];
         }
 
@@ -561,6 +812,7 @@ if (!function_exists('calculate_and_sync_activity_status')) {
             'total_gmm_zoom'         => $totalGmmZoom,
             'total_gmm_attended'     => $totalGmmAttended,
             'major_count'            => $totalMajorEvents,
+            'major_breakdown'        => $majorBreakdown,
             'special_count'          => $specialEventsAttendedCount,
             'cpd_count'              => $totalCpdCount,
             'special_points'         => $totalSpecialPoints,
@@ -735,7 +987,7 @@ if (!function_exists('get_available_chapter_events')) {
                         ];
                         $typeBadge = $typeMap[$ce['event_type']] ?? strtoupper($ce['event_type']);
                         $isToday = ($ce['event_date'] === $todayDate);
-                        $prefix = $isToday ? '⭐️ [TODAY] ' : '';
+                        $prefix = $isToday ? '[TODAY] ' : '';
                         $timeStr = !empty($ce['start_time']) ? ' @ ' . date('h:i A', strtotime($ce['start_time'])) : '';
                         $statusSuffix = ($ce['status'] === 'completed') ? ' [Completed]' : '';
 
@@ -756,7 +1008,7 @@ if (!function_exists('get_available_chapter_events')) {
                     }
                     $categories = array_merge([
                         'scheduled' => [
-                            'title' => '📍 Scheduled Chapter Meetings & Assemblies (Active / Admin Created)',
+                            'title' => 'Scheduled Chapter Meetings & Assemblies (Active / Admin Created)',
                             'events' => $schedList
                         ]
                     ], $categories);
@@ -785,7 +1037,7 @@ if (!function_exists('get_available_chapter_events')) {
                         ];
                     }
                     $categories['published'] = [
-                        'title' => '📰 Published Seminars & Chapter Articles',
+                        'title' => 'Published Seminars & Chapter Articles',
                         'events' => $customList
                     ];
                 }

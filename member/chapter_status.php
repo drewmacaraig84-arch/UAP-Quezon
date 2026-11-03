@@ -462,9 +462,19 @@ include __DIR__ . '/../includes/header.php';
 
   <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px;">
     <?php
-      $months = get_member_attendance_months();
+      $months = get_member_attendance_months($pdo);
+      $customAtt = !empty($attendance['custom_events_json']) ? json_decode($attendance['custom_events_json'], true) : [];
+      if (!is_array($customAtt)) $customAtt = [];
+
       foreach ($months as $key => $meta):
-        $val = strtolower($attendance['month_' . $key] ?? 'absent');
+        $val = 'absent';
+        if (isset($attendance['month_' . $key])) {
+            $val = strtolower($attendance['month_' . $key] ?? 'absent');
+        } elseif (isset($customAtt['month_' . $key])) {
+            $val = strtolower($customAtt['month_' . $key] ?? 'absent');
+        } elseif (isset($customAtt[$key])) {
+            $val = is_array($customAtt[$key]) ? strtolower($customAtt[$key]['mode'] ?? 'absent') : strtolower($customAtt[$key]);
+        }
         $isPresentF2F = ($val === 'f2f');
         $isPresentZoom = ($val === 'zoom');
     ?>
@@ -511,9 +521,12 @@ include __DIR__ . '/../includes/header.php';
 
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
     <?php
-      $majorEvents = get_major_events_list();
+      $majorEvents = get_major_events_list($pdo);
+      $customAtt = !empty($attendance['custom_events_json']) ? json_decode($attendance['custom_events_json'], true) : [];
+      if (!is_array($customAtt)) $customAtt = [];
+
       foreach ($majorEvents as $col => $title):
-        $attended = !empty($attendance[$col]);
+        $attended = !empty($attendance[$col]) || !empty($customAtt[$col]);
     ?>
       <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; gap: 12px;">
         <div>
