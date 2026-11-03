@@ -20,17 +20,28 @@ try {
           AND user_id NOT IN (SELECT id FROM users WHERE deleted_at IS NULL AND status = 'approved')
     ");
 
+    $activeFy = function_exists('get_active_fiscal_year') ? get_active_fiscal_year() : '2026-2027';
+
+    // Direct SQL enforcement: Exclude members with Inactive Attendance (<= 2 events)
+    // unless an administrative override has explicitly granted good standing
     $sql = "SELECT wm.*, 
                    COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path,
                    u.email as user_email,
-                   u.phone as user_phone 
+                   u.phone as user_phone,
+                   u.good_standing_override,
+                   COALESCE(ma.activity_status, 'inactive') as activity_status
             FROM website_members wm 
             JOIN users u ON wm.user_id = u.id 
+            LEFT JOIN member_attendance ma ON ma.user_id = u.id AND ma.fiscal_year = ?
             WHERE wm.is_published = 1 
               AND wm.deleted_at IS NULL 
               AND u.deleted_at IS NULL 
-              AND u.status = 'approved'";
-    $params = [];
+              AND u.status = 'approved'
+              AND (
+                  COALESCE(u.good_standing_override, 'auto') = 'granted'
+                  OR COALESCE(ma.activity_status, 'inactive') != 'inactive'
+              )";
+    $params = [$activeFy];
 
     if ($search !== '') {
         $sql .= " AND (wm.name LIKE ? OR wm.specialty LIKE ? OR wm.company_name LIKE ? OR wm.location LIKE ? OR wm.id_number LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)";

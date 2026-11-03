@@ -559,8 +559,8 @@ include __DIR__ . '/../includes/header.php';
                       <?php echo icon('check', '', 10); ?> Live on Website
                     </span>
                   <?php else: ?>
-                    <span class="badge-pill badge-unpaid" style="font-size: 10px; padding: 2px 7px; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: inline-flex; align-items: center; gap: 4px;" title="Profile is hidden from public directory because member has overdue dues or good standing hold">
-                      <?php echo icon('alert', '', 10); ?> Hidden: Standing Hold
+                    <span class="badge-pill badge-unpaid" style="font-size: 10px; padding: 2px 7px; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: inline-flex; align-items: center; gap: 4px;" title="Profile is hidden from public directory due to inactive attendance (<= 2 events), overdue dues, or administrative hold">
+                      <?php echo icon('alert', '', 10); ?> Hidden: Inactive Attendance / Hold
                     </span>
                     <a href="good_members.php" style="font-size: 10.5px; color: var(--accent-primary); text-decoration: underline;" title="Manage Good Standing">
                       Manage &rarr;
