@@ -365,14 +365,20 @@ include __DIR__ . '/../includes/header.php';
               </span>
             <?php endif; ?>
 
-            <div style="display: flex; gap: 6px;">
+            <div style="display: flex; gap: 6px; align-items: center;">
               <?php 
                 $meetingLink = !empty($ev['meeting_link']) ? $ev['meeting_link'] : ($ev['zoom_link'] ?? '');
                 if (!empty($meetingLink)): 
               ?>
-                <a href="<?php echo htmlspecialchars($meetingLink); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
-                  <?php echo icon('external_link', '', 11); ?> Online Link
-                </a>
+                <?php if (empty($ev['attended_at'])): ?>
+                  <a href="join_meeting.php?id=<?php echo (int)$ev['id']; ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="font-size: 11px; padding: 5px 10px; display: inline-flex; align-items: center; gap: 5px; background: #2563eb; color: #ffffff; border: none; font-weight: 700; box-shadow: 0 2px 8px rgba(37,99,235,0.35);">
+                    <?php echo icon('video', '', 12); ?> Join Zoom &amp; Check In
+                  </a>
+                <?php else: ?>
+                  <a href="join_meeting.php?id=<?php echo (int)$ev['id']; ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px; border-color: #3b82f6; color: #3b82f6;">
+                    <?php echo icon('video', '', 11); ?> Join Meeting
+                  </a>
+                <?php endif; ?>
               <?php endif; ?>
               <a href="attendance_pass.php" class="btn btn-sm btn-secondary" style="font-size: 11px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
                 <?php echo icon('qr_codes', '', 11); ?> QR Pass

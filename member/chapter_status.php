@@ -273,6 +273,11 @@ include __DIR__ . '/../includes/header.php';
           <div style="text-align: right;">
             <span class="badge-pill badge-paid" style="font-size: 11.5px; display: inline-flex; align-items: center; gap: 5px;">
               <?php echo icon('check', '', 12); ?> <strong>Verified Attended</strong>
+              <?php if (($am['attendance_mode'] ?? '') === 'zoom'): ?>
+                <span style="opacity: 0.85; font-size: 10.5px; margin-left: 2px;">(Online)</span>
+              <?php else: ?>
+                <span style="opacity: 0.85; font-size: 10.5px; margin-left: 2px;">(In-Person)</span>
+              <?php endif; ?>
             </span>
             <span class="muted" style="font-size: 11px; display: block; margin-top: 4px;">
               Scanned: <?php echo date('M d, Y h:i A', strtotime($am['scanned_at'])); ?>

@@ -243,21 +243,31 @@ if (!function_exists('calculate_and_sync_activity_status')) {
 
         // Count custom scheduled meetings attended from event_attendance_logs
         $customMeetingsCount = 0;
+        $customMeetingsZoom = 0;
+        $customMeetingsF2F = 0;
         try {
             $cStmt = $pdo->prepare("
-                SELECT COUNT(*) 
+                SELECT l.attendance_mode, COUNT(*) as cnt
                 FROM event_attendance_logs l
                 JOIN chapter_events ce ON l.event_key = CONCAT('ce_', ce.id)
                 WHERE l.user_id = ? AND l.fiscal_year = ? AND ce.counts_for_standing = 1 AND ce.deleted_at IS NULL
+                GROUP BY l.attendance_mode
             ");
             $cStmt->execute([$row['user_id'], $row['fiscal_year']]);
-            $customMeetingsCount = (int)$cStmt->fetchColumn();
+            while ($cRow = $cStmt->fetch()) {
+                if ($cRow['attendance_mode'] === 'zoom') {
+                    $customMeetingsZoom += (int)$cRow['cnt'];
+                } else {
+                    $customMeetingsF2F += (int)$cRow['cnt'];
+                }
+            }
+            $customMeetingsCount = $customMeetingsZoom + $customMeetingsF2F;
         } catch (Throwable $e) {}
 
         $monthlyTotal = $monthlyF2F + $monthlyZoom;
         $totalAttended = $monthlyTotal + $majorCount + $specialCount + $customMeetingsCount;
-        $totalF2F = $monthlyF2F + $majorCount + $specialCount + $customMeetingsCount;
-        $totalZoom = $monthlyZoom;
+        $totalF2F = $monthlyF2F + $majorCount + $specialCount + $customMeetingsF2F;
+        $totalZoom = $monthlyZoom + $customMeetingsZoom;
 
         // Determine Status based on client rule:
         // >= 7 => ACTIVE
@@ -315,6 +325,7 @@ if (!function_exists('calculate_and_sync_activity_status')) {
             'monthly_total'   => $monthlyTotal,
             'major_count'     => $majorCount,
             'special_count'   => $specialCount,
+            'custom_count'    => $customMeetingsCount,
             'total_attended'  => $totalAttended,
             'total_f2f'       => $totalF2F,
             'total_zoom'      => $totalZoom,
@@ -505,19 +516,20 @@ if (!function_exists('get_default_event_key')) {
 }
 
 if (!function_exists('get_event_title_by_key')) {
-    function get_event_title_by_key(string $key): string {
-        $cats = get_available_chapter_events();
+    function get_event_title_by_key(string $key, ?PDO $pdo = null): string {
+        $cats = get_available_chapter_events($pdo);
         foreach ($cats as $cat) {
             if (isset($cat['events'][$key])) {
                 return $cat['events'][$key]['label'];
             }
         }
 
+        $pdo = $pdo ?? ($GLOBALS['pdo'] ?? null);
         // Direct database lookup if ce_
-        if (str_starts_with($key, 'ce_') && isset($GLOBALS['pdo'])) {
+        if (str_starts_with($key, 'ce_') && $pdo) {
             try {
                 $ceId = (int)substr($key, 3);
-                $stmt = $GLOBALS['pdo']->prepare("SELECT title, event_date FROM chapter_events WHERE id = ?");
+                $stmt = $pdo->prepare("SELECT title, event_date FROM chapter_events WHERE id = ?");
                 $stmt->execute([$ceId]);
                 $row = $stmt->fetch();
                 if ($row) {
@@ -620,7 +632,7 @@ if (!function_exists('verify_rolling_attendance_token')) {
 }
 
 if (!function_exists('record_event_scan_attendance')) {
-    function record_event_scan_attendance(PDO $pdo, int $userId, string $eventKey, int $adminId, string $mode = 'f2f', string $method = 'qr_scan', string $notes = ''): array {
+    function record_event_scan_attendance(PDO $pdo, int $userId, string $eventKey, ?int $adminId = null, string $mode = 'f2f', string $method = 'qr_scan', string $notes = ''): array {
         ensure_member_attendance_table($pdo);
         $fy = get_active_fiscal_year();
 
@@ -653,7 +665,7 @@ if (!function_exists('record_event_scan_attendance')) {
             'photo'      => $photo ? (str_starts_with($photo, 'http') ? $photo : BASE_URL . '/' . ltrim($photo, '/')) : null,
         ];
 
-        $eventTitle = get_event_title_by_key($eventKey);
+        $eventTitle = get_event_title_by_key($eventKey, $pdo);
 
         // 2. Check for duplicate scan
         $chk = $pdo->prepare("SELECT * FROM event_attendance_logs WHERE user_id = ? AND fiscal_year = ? AND event_key = ? LIMIT 1");
