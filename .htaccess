@@ -17,9 +17,9 @@ DirectoryIndex index.html index.php
     RewriteRule ^register/?$ auth/register.php [QSA,L]
 
     # Clean URLs for public architect profiles (/profile/123 -> public/member_profile.php?id=123)
-    RewriteRule ^profile/([0-9]+)/?$ public/member_profile.php?id=$1 [QSA,L]
-    RewriteRule ^profile/?$ public/architects.php [QSA,L]
-    RewriteRule ^directory/?$ public/architects.php [QSA,L]
+    RewriteRule ^profile/([0-9]+)/?$ /public/member_profile.php?id=$1 [QSA,L]
+    RewriteRule ^profile/?$ /public/architects.php [QSA,L]
+    RewriteRule ^directory/?$ /public/architects.php [QSA,L]
 
     # Pass through PHP backend routes and static directories
     RewriteCond %{REQUEST_URI} ^/(admin|member|auth|includes|uploads|public|database)/ [NC]

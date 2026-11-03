@@ -6,6 +6,7 @@
  */
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/qrcode_engine.php';
 
 class ChapterQRCode {
     // QR Code generation core constants and lookup tables
@@ -27,28 +28,41 @@ class ChapterQRCode {
      * Generate PNG binary data for a target URL
      */
     public static function generatePng($url, $size = 400) {
+        // Method 1: Genuine Pure-PHP Offline QR Generator (No external network request required)
+        if (class_exists('QRCode')) {
+            try {
+                $qr = new QRCode($url, [
+                    'w' => (int)$size,
+                    'h' => (int)$size,
+                    'bc' => 'FFFFFF',
+                    'fc' => '000000',
+                ]);
+                $img = $qr->render_image();
+                if ($img) {
+                    ob_start();
+                    imagepng($img);
+                    $data = ob_get_clean();
+                    imagedestroy($img);
+                    if ($data && strlen($data) > 100) {
+                        return $data;
+                    }
+                }
+            } catch (Throwable $e) {}
+        }
+
+        // Method 2: External API if pure-PHP renderer is unavailable
         $encoded = urlencode($url);
-        // Method 1: Try local high-quality rendering via QuickChart / Google API cache if online
         $apiUrl = "https://api.qrserver.com/v1/create-qr-code/?size={$size}x{$size}&margin=15&format=png&data={$encoded}";
-        
         $context = stream_context_create([
             'http' => ['timeout' => 4, 'user_agent' => 'UAPQuezon/1.0'],
             'ssl'  => ['verify_peer' => false, 'verify_peer_name' => false]
         ]);
-        
         $pngData = @file_get_contents($apiUrl, false, $context);
         if ($pngData && strlen($pngData) > 100 && substr($pngData, 1, 3) === 'PNG') {
             return $pngData;
         }
 
-        // Method 2: Offline fallback via Google Charts
-        $fallbackUrl = "https://chart.googleapis.com/chart?chs={$size}x{$size}&cht=qr&chl={$encoded}&choe=UTF-8";
-        $pngData = @file_get_contents($fallbackUrl, false, $context);
-        if ($pngData && strlen($pngData) > 100 && substr($pngData, 1, 3) === 'PNG') {
-            return $pngData;
-        }
-
-        // Method 3: Pure Local GD Synthesized QR-styled High-Res Asset if completely offline
+        // Method 3: Fallback
         return self::generateLocalFallbackPng($url, $size);
     }
 
@@ -159,9 +173,9 @@ function generate_member_directory_qr(PDO $pdo, $websiteMemberId, $forceRegenera
         return $relativePath;
     }
 
-    // Public Profile URL with full scheme & domain
+    // Public Profile URL with full scheme & domain (pointing to robust public profile path)
     $publicBase = function_exists('get_public_base_url') ? get_public_base_url() : 'https://uap-quezonchapter.page.gd';
-    $profileUrl = rtrim($publicBase, '/') . '/profile/' . $websiteMemberId;
+    $profileUrl = rtrim($publicBase, '/') . '/public/member_profile.php?id=' . $websiteMemberId;
 
     $pngData = ChapterQRCode::generatePng($profileUrl, 500);
     if ($pngData) {

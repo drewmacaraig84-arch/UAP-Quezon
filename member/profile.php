@@ -364,7 +364,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
               <a href="download_qr.php" class="btn btn-primary btn-sm" style="width: 100%; justify-content: center; font-size: 11.5px; font-weight: 700; padding: 7px 10px;">
                 <?php echo icon('download', '', 13); ?> Download QR Code
               </a>
-              <a href="<?php echo BASE_URL . '/profile/' . $wmRecord['id']; ?>" target="_blank" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: center; font-size: 11px; padding: 5px 10px;">
+              <a href="<?php echo BASE_URL . '/public/member_profile.php?id=' . $wmRecord['id']; ?>" target="_blank" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: center; font-size: 11px; padding: 5px 10px;">
                 <?php echo icon('external_link', '', 12); ?> View Public Profile
               </a>
             <?php endif; ?>

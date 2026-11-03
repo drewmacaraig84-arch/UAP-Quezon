@@ -255,8 +255,17 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
                     <div class="arch-profile-card">
                         <div class="arch-header">
                             <div class="arch-avatar">
-                                <?php if (!empty($m['photo_path'])): ?>
-                                    <img src="<?php echo htmlspecialchars($m['photo_path']); ?>" alt="<?php echo htmlspecialchars($m['name']); ?>">
+                                <?php 
+                                    $photoSrc = '';
+                                    if (!empty($m['photo_path'])) {
+                                        $photoSrc = str_starts_with($m['photo_path'], 'http') 
+                                            ? $m['photo_path'] 
+                                            : BASE_URL . '/' . ltrim($m['photo_path'], '/');
+                                    }
+                                ?>
+                                <?php if (!empty($photoSrc)): ?>
+                                    <img src="<?php echo htmlspecialchars($photoSrc); ?>" alt="<?php echo htmlspecialchars($m['name']); ?>" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                    <div class="arch-fallback-initials" style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--quezon-gold); font-weight: 700;"><?php echo htmlspecialchars($initials); ?></div>
                                 <?php else: ?>
                                     <?php echo htmlspecialchars($initials); ?>
                                 <?php endif; ?>

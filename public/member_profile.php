@@ -349,8 +349,17 @@ $activePage = 'architects';
             <!-- HERO PROFILE CARD -->
             <div class="profile-hero">
                 <div class="profile-avatar-box">
-                    <?php if (!empty($member['photo_path'])): ?>
-                        <img src="<?php echo BASE_URL . '/' . ltrim($member['photo_path'], '/'); ?>" alt="<?php echo htmlspecialchars($member['name']); ?>">
+                    <?php 
+                        $profilePhotoSrc = '';
+                        if (!empty($member['photo_path'])) {
+                            $profilePhotoSrc = str_starts_with($member['photo_path'], 'http')
+                                ? $member['photo_path']
+                                : BASE_URL . '/' . ltrim($member['photo_path'], '/');
+                        }
+                    ?>
+                    <?php if (!empty($profilePhotoSrc)): ?>
+                        <img src="<?php echo htmlspecialchars($profilePhotoSrc); ?>" alt="<?php echo htmlspecialchars($member['name']); ?>" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                        <div class="profile-avatar-initials" style="display: none;"><?php echo htmlspecialchars($initials); ?></div>
                     <?php else: ?>
                         <div class="profile-avatar-initials"><?php echo htmlspecialchars($initials); ?></div>
                     <?php endif; ?>
