@@ -34,6 +34,7 @@ $hoursSunday = $hoursSunday ?? get_site_setting($pdo, 'office_hours_sunday', 'Cl
                 <li><a href="<?php echo BASE_URL; ?>/public/architects.php">Chapter Architects Directory</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/public/news.php">News, CPD &amp; Events</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/public/milestones.php">Timeline &amp; Milestones</a></li>
+                <li><a href="<?php echo BASE_URL; ?>/public/partners.php">Industry Partners</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/public/contact.php">Contact Secretariat</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/auth/login.php">Member Portal &amp; Dues</a></li>
             </ul>

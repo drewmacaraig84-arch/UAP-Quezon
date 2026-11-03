@@ -138,6 +138,7 @@ if ($isUserLoggedIn) {
                 <li><a href="<?php echo BASE_URL; ?>/public/architects.php" class="<?php echo $activePage === 'architects' ? 'active' : ''; ?>">Architects</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/public/news.php" class="<?php echo $activePage === 'news' ? 'active' : ''; ?>">News &amp; Events</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/public/milestones.php" class="<?php echo $activePage === 'milestones' ? 'active' : ''; ?>">Milestones</a></li>
+                <li><a href="<?php echo BASE_URL; ?>/public/partners.php" class="<?php echo $activePage === 'partners' ? 'active' : ''; ?>">Partners</a></li>
                 <li><a href="<?php echo BASE_URL; ?>/public/contact.php" class="<?php echo $activePage === 'contact' ? 'active' : ''; ?>">Contact</a></li>
             </ul>
         </nav>
@@ -161,6 +162,7 @@ if ($isUserLoggedIn) {
             <li><a href="<?php echo BASE_URL; ?>/public/architects.php" class="<?php echo $activePage === 'architects' ? 'active' : ''; ?>" onclick="closeMobileMenu()"><?php echo icon('members', '', 16); ?> <span>Architect Directory</span></a></li>
             <li><a href="<?php echo BASE_URL; ?>/public/news.php" class="<?php echo $activePage === 'news' ? 'active' : ''; ?>" onclick="closeMobileMenu()"><?php echo icon('newspaper', '', 16); ?> <span>News &amp; Events</span></a></li>
             <li><a href="<?php echo BASE_URL; ?>/public/milestones.php" class="<?php echo $activePage === 'milestones' ? 'active' : ''; ?>" onclick="closeMobileMenu()"><?php echo icon('clock', '', 16); ?> <span>Milestones</span></a></li>
+            <li><a href="<?php echo BASE_URL; ?>/public/partners.php" class="<?php echo $activePage === 'partners' ? 'active' : ''; ?>" onclick="closeMobileMenu()"><?php echo icon('handshake', '', 16); ?> <span>Partners</span></a></li>
             <li><a href="<?php echo BASE_URL; ?>/public/contact.php" class="<?php echo $activePage === 'contact' ? 'active' : ''; ?>" onclick="closeMobileMenu()"><?php echo icon('mail', '', 16); ?> <span>Contact Us</span></a></li>
             <li class="mobile-portal-item">
                 <a href="<?php echo $userPortalUrl; ?>" class="btn-mobile-portal">
