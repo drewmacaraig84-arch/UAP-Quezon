@@ -82,10 +82,12 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             flex-shrink: 0;
             text-align: center;
         }
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
+            .page-hero { padding: 3.5rem 1rem 2.2rem; }
             .milestone-card-full {
                 flex-direction: column;
                 gap: 1rem;
+                padding: 1.35rem 1rem;
             }
         }
     </style>

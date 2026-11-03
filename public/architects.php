@@ -160,7 +160,7 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
         }
         .architect-card-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
             gap: 1.5rem;
             margin-top: 1.5rem;
         }
@@ -203,6 +203,14 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+        @media (max-width: 768px) {
+            .page-hero { padding: 3.5rem 1rem 2.2rem; }
+            .search-container { padding: 1.1rem 0.85rem; }
+            .search-bar-wrap { flex-direction: column; gap: 8px; }
+            .search-bar-wrap button { width: 100%; justify-content: center; }
+            .spec-filter-chips { gap: 6px; }
+            .spec-chip { font-size: 0.78rem; padding: 5px 12px; }
         }
     </style>
 </head>

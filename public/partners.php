@@ -108,7 +108,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         }
         .partners-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
             gap: 1.8rem;
             margin-top: 2.5rem;
         }

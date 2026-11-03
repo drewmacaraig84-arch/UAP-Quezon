@@ -605,9 +605,15 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             font-weight: 800;
             color: #ffffff;
             letter-spacing: -0.02em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: block;
+            line-height: 1.35;
+            margin: 0;
+            word-break: break-word;
+        }
+        .section-header h2 svg {
+            vertical-align: -3px;
+            margin-right: 8px;
+            display: inline-block;
         }
 
         .section-header h2 span {
@@ -1066,8 +1072,8 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             .page-container { padding: 1.5rem 0.75rem; }
             .section-box { padding: 1.2rem 0.85rem; border-radius: 12px; margin-bottom: 1.5rem; }
             .section-box::before { left: 0.85rem; right: 0.85rem; }
-            .section-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-            .section-header h2 { font-size: 1.2rem; }
+            .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .section-header h2 { font-size: 1.25rem; line-height: 1.35; }
             .about-features-grid { grid-template-columns: minmax(0, 1fr); }
             .news-grid { grid-template-columns: minmax(0, 1fr); }
             .news-card { padding: 1.1rem 0.85rem; }

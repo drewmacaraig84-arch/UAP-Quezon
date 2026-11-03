@@ -53,6 +53,21 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             align-items: center;
             margin-top: 2rem;
         }
+        .chapter-badge-card {
+            background: var(--quezon-card-inner);
+            border: 1px solid var(--quezon-border-gold);
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+        }
+        .history-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            border-top: 1px solid var(--quezon-border);
+            padding-top: 16px;
+            text-align: left;
+        }
         .highlight-quote {
             background: linear-gradient(135deg, rgba(229, 138, 19, 0.1) 0%, rgba(21, 128, 61, 0.08) 100%);
             border-left: 4px solid var(--quezon-gold);
@@ -62,6 +77,12 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             color: #f1f5f9;
             margin: 1.5rem 0;
             font-style: italic;
+        }
+        .about-pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
         }
         .pillar-card {
             background: var(--quezon-card-inner);
@@ -75,7 +96,16 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             border-color: var(--quezon-border-gold);
         }
         @media (max-width: 900px) {
-            .history-grid { grid-template-columns: 1fr; }
+            .history-grid { grid-template-columns: 1fr; gap: 1.8rem; }
+        }
+        @media (max-width: 768px) {
+            .page-hero { padding: 3.5rem 1rem 2.2rem; }
+            .pillar-card { padding: 1.35rem 1.1rem; }
+            .highlight-quote { padding: 1.1rem 1rem; font-size: 0.95rem; }
+        }
+        @media (max-width: 540px) {
+            .chapter-badge-card { padding: 1.4rem 1rem; }
+            .history-stats-grid { grid-template-columns: 1fr; gap: 10px; }
         }
     </style>
 </head>
@@ -116,7 +146,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                     </div>
                 </div>
 
-                <div style="background: var(--quezon-card-inner); border: 1px solid var(--quezon-border-gold); padding: 2rem; border-radius: 16px; text-align: center;">
+                <div class="chapter-badge-card">
                     <div style="width: 120px; height: 120px; border-radius: 50%; background: #ffffff; padding: 4px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 24px rgba(229,138,19,0.3);">
                         <img src="<?php echo $logoSrc; ?>" alt="UAP Quezon" style="width: 90%; height: 90%; object-fit: contain;">
                     </div>
@@ -124,7 +154,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                     <div style="font-size: 0.82rem; color: var(--quezon-gold); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px;">
                         IAPOA Chapter 121 &bull; DISTRICT - B4
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-top: 1px solid var(--quezon-border); padding-top: 16px; text-align: left;">
+                    <div class="history-stats-grid">
                         <div>
                             <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Charter Date</span>
                             <strong style="color: #ffffff; font-size: 0.95rem;">Nov 11, 1977</strong>
@@ -190,7 +220,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 <h2><?php echo icon('sparkles', '', 22); ?> Our Four <span>Pillars of Excellence</span></h2>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+            <div class="about-pillars-grid">
                 <div class="pillar-card">
                     <div style="color: var(--quezon-gold); margin-bottom: 12px;"><?php echo icon('shield_check', '', 28); ?></div>
                     <h3 style="color: #ffffff; font-size: 1.1rem; margin-bottom: 8px;">RA 9266 &amp; Ethical Practice</h3>

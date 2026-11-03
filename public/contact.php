@@ -104,7 +104,11 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             flex-shrink: 0;
         }
         @media (max-width: 900px) {
-            .contact-layout { grid-template-columns: 1fr; }
+            .contact-layout { grid-template-columns: 1fr; gap: 1.5rem; }
+        }
+        @media (max-width: 768px) {
+            .page-hero { padding: 3.5rem 1rem 2.2rem; }
+            .info-card-wrap, .contact-form-wrap { padding: 1.35rem 1rem; }
         }
     </style>
 </head>
