@@ -200,7 +200,7 @@ $activePage = 'architects';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $pageTitle; ?></title>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/public_theme.css?v=2.4">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/public_theme.css?v=2.5">
     <link rel="icon" type="image/jpeg" href="<?php echo BASE_URL; ?>/public/logo.jpg">
     <style>
         .profile-container {
@@ -640,7 +640,7 @@ $activePage = 'architects';
 
             <!-- 2. PORTFOLIO & ARCHITECTURAL PRACTICE / COMPLETED WORKS -->
             <?php if (!empty($projects)): ?>
-            <div class="profile-completed-works-section reveal-pop">
+            <div class="profile-completed-works-section reveal-pop" style="margin-bottom: 3.5rem;">
                 <div class="completed-works-header">
                     <p class="completed-works-eyebrow">PORTFOLIO &amp; ARCHITECTURAL PRACTICE</p>
                     <h2 class="completed-works-title">
