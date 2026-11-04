@@ -278,6 +278,8 @@ include __DIR__ . '/../includes/header.php';
           <option value="all">All Members</option>
           <option value="good-standing">Good Standing</option>
           <option value="standing-revoked">Standing Revoked / Hold</option>
+          <option value="active-attendance">Active Attendance</option>
+          <option value="inactive-attendance">Inactive Attendance</option>
           <option value="fully-paid">Fully Paid</option>
           <option value="partially-paid">Partially Paid</option>
           <option value="pending-verification">Pending Verification</option>
@@ -285,6 +287,13 @@ include __DIR__ . '/../includes/header.php';
           <option value="awaiting-approval">Awaiting Approval</option>
         </select>
       </div>
+    </div>
+
+    <!-- Download PDF Action Button -->
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <a href="export_members_pdf.php" target="_blank" class="btn" style="background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.35); font-weight: 700; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; text-decoration: none; border-radius: 8px; transition: transform 0.2s;" title="Export and Download Masterlist of Members as PDF">
+        <?php echo icon('pdf', '', 15); ?> <span>Download PDF Masterlist</span>
+      </a>
     </div>
   </div>
 
@@ -305,6 +314,10 @@ include __DIR__ . '/../includes/header.php';
       <tbody>
       <?php foreach ($members as $m):
         $standing = get_member_standing_details($pdo, $m['id']);
+        $mAtt = get_or_create_member_attendance($pdo, $m['id']);
+        $ac = $mAtt['computed'];
+        $activity_status = strtolower($ac['badge_label'] ?? 'inactive');
+
         if ($m['status'] === 'pending') {
             $row_status = 'awaiting-approval';
         } elseif ($standing['is_revoked']) {
@@ -322,27 +335,38 @@ include __DIR__ . '/../includes/header.php';
         }
         $search_text = strtolower($m['name'] . ' ' . $m['id_number']);
       ?>
-      <tr data-status="<?php echo $row_status; ?>" data-good="<?php echo $standing['is_good'] ? '1' : '0'; ?>" data-revoked="<?php echo $standing['is_revoked'] ? '1' : '0'; ?>" data-search="<?php echo htmlspecialchars($search_text); ?>">
+      <tr data-status="<?php echo $row_status; ?>" data-good="<?php echo $standing['is_good'] ? '1' : '0'; ?>" data-revoked="<?php echo $standing['is_revoked'] ? '1' : '0'; ?>" data-activity="<?php echo $activity_status; ?>" data-search="<?php echo htmlspecialchars($search_text); ?>">
         <td>
-          <strong style="color: var(--text-primary);"><?php echo htmlspecialchars($m['name']); ?></strong>
-          <?php if ($m['status'] === 'pending'): ?>
-            <span class="badge-pill badge-pending" style="font-size: 10px;">Pending</span>
-          <?php elseif ($standing['is_revoked']): ?>
-            <span class="badge-pill badge-unpaid" style="font-size: 10px;" title="<?php echo htmlspecialchars($standing['reason'] ?? 'Standing Revoked'); ?>">
-              <?php echo icon('alert', '', 10); ?> Standing Revoked
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-weight: 700; color: var(--text-primary); font-size: 13.5px; line-height: 1.3;">
+              <?php echo htmlspecialchars($m['name']); ?>
             </span>
-          <?php elseif ($standing['is_good']): ?>
-            <span class="badge-pill badge-paid" style="font-size: 10px;"><?php echo icon('good_members', '', 10); ?> Good Standing</span>
-          <?php endif; ?>
-          <?php
-            $mAtt = get_or_create_member_attendance($pdo, $m['id']);
-            $ac = $mAtt['computed'];
-          ?>
-          <a href="attendance.php?edit_member_id=<?php echo $m['id']; ?>" style="text-decoration:none;">
-            <span class="badge" style="background: <?php echo $ac['badge_bg']; ?>; color: <?php echo $ac['badge_color']; ?>; border: 1px solid <?php echo $ac['badge_border']; ?>; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
-              <?php echo $ac['badge_label']; ?> (<?php echo $ac['total_attended']; ?>)
-            </span>
-          </a>
+            <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <?php if ($m['status'] === 'pending'): ?>
+                <span class="badge-pill badge-pending" style="font-size: 10px; padding: 2px 7px; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px;">
+                  Pending Approval
+                </span>
+              <?php elseif ($standing['is_revoked']): ?>
+                <span class="badge-pill badge-unpaid" style="font-size: 10px; padding: 2px 7px; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px;" title="<?php echo htmlspecialchars($standing['reason'] ?? 'Standing Revoked'); ?>">
+                  <?php echo icon('alert', '', 10); ?> Standing Revoked
+                </span>
+              <?php elseif ($standing['is_good']): ?>
+                <span class="badge-pill badge-paid" style="font-size: 10px; padding: 2px 7px; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px;">
+                  <?php echo icon('good_members', '', 10); ?> Good Standing
+                </span>
+              <?php else: ?>
+                <span class="badge-pill badge-unpaid" style="font-size: 10px; padding: 2px 7px; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px;">
+                  Not in Good Standing
+                </span>
+              <?php endif; ?>
+
+              <a href="attendance.php?edit_member_id=<?php echo $m['id']; ?>" style="text-decoration: none; display: inline-flex;" title="View & Manage Attendance">
+                <span class="badge" style="background: <?php echo $ac['badge_bg']; ?>; color: <?php echo $ac['badge_color']; ?>; border: 1px solid <?php echo $ac['badge_border']; ?>; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px;">
+                  <?php echo $ac['badge_label']; ?>&nbsp;(<?php echo $ac['total_attended']; ?>)
+                </span>
+              </a>
+            </div>
+          </div>
         </td>
         <td><code><?php echo htmlspecialchars($m['id_number']); ?></code></td>
         <td>
@@ -592,6 +616,10 @@ function filterTable() {
       matchStatus = row.dataset.good === '1';
     } else if (status === 'standing-revoked') {
       matchStatus = row.dataset.revoked === '1';
+    } else if (status === 'active-attendance') {
+      matchStatus = row.dataset.activity === 'active';
+    } else if (status === 'inactive-attendance') {
+      matchStatus = row.dataset.activity === 'inactive';
     } else if (status !== 'all') {
       matchStatus = row.dataset.status === status;
     }
