@@ -8,7 +8,7 @@ $activePage = 'news';
 
 $newsItems = [];
 try {
-    $newsItems = $pdo->query("SELECT * FROM news_announcements WHERE target_audience IN ('public', 'all') AND is_published = 1 AND deleted_at IS NULL ORDER BY display_order ASC, created_at DESC")->fetchAll();
+    $newsItems = $pdo->query("SELECT * FROM news_announcements WHERE (target_audience IN ('public', 'all') OR target_audience IS NULL OR target_audience = '') AND (is_published = 1 OR is_published IS NULL) AND deleted_at IS NULL ORDER BY display_order ASC, id DESC")->fetchAll();
 } catch (Exception $e) {}
 
 $logoSrc = BASE_URL . '/public/logo.jpg';
@@ -139,7 +139,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 <?php foreach ($newsItems as $n): ?>
                     <article class="news-article-card">
                         <span class="news-badge">
-                            <?php echo htmlspecialchars($n['date_display'] ?: date('F d, Y', strtotime($n['created_at']))); ?>
+                            <?php echo htmlspecialchars(!empty($n['date_posted']) ? date('F d, Y', strtotime($n['date_posted'])) : (!empty($n['date_display']) ? $n['date_display'] : date('F d, Y', strtotime($n['created_at'])))); ?>
                         </span>
                         <h3 class="news-card-title"><?php echo htmlspecialchars($n['title']); ?></h3>
                         <p class="news-card-text">

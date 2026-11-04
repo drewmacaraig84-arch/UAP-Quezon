@@ -427,8 +427,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             }
         }
 
-        $stmt = $pdo->prepare("INSERT INTO news_announcements (title, summary, image_path, date_posted, display_order) VALUES (?, ?, ?, ?, (SELECT COALESCE(MAX(display_order), 0) + 1 FROM news_announcements n2))");
-        $stmt->execute([$_POST['news_title'], $_POST['news_summary'] ?? '', $image_path, $_POST['news_date'] ?? null]);
+        $news_date = !empty($_POST['news_date']) ? $_POST['news_date'] : date('Y-m-d');
+        $date_display = date('M d, Y', strtotime($news_date));
+        $content = !empty($_POST['news_content']) ? trim($_POST['news_content']) : ($_POST['news_summary'] ?? '');
+        $stmt = $pdo->prepare("INSERT INTO news_announcements (title, summary, content, image_path, date_posted, date_display, target_audience, is_published, is_active, display_order) VALUES (?, ?, ?, ?, ?, ?, 'public', 1, 1, (SELECT COALESCE(MAX(display_order), 0) + 1 FROM news_announcements n2))");
+        $stmt->execute([$_POST['news_title'], $_POST['news_summary'] ?? '', $content, $image_path, $news_date, $date_display]);
         $success = 'News announcement added successfully.';
     }
 
@@ -466,8 +469,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             }
         }
 
-        $stmt = $pdo->prepare("UPDATE news_announcements SET title = ?, summary = ?, image_path = ?, date_posted = ? WHERE id = ?");
-        $stmt->execute([$title, $summary, $image_path, $date, $news_id]);
+        $date_display = date('M d, Y', strtotime($date));
+        $content = !empty($_POST['news_content']) ? trim($_POST['news_content']) : $summary;
+        $stmt = $pdo->prepare("UPDATE news_announcements SET title = ?, summary = ?, content = ?, image_path = ?, date_posted = ?, date_display = ?, target_audience = 'public', is_published = 1, is_active = 1 WHERE id = ?");
+        $stmt->execute([$title, $summary, $content, $image_path, $date, $date_display, $news_id]);
         $success = 'News announcement updated successfully.';
     }
 
@@ -1433,7 +1438,10 @@ function switchSettingsTab(tabId, btn) {
             <div style="flex: 1; min-width: 0;">
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
                 <strong style="font-size: 14.5px; color: var(--text-primary);"><?php echo htmlspecialchars($item['title']); ?></strong>
-                <span class="badge" style="font-size: 11px; flex-shrink: 0;"><?php echo date('M d, Y', strtotime($item['date_posted'])); ?></span>
+                <?php 
+                  $itemDate = !empty($item['date_posted']) ? $item['date_posted'] : (!empty($item['date_display']) ? date('Y-m-d', strtotime($item['date_display'])) : date('Y-m-d', strtotime($item['created_at'])));
+                ?>
+                <span class="badge" style="font-size: 11px; flex-shrink: 0;"><?php echo date('M d, Y', strtotime($itemDate)); ?></span>
               </div>
               <p class="muted" style="margin: 0; font-size: 12.5px; line-height: 1.5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 480px;">
                 <?php echo htmlspecialchars($item['summary']); ?>
@@ -1448,7 +1456,7 @@ function switchSettingsTab(tabId, btn) {
                         'title' => $item['title'],
                         'summary' => $item['summary'],
                         'image_path' => $item['image_path'] ?? null,
-                        'date_posted' => $item['date_posted']
+                        'date_posted' => $itemDate
                       ]), ENT_QUOTES, 'UTF-8'); ?>)"
                       style="font-size: 12px; padding: 5px 10px; display: inline-flex; align-items: center; gap: 4px;">
                 <?php echo icon('edit', '', 12); ?> <span>Edit</span>
@@ -1806,7 +1814,8 @@ function switchSettingsTab(tabId, btn) {
   function openEditNewsModal(data) {
     document.getElementById('edit_news_id').value = data.id;
     document.getElementById('edit_news_title').value = data.title || '';
-    document.getElementById('edit_news_date').value = data.date_posted ? data.date_posted.substring(0, 10) : '';
+    var dateVal = data.date_posted ? data.date_posted.substring(0, 10) : new Date().toISOString().substring(0, 10);
+    document.getElementById('edit_news_date').value = dateVal;
     document.getElementById('edit_news_summary').value = data.summary || '';
     
     var curImgWrap = document.getElementById('editNewsCurrentImgWrap');
@@ -1933,6 +1942,7 @@ function switchSettingsTab(tabId, btn) {
       // Background AJAX POST
       var csrf = '<?php echo csrf_token(); ?>';
       var form = new FormData();
+      form.append('_csrf_token', csrf);
       form.append('csrf_token', csrf);
       form.append('action', 'reorder_news');
       form.append('order', JSON.stringify(ids));

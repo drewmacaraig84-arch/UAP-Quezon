@@ -27,6 +27,7 @@ $userInitials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['n
 // Attendance standing
 $attendance = get_or_create_member_attendance($pdo, $userId);
 $computed = $attendance['computed'];
+$fixedToken = generate_fixed_attendance_token($userId);
 
 $page_title = 'Digital Event Pass • UAP Quezon Province Chapter';
 include __DIR__ . '/../includes/header.php';
@@ -107,24 +108,14 @@ include __DIR__ . '/../includes/header.php';
         </div>
       </div>
 
-      <!-- Rotating Countdown Timer -->
-      <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 22px;">
-        <!-- Circular SVG Timer -->
-        <div style="position: relative; width: 44px; height: 44px;">
-          <svg style="transform: rotate(-90deg); width: 44px; height: 44px;">
-            <circle cx="22" cy="22" r="18" stroke="rgba(255,255,255,0.1)" stroke-width="3.5" fill="none" />
-            <circle id="timerProgressCircle" cx="22" cy="22" r="18" stroke="#f59e0b" stroke-width="3.5" stroke-linecap="round" fill="none" stroke-dasharray="113.09" stroke-dashoffset="0" style="transition: stroke-dashoffset 1s linear, stroke 0.3s ease;" />
-          </svg>
-          <span id="countdownNumber" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #f59e0b;">60</span>
+      <!-- Fixed QR Details -->
+      <div style="margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 8px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); padding: 7px 16px; border-radius: 999px;">
+          <span style="color: #f59e0b; display: inline-flex;"><?php echo icon('shield_check', '', 14); ?></span>
+          <span style="font-size: 12px; font-weight: 700; color: #f59e0b; letter-spacing: 0.3px;">Official Fixed Attendance Pass</span>
         </div>
-        
-        <div style="text-align: left;">
-          <div style="font-size: 12.5px; font-weight: 700; color: var(--text-primary);">Dynamic Rolling Code</div>
-          <div style="font-size: 11px; color: var(--text-secondary);" id="countdownStatusText">Refreshes in <span id="countdownSecondsText">60</span>s to prevent fraud</div>
-        </div>
-
-        <button type="button" onclick="manualRefreshPass()" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px; margin-left: 8px;" title="Refresh QR code now">
-          <?php echo icon('clock', '', 12); ?> Refresh
+        <button type="button" onclick="downloadQRCode()" class="btn btn-sm btn-secondary" style="font-size: 11.5px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;">
+          <?php echo icon('download', '', 13); ?> <span>Save QR Pass</span>
         </button>
       </div>
 
@@ -132,11 +123,11 @@ include __DIR__ . '/../includes/header.php';
 
     <!-- Security Advisory Note -->
     <div style="background: rgba(15, 23, 42, 0.7); padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 11.5px; color: var(--text-secondary); display: flex; align-items: center; gap: 10px;">
-      <div style="color: #f59e0b; flex-shrink: 0;">
-        <?php echo icon('shield_check', '', 18); ?>
+      <div style="color: #10b981; flex-shrink: 0;">
+        <?php echo icon('check', '', 18); ?>
       </div>
       <div>
-        <strong>Anti-Proxy Security:</strong> This QR code continuously rolls and expires. Screenshots or forwarded photos are automatically rejected by the registration scanner.
+        <strong>Permanent Member QR:</strong> Present this QR code at chapter general assemblies, technical CPD seminars, and event registration desks for instant check-in.
       </div>
     </div>
   </div>
@@ -167,13 +158,9 @@ include __DIR__ . '/../includes/header.php';
 
 <script>
 let qrCodeInstance = null;
-let currentToken = null;
-let countdownRemaining = 60;
-let countdownInterval = null;
-const TOTAL_CYCLE = 60;
-const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 18; // ~113.097
+const fixedToken = <?php echo json_encode($fixedToken); ?>;
 
-// Live clock updates every second
+// Live clock display
 function updateLiveClock() {
   const clockEl = document.getElementById('liveClockDisplay');
   if (!clockEl) return;
@@ -183,25 +170,7 @@ function updateLiveClock() {
 }
 setInterval(updateLiveClock, 1000);
 
-// Fetch fresh rolling token from server
-async function fetchFreshToken() {
-  try {
-    const res = await fetch('<?php echo BASE_URL; ?>/member/api/get_rolling_qr.php', {
-      headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    });
-    if (!res.ok) throw new Error('Network error fetching pass');
-    const data = await res.json();
-    if (data.success && data.token) {
-      renderQRCode(data.token);
-      resetCountdown(data.expires_in || 60);
-    }
-  } catch (err) {
-    console.error('Pass update error:', err);
-  }
-}
-
 function renderQRCode(tokenString) {
-  currentToken = tokenString;
   const container = document.getElementById('qrcodeCanvas');
   container.innerHTML = '';
   qrCodeInstance = new QRCode(container, {
@@ -214,53 +183,19 @@ function renderQRCode(tokenString) {
   });
 }
 
-function resetCountdown(seconds) {
-  countdownRemaining = seconds;
-  updateTimerUI();
-  clearInterval(countdownInterval);
-  countdownInterval = setInterval(() => {
-    countdownRemaining--;
-    if (countdownRemaining <= 0) {
-      clearInterval(countdownInterval);
-      fetchFreshToken();
-    } else {
-      updateTimerUI();
-    }
-  }, 1000);
-}
-
-function updateTimerUI() {
-  const numEl = document.getElementById('countdownNumber');
-  const txtEl = document.getElementById('countdownSecondsText');
-  const circleEl = document.getElementById('timerProgressCircle');
-
-  if (numEl) numEl.textContent = countdownRemaining;
-  if (txtEl) txtEl.textContent = countdownRemaining;
-
-  if (circleEl) {
-    const fraction = countdownRemaining / TOTAL_CYCLE;
-    const offset = CIRCLE_CIRCUMFERENCE * (1 - fraction);
-    circleEl.style.strokeDashoffset = offset;
-    // Turn amber/red when under 10 seconds
-    if (countdownRemaining <= 10) {
-      circleEl.style.stroke = '#ef4444';
-      if (numEl) numEl.style.color = '#ef4444';
-    } else {
-      circleEl.style.stroke = '#f59e0b';
-      if (numEl) numEl.style.color = '#f59e0b';
-    }
+function downloadQRCode() {
+  const img = document.querySelector('#qrcodeCanvas img');
+  if (img && img.src) {
+    const link = document.createElement('a');
+    link.download = 'UAP-Quezon-Attendance-Pass.png';
+    link.href = img.src;
+    link.click();
   }
 }
 
-function manualRefreshPass() {
-  clearInterval(countdownInterval);
-  document.getElementById('countdownNumber').textContent = '...';
-  fetchFreshToken();
-}
-
-// Initial load
+// Initial load - render immediately without waiting for network
 window.addEventListener('DOMContentLoaded', () => {
-  fetchFreshToken();
+  renderQRCode(fixedToken);
 });
 </script>
 

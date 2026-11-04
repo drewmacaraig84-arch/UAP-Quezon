@@ -17,14 +17,13 @@ if ($userId <= 0) {
     exit;
 }
 
-$tokenData = generate_rolling_attendance_token($userId);
+$fixedToken = generate_fixed_attendance_token($userId);
 
 echo json_encode([
     'success'     => true,
-    'token'       => $tokenData['token'],
-    'expires_in'  => $tokenData['expires_in'],
-    'expires_at'  => $tokenData['expires_at'],
-    'server_time' => $tokenData['server_time'],
+    'token'       => $fixedToken,
+    'is_fixed'    => true,
+    'server_time' => time(),
 ]);
 exit;
 

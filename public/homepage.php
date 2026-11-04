@@ -103,7 +103,7 @@ $heroTagline = get_site_setting($pdo, 'hero_tagline', 'MOVERS OF PROGRESS 2.0');
 // Fetch news from database
 $newsItems = [];
 try {
-    $newsItems = $pdo->query("SELECT * FROM news_announcements WHERE target_audience IN ('public', 'all') AND is_published = 1 AND deleted_at IS NULL ORDER BY display_order ASC LIMIT 4")->fetchAll();
+    $newsItems = $pdo->query("SELECT * FROM news_announcements WHERE (target_audience IN ('public', 'all') OR target_audience IS NULL OR target_audience = '') AND (is_published = 1 OR is_published IS NULL) AND deleted_at IS NULL ORDER BY display_order ASC, id DESC LIMIT 4")->fetchAll();
 } catch (Exception $e) {}
 
 // Fetch milestones
@@ -1608,7 +1608,8 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                     <div class="news-grid">
                         <?php foreach ($newsItems as $news): ?>
                             <article class="news-card">
-                                <span class="news-date"><?php echo htmlspecialchars($news['date_display'] ?: date('M d, Y', strtotime($news['created_at']))); ?></span>
+                                <?php $nDate = !empty($news['date_posted']) ? date('M d, Y', strtotime($news['date_posted'])) : (!empty($news['date_display']) ? $news['date_display'] : date('M d, Y', strtotime($news['created_at']))); ?>
+                                <span class="news-date"><?php echo htmlspecialchars($nDate); ?></span>
                                 <h3><?php echo htmlspecialchars($news['title']); ?></h3>
                                 <p><?php echo htmlspecialchars($news['summary']); ?></p>
                             </article>

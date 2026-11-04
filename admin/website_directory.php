@@ -239,6 +239,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+
+    // Action: Remove / Unpublish from Public Directory
+    if ($action === 'remove_from_directory') {
+        $userId = (int)($_POST['user_id'] ?? 0);
+        $wmId = (int)($_POST['wm_id'] ?? 0);
+        if ($userId > 0 || $wmId > 0) {
+            $pdo->prepare("UPDATE website_members SET is_published = 0 WHERE (user_id = ? OR id = ?)")->execute([$userId, $wmId]);
+            if ($userId > 0) {
+                $pdo->prepare("UPDATE directory_applications SET status = 'rejected', notes = 'Unpublished from directory by admin' WHERE user_id = ?")->execute([$userId]);
+            }
+            $success = 'Architect has been removed and unpublished from the public directory.';
+        }
+    }
 }
 
 // 1. Fetch Pending Applications (Awaiting Fee)
@@ -596,13 +609,22 @@ include __DIR__ . '/../includes/header.php';
                 </div>
               </td>
               <td style="text-align: right;">
-                <div style="display:inline-flex; align-items:center; gap:6px; justify-content:flex-end;">
+                <div style="display:inline-flex; align-items:center; gap:6px; justify-content:flex-end; flex-wrap:wrap;">
                   <a href="download_qr.php?id=<?php echo (int)$am['id']; ?>" class="btn btn-sm btn-primary" style="font-size:11px; padding:4px 9px; display:inline-flex; align-items:center; gap:4px;" title="Download Public Directory QR Code">
                     <?php echo icon('download', '', 12); ?> <span>Download QR</span>
                   </a>
                   <a href="<?php echo BASE_URL; ?>/profile/<?php echo (int)$am['id']; ?>" target="_blank" class="btn btn-sm btn-secondary" style="font-size:11px; padding:4px 9px; display:inline-flex; align-items:center; gap:4px;">
                     <?php echo icon('external_link', '', 12); ?> <span>View Profile</span>
                   </a>
+                  <form method="post" style="display:inline-block; margin:0;" onsubmit="return confirm('Remove <?php echo htmlspecialchars(addslashes($am['name'])); ?> from the public directory? Their profile will be unpublished and hidden from the public website.');">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="action" value="remove_from_directory">
+                    <input type="hidden" name="user_id" value="<?php echo (int)$am['user_id']; ?>">
+                    <input type="hidden" name="wm_id" value="<?php echo (int)($am['wm_id'] ?? $am['id']); ?>">
+                    <button type="submit" class="btn btn-sm btn-danger" style="font-size:11px; padding:4px 9px; display:inline-flex; align-items:center; gap:4px; background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.35); cursor:pointer;" title="Remove / Delete from Public Directory">
+                      <?php echo icon('trash', '', 12); ?> <span>Remove</span>
+                    </button>
+                  </form>
                 </div>
               </td>
             </tr>

@@ -1133,6 +1133,14 @@ if (!function_exists('get_event_title_by_key')) {
     }
 }
 
+if (!function_exists('generate_fixed_attendance_token')) {
+    function generate_fixed_attendance_token(int $userId): string {
+        $secret = get_attendance_secret_key();
+        $sig = substr(hash_hmac('sha256', "UAPQ|FIXED|{$userId}", $secret), 0, 24);
+        return "UAPQ:FIXED:{$userId}:{$sig}";
+    }
+}
+
 if (!function_exists('generate_rolling_attendance_token')) {
     function generate_rolling_attendance_token(int $userId): array {
         $secret = get_attendance_secret_key();
@@ -1157,6 +1165,25 @@ if (!function_exists('verify_rolling_attendance_token')) {
     function verify_rolling_attendance_token(string $raw): array {
         $token = trim($raw);
         $parts = explode(':', $token);
+
+        // Fixed Member Attendance Pass: UAPQ:FIXED:{userId}:{sig}
+        if (count($parts) === 4 && $parts[0] === 'UAPQ' && $parts[1] === 'FIXED') {
+            $userId = (int)$parts[2];
+            $providedSig = $parts[3];
+            if ($userId <= 0) {
+                return ['valid' => false, 'error' => 'Corrupt QR data.'];
+            }
+            $secret = get_attendance_secret_key();
+            $expectedSig = substr(hash_hmac('sha256', "UAPQ|FIXED|{$userId}", $secret), 0, 24);
+            if (!hash_equals($expectedSig, $providedSig)) {
+                return ['valid' => false, 'error' => 'Invalid or counterfeit QR pass.'];
+            }
+            return [
+                'valid'     => true,
+                'user_id'   => $userId,
+                'is_static' => true
+            ];
+        }
 
         if (count($parts) !== 6 || $parts[0] !== 'UAPQ' || $parts[1] !== 'v1') {
             // Also support static member ID or profile URL fallback if scanned
