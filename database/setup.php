@@ -197,6 +197,20 @@ try {
     echo "Notice: " . $e->getMessage() . "\n";
 }
 
+// Explicit check for dues soft-delete columns
+try {
+    $colCheck = $pdo->query("SHOW COLUMNS FROM dues LIKE 'deleted_at'")->fetch();
+    if (!$colCheck) {
+        $pdo->exec("ALTER TABLE dues ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER term");
+        echo "Added column 'deleted_at' to 'dues' table.\n";
+    }
+    $colCheck2 = $pdo->query("SHOW COLUMNS FROM dues LIKE 'deleted_by'")->fetch();
+    if (!$colCheck2) {
+        $pdo->exec("ALTER TABLE dues ADD COLUMN deleted_by INT NULL DEFAULT NULL AFTER deleted_at");
+        echo "Added column 'deleted_by' to 'dues' table.\n";
+    }
+} catch (Throwable $e) {}
+
 // Explicit check for contact_inquiries nullable email column
 try {
     $pdo->exec("ALTER TABLE contact_inquiries MODIFY COLUMN email VARCHAR(150) NULL");

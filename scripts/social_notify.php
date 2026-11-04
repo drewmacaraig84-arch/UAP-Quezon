@@ -111,6 +111,14 @@ switch ($action) {
 
     case 'summary':
     default:
+        // Automatically purge soft-deleted dues that exceeded the 7-day retention period
+        if (file_exists(__DIR__ . '/../includes/dues_service.php')) {
+            require_once __DIR__ . '/../includes/dues_service.php';
+            if (function_exists('purge_expired_soft_deleted_dues')) {
+                purge_expired_soft_deleted_dues($pdo);
+            }
+        }
+
         // Gather counts of pending items
         $approvals = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'member' AND status = 'pending' AND deleted_at IS NULL")->fetchColumn();
         $payments = (int)$pdo->query("SELECT COUNT(*) FROM payments WHERE status = 'pending' AND deleted_at IS NULL")->fetchColumn();
@@ -144,3 +152,4 @@ switch ($action) {
         }
         break;
 }
+

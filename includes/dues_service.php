@@ -73,3 +73,126 @@ function get_member_due_summary(PDO $pdo, $member_due_id) {
         'status' => calculate_due_status($verified_paid, $amount_due)
     ];
 }
+
+/**
+ * Soft delete a due package
+ *
+ * @param PDO $pdo
+ * @param int $dueId
+ * @param int|null $adminId
+ * @return bool
+ */
+function soft_delete_due_package(PDO $pdo, int $dueId, ?int $adminId = null): bool {
+    try {
+        $stmt = $pdo->prepare("UPDATE dues SET deleted_at = NOW(), deleted_by = ? WHERE id = ?");
+        $res = $stmt->execute([$adminId, $dueId]);
+        if ($res && function_exists('audit_log')) {
+            audit_log('DUE_PACKAGE_SOFT_DELETED', 'DUES', "Soft deleted due package ID {$dueId}. 7-day retention started.", $adminId);
+        }
+        return $res;
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+/**
+ * Restore a soft-deleted due package back to active
+ *
+ * @param PDO $pdo
+ * @param int $dueId
+ * @return bool
+ */
+function restore_due_package(PDO $pdo, int $dueId): bool {
+    try {
+        $stmt = $pdo->prepare("UPDATE dues SET deleted_at = NULL, deleted_by = NULL WHERE id = ?");
+        $res = $stmt->execute([$dueId]);
+        if ($res && function_exists('audit_log')) {
+            $adminId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+            audit_log('DUE_PACKAGE_RESTORED', 'DUES', "Restored due package ID {$dueId} to active list.", $adminId);
+        }
+        return $res;
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+/**
+ * Permanently purge a due package (cascading receipts, payments, member_dues, and dues)
+ *
+ * @param PDO $pdo
+ * @param int $dueId
+ * @return bool
+ */
+function purge_due_package(PDO $pdo, int $dueId): bool {
+    $inTx = $pdo->inTransaction();
+    try {
+        if (!$inTx) {
+            $pdo->beginTransaction();
+        }
+
+        $md_ids = $pdo->prepare("SELECT id FROM member_dues WHERE due_id = ?");
+        $md_ids->execute([$dueId]);
+        $md_rows = $md_ids->fetchAll(PDO::FETCH_COLUMN);
+
+        if (!empty($md_rows)) {
+            foreach ($md_rows as $md_id) {
+                $pay_ids = $pdo->prepare("SELECT id FROM payments WHERE member_due_id = ?");
+                $pay_ids->execute([$md_id]);
+                $p_rows = $pay_ids->fetchAll(PDO::FETCH_COLUMN);
+                if (!empty($p_rows)) {
+                    $ph = implode(',', array_fill(0, count($p_rows), '?'));
+                    $pdo->prepare("DELETE FROM receipts WHERE payment_id IN ($ph)")->execute(array_values($p_rows));
+                    $pdo->prepare("DELETE FROM payments WHERE id IN ($ph)")->execute(array_values($p_rows));
+                }
+            }
+            $phMd = implode(',', array_fill(0, count($md_rows), '?'));
+            $pdo->prepare("DELETE FROM member_dues WHERE id IN ($phMd)")->execute(array_values($md_rows));
+        }
+
+        $pdo->prepare("DELETE FROM dues WHERE id = ?")->execute([$dueId]);
+
+        if (!$inTx) {
+            $pdo->commit();
+        }
+
+        if (function_exists('audit_log')) {
+            $adminId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+            audit_log('DUE_PACKAGE_PURGED', 'DUES', "Permanently purged due package ID {$dueId} and cascaded all associated records.", $adminId);
+        }
+
+        return true;
+    } catch (Throwable $e) {
+        if (!$inTx && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        return false;
+    }
+}
+
+/**
+ * Automatically purge any soft-deleted dues that have exceeded the 7-day retention period.
+ *
+ * @param PDO $pdo
+ * @return int Number of permanently purged dues packages
+ */
+function purge_expired_soft_deleted_dues(PDO $pdo): int {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT id FROM dues 
+            WHERE deleted_at IS NOT NULL 
+              AND deleted_at <= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ");
+        $stmt->execute();
+        $expiredIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $purgedCount = 0;
+        foreach ($expiredIds as $dId) {
+            if (purge_due_package($pdo, (int)$dId)) {
+                $purgedCount++;
+            }
+        }
+        return $purgedCount;
+    } catch (Throwable $e) {
+        return 0;
+    }
+}

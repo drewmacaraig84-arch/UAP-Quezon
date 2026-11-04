@@ -238,6 +238,12 @@ if (!defined('SOFT_DELETE_INITIALIZED')) {
         }
 
         $id = (int)$id;
+        if ($table === 'dues') {
+            require_once __DIR__ . '/dues_service.php';
+            if (function_exists('purge_due_package')) {
+                return purge_due_package($pdo, $id);
+            }
+        }
         $stmt = $pdo->prepare("DELETE FROM `{$table}` WHERE id = ?");
         $success = $stmt->execute([$id]);
 
