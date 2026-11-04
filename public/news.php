@@ -23,7 +23,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/public_theme.css?v=2.2">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/public_theme.css?v=2.3">
     <style>
         .page-hero {
             padding: 5rem 1.5rem 3.5rem;
@@ -112,7 +112,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
     <?php require __DIR__ . '/../includes/public_nav.php'; ?>
 
     <!-- HERO -->
-    <section class="page-hero">
+    <section class="page-hero reveal">
         <div class="hero-badge">
             <?php echo icon('newspaper', '', 14); ?> CPD Seminars &bull; Assemblies &bull; Guhit Arkitektong Quezonian
         </div>
@@ -124,7 +124,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 
     <div class="page-container" style="max-width: 1200px;">
         <!-- HIGHLIGHT: GUHIT ARKITEKTONG QUEZONIAN -->
-        <section class="section-box" style="background: linear-gradient(135deg, rgba(25, 37, 66, 0.85) 0%, rgba(11, 17, 32, 0.95) 100%); border: 1px solid var(--quezon-border-gold); padding: clamp(1.2rem, 3vw, 2.2rem); margin-bottom: 2.5rem;">
+        <section class="section-box reveal" style="background: linear-gradient(135deg, rgba(25, 37, 66, 0.85) 0%, rgba(11, 17, 32, 0.95) 100%); border: 1px solid var(--quezon-border-gold); padding: clamp(1.2rem, 3vw, 2.2rem); margin-bottom: 2.5rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 18px;">
                 <div style="flex: 1; min-width: min(100%, 280px); max-width: 750px;">
                     <span class="news-badge">Signature Annual Exhibition</span>
@@ -144,7 +144,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         </section>
 
         <!-- ALL ANNOUNCEMENTS -->
-        <div class="section-header" style="margin-bottom: 1rem;">
+        <div class="section-header reveal" style="margin-bottom: 1rem;">
             <h2><?php echo icon('newspaper', '', 22); ?> Latest <span>Announcements</span></h2>
         </div>
 
@@ -173,7 +173,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         <?php endif; ?>
 
         <!-- CPD NOTICE BOX -->
-        <div class="section-box" style="margin-top: 3rem; background: var(--quezon-card-inner); border: 1px solid var(--quezon-border);">
+        <div class="section-box reveal" style="margin-top: 3rem; background: var(--quezon-card-inner); border: 1px solid var(--quezon-border);">
             <div style="display: flex; gap: 16px; align-items: flex-start;">
                 <div style="color: var(--quezon-gold); flex-shrink: 0; margin-top: 2px;">
                     <?php echo icon('award', '', 26); ?>

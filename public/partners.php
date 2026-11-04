@@ -48,7 +48,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/public_theme.css?v=2.2">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/public_theme.css?v=2.3">
     <style>
         .page-hero {
             padding: 5rem 1.5rem 3.5rem;

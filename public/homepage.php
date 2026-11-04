@@ -168,6 +168,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/public_theme.css?v=2.3">
     <style>
         :root {
             /* UAP Quezon Official Palette - Derived from Logo */
@@ -971,14 +972,90 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         .sponsor-card {
             background: var(--quezon-card-inner);
             border: 1px solid var(--quezon-border);
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 14px;
             text-align: center;
-            transition: all 0.2s ease;
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .sponsor-card:hover {
-            border-color: var(--quezon-border-green);
+            border-color: var(--quezon-border-gold);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45), 0 0 18px rgba(229, 138, 19, 0.18);
+        }
+
+        .sponsor-logo-box {
+            background: #ffffff;
+            border-radius: 8px;
+            width: 100%;
+            height: 68px;
+            max-height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 14px;
+            margin: 8px 0 6px;
+            overflow: hidden;
+            box-sizing: border-box;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.25);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .sponsor-card:hover .sponsor-logo-box {
+            box-shadow: inset 0 0 0 1px rgba(229, 138, 19, 0.35), 0 4px 14px rgba(0, 0, 0, 0.35);
+        }
+
+        .sponsor-logo-img {
+            max-width: 100% !important;
+            max-height: 52px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+            display: block !important;
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .sponsor-card:hover .sponsor-logo-img {
+            transform: scale(1.06);
+        }
+
+        .sponsor-name-link {
+            color: #ffffff;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .sponsor-name-link:hover {
+            color: var(--quezon-gold) !important;
+            text-decoration: underline;
+        }
+
+        .sponsor-view-all {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 14px;
+            padding: 9px 14px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--quezon-gold);
+            background: rgba(229, 138, 19, 0.08);
+            border: 1px solid rgba(229, 138, 19, 0.25);
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .sponsor-view-all:hover {
+            background: rgba(229, 138, 19, 0.18);
+            border-color: var(--quezon-gold);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(229, 138, 19, 0.2);
         }
 
         .sponsor-tier-badge {
@@ -989,12 +1066,13 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             padding: 2px 8px;
             border-radius: 4px;
             display: inline-block;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .tier-platinum { background: rgba(229, 138, 19, 0.2); color: #fbbf24; border: 1px solid rgba(229,138,19,0.3); }
-        .tier-gold { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-        .tier-silver { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; }
+        .tier-gold { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.25); }
+        .tier-silver { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.25); }
+        .tier-bronze, .tier-standard { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25); }
 
         /* CONTACT FORM */
         .form-group {
@@ -1877,10 +1955,10 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                                         <div class="sponsor-logo-box">
                                             <?php if ($spUrl): ?>
                                                 <a href="<?php echo htmlspecialchars($spUrl); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo htmlspecialchars($sp['name']); ?>" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-                                                    <img src="<?php echo htmlspecialchars($spLogoUrl); ?>" alt="<?php echo htmlspecialchars($sp['name']); ?>" class="sponsor-logo-img" loading="lazy" onerror="this.closest('.sponsor-logo-box').style.display='none';">
+                                                    <img src="<?php echo htmlspecialchars($spLogoUrl); ?>" alt="<?php echo htmlspecialchars($sp['name']); ?>" class="sponsor-logo-img" style="max-width: 100%; max-height: 52px; width: auto; height: auto; object-fit: contain; display: block;" loading="lazy" onerror="this.closest('.sponsor-logo-box').style.display='none';">
                                                 </a>
                                             <?php else: ?>
-                                                <img src="<?php echo htmlspecialchars($spLogoUrl); ?>" alt="<?php echo htmlspecialchars($sp['name']); ?>" class="sponsor-logo-img" loading="lazy" onerror="this.closest('.sponsor-logo-box').style.display='none';">
+                                                <img src="<?php echo htmlspecialchars($spLogoUrl); ?>" alt="<?php echo htmlspecialchars($sp['name']); ?>" class="sponsor-logo-img" style="max-width: 100%; max-height: 52px; width: auto; height: auto; object-fit: contain; display: block;" loading="lazy" onerror="this.closest('.sponsor-logo-box').style.display='none';">
                                             <?php endif; ?>
                                         </div>
                                     <?php endif; ?>

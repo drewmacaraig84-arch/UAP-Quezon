@@ -33,7 +33,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/public_theme.css?v=2.2">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/public_theme.css?v=2.3">
     <style>
         .page-hero {
             padding: 5rem 1.5rem 3.5rem;
@@ -96,7 +96,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
     <?php require __DIR__ . '/../includes/public_nav.php'; ?>
 
     <!-- HERO -->
-    <section class="page-hero">
+    <section class="page-hero reveal">
         <div class="hero-badge">
             <?php echo icon('clock', '', 14); ?> 1977 &ndash; Present &bull; Approaching Golden 50th Anniversary
         </div>
@@ -108,7 +108,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 
     <div class="page-container" style="max-width: 1100px;">
         <!-- STATS OVERVIEW -->
-        <div class="section-box" style="margin-bottom: 2.5rem; background: linear-gradient(135deg, rgba(25, 37, 66, 0.8) 0%, rgba(11, 17, 32, 0.9) 100%); border: 1px solid var(--quezon-border-gold);">
+        <div class="section-box reveal" style="margin-bottom: 2.5rem; background: linear-gradient(135deg, rgba(25, 37, 66, 0.8) 0%, rgba(11, 17, 32, 0.9) 100%); border: 1px solid var(--quezon-border-gold);">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; text-align: center;">
                 <div>
                     <span style="font-size: 2.4rem; font-weight: 800; font-family: var(--font-heading); color: var(--quezon-gold); display: block;">1977</span>
@@ -134,7 +134,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         </div>
 
         <!-- FULL MILESTONES TIMELINE -->
-        <div class="section-header">
+        <div class="section-header reveal">
             <h2><?php echo icon('award', '', 22); ?> Historical <span>Timeline &bull; Chronology</span></h2>
         </div>
 
@@ -160,7 +160,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         </div>
 
         <!-- OFFICIAL COMMEMORATIVE INFOGRAPHIC: BUILT THROUGH TIME -->
-        <section class="section-box" style="margin-top: 2.5rem; text-align: center;">
+        <section class="section-box reveal" style="margin-top: 2.5rem; text-align: center;">
             <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 1.2rem;">
                 <h2><?php echo icon('award', '', 22); ?> Official Commemorative Poster &bull; <span>Built Through Time</span></h2>
             </div>
@@ -180,7 +180,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         </section>
 
         <!-- LEADERSHIP & COMMUNITY IMPACT -->
-        <section class="section-box" style="margin-top: 2.5rem;">
+        <section class="section-box reveal" style="margin-top: 2.5rem;">
             <div class="section-header">
                 <h2><?php echo icon('handshake', '', 22); ?> Community Impact &bull; <span>RA 9266 Implementation</span></h2>
             </div>
