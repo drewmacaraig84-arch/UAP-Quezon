@@ -1952,8 +1952,8 @@ function switchSettingsTab(tabId, btn) {
         <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="test_telegram">
         <input type="hidden" name="current_tab" value="notificationsTab">
-        <input type="hidden" name="telegram_bot_token" id="test_telegram_bot_token" value="">
-        <input type="hidden" name="telegram_chat_id" id="test_telegram_chat_id" value="">
+        <input type="hidden" name="test_token" id="test_telegram_bot_token" value="">
+        <input type="hidden" name="test_chat_id" id="test_telegram_chat_id" value="">
         <button type="submit" id="sendTestAlertBtn" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; padding: 8px 16px; background: rgba(34, 158, 217, 0.15); border: 1px solid rgba(34, 158, 217, 0.4); color: #38bdf8; cursor: pointer;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
           <span id="sendTestAlertBtnText">Send Test Alert Now</span>
@@ -2018,7 +2018,7 @@ function switchSettingsTab(tabId, btn) {
             Target Chat ID / Channel ID
             <span style="color: #ef4444;">*</span>
           </label>
-          <input type="text" name="telegram_chat_id" value="<?php echo htmlspecialchars($telegram_chat_id_val); ?>" placeholder="e.g. 987654321 or -1001234567890 (for Groups)" style="width: 100%; padding: 10px 12px; font-family: monospace; font-size: 13px;">
+          <input type="text" id="telegram_chat_id" name="telegram_chat_id" value="<?php echo htmlspecialchars($telegram_chat_id_val); ?>" placeholder="e.g. 987654321 or -1001234567890 (for Groups)" style="width: 100%; padding: 10px 12px; font-family: monospace; font-size: 13px;">
           <span class="muted" style="font-size: 12px; display: block; margin-top: 4px;">Supports your private User ID, a Group ID (e.g. <code>-100...</code>), public Channel handle (e.g. <code>@uap_channel</code>), or multiple IDs separated by commas.</span>
         </div>
 
@@ -2992,13 +2992,13 @@ async function handleTelegramTestSubmit(e) {
   if (e && e.preventDefault) e.preventDefault();
   
   var tokenInput = document.getElementById('telegram_bot_token');
-  var chatInput = document.querySelector('input[name="telegram_chat_id"]');
+  var chatInput = document.getElementById('telegram_chat_id') || document.querySelector('input[type="text"][name="telegram_chat_id"]');
   var feedback = document.getElementById('telegramTestFeedback');
   var btn = document.getElementById('sendTestAlertBtn');
   var btnText = document.getElementById('sendTestAlertBtnText');
   
-  var token = tokenInput ? tokenInput.value.trim() : '';
-  var chatId = chatInput ? chatInput.value.trim() : '';
+  var token = (tokenInput && tokenInput.value.trim()) ? tokenInput.value.trim() : '<?php echo addslashes($telegram_bot_token_val); ?>';
+  var chatId = (chatInput && chatInput.value.trim()) ? chatInput.value.trim() : '<?php echo addslashes($telegram_chat_id_val); ?>';
   
   if (!token || !chatId) {
     if (feedback) {
