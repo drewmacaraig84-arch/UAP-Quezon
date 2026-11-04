@@ -1857,12 +1857,12 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             <!-- SIDEBAR -->
             <aside>
                 <!-- OFFICIAL SPONSORS -->
-                <div class="sidebar-box">
+                <div class="sidebar-box reveal" id="sidebar-partners">
                     <h3><?php echo icon('handshake', '', 18); ?> Official Partners</h3>
                     <?php if (empty($sponsors)): ?>
                         <p style="color: var(--text-muted); font-size: 0.85rem;">Partner showcase loading...</p>
                     <?php else: ?>
-                        <div class="sponsor-grid">
+                        <div class="sponsor-grid reveal-stagger">
                             <?php foreach ($sponsors as $sp): 
                                 $spTier = strtolower($sp['tier'] ?? 'gold');
                                 $spLogoUrl = !empty($sp['logo_path']) ? media_url($sp['logo_path']) : '';
@@ -1911,7 +1911,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 
                 <?php if (!empty($birthdayCelebrants)): ?>
                 <!-- CHAPTER BIRTHDAY GREETINGS (Shown only when there is an active celebrant today) -->
-                <div class="sidebar-box sidebar-birthday-card" id="birthday-greetings">
+                <div class="sidebar-box sidebar-birthday-card reveal" id="birthday-greetings">
                     <div class="birthday-card-header">
                         <span class="birthday-tag">
                             <?php echo icon('award', '', 13) ?: '🎂'; ?> Chapter Birthday Greetings
@@ -1957,7 +1957,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 <?php endif; ?>
 
                 <!-- CONTACT SECRETARIAT -->
-                <div class="sidebar-box" id="contact">
+                <div class="sidebar-box reveal" id="contact">
                     <h3><?php echo icon('mail', '', 18); ?> Contact Secretariat</h3>
 
                     <?php if ($contactSuccess): ?>

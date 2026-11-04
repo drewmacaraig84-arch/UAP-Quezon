@@ -169,9 +169,12 @@ document.addEventListener('click', function(e) {
         '.reveal-left',
         '.reveal-right',
         '.reveal-stagger',
+        '.reveal-stagger-slow',
         '[data-reveal]',
         '.section-box',
         '.sidebar-box',
+        '.sponsor-grid',
+        '.sponsor-card',
         '.arch-profile-card',
         '.officer-showcase-card',
         '.news-article-card',
@@ -190,8 +193,8 @@ document.addEventListener('click', function(e) {
             });
         }, {
             root: null,
-            rootMargin: '0px 0px -40px 0px',
-            threshold: 0.08
+            rootMargin: '0px 0px -25px 0px',
+            threshold: 0.05
         });
 
         function observeElements() {
