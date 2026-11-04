@@ -85,8 +85,26 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             flex-grow: 1;
             margin-bottom: 1.5rem;
         }
+        .highlight-exhibit-action .btn-primary-quezon {
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.86rem;
+            padding: 0.75rem 1.4rem;
+        }
         @media (max-width: 768px) {
             .news-full-grid { grid-template-columns: 1fr; }
+            .highlight-exhibit-action {
+                width: 100%;
+                margin-top: 12px;
+            }
+            .highlight-exhibit-action .btn-primary-quezon {
+                width: 100%;
+                font-size: 0.84rem;
+                padding: 0.85rem 1.2rem;
+            }
         }
     </style>
 </head>
@@ -106,20 +124,20 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 
     <div class="page-container" style="max-width: 1200px;">
         <!-- HIGHLIGHT: GUHIT ARKITEKTONG QUEZONIAN -->
-        <section class="section-box" style="background: linear-gradient(135deg, rgba(25, 37, 66, 0.85) 0%, rgba(11, 17, 32, 0.95) 100%); border: 1px solid var(--quezon-border-gold); padding: 2.2rem; margin-bottom: 2.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
-                <div style="max-width: 750px;">
+        <section class="section-box" style="background: linear-gradient(135deg, rgba(25, 37, 66, 0.85) 0%, rgba(11, 17, 32, 0.95) 100%); border: 1px solid var(--quezon-border-gold); padding: clamp(1.2rem, 3vw, 2.2rem); margin-bottom: 2.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 18px;">
+                <div style="flex: 1; min-width: min(100%, 280px); max-width: 750px;">
                     <span class="news-badge">Signature Annual Exhibition</span>
-                    <h2 style="font-size: 1.6rem; color: #ffffff; font-family: var(--font-heading); margin-bottom: 10px;">
+                    <h2 style="font-size: clamp(1.3rem, 3.5vw, 1.6rem); color: #ffffff; font-family: var(--font-heading); margin-bottom: 10px;">
                         Guhit Arkitektong Quezonian
                     </h2>
-                    <p style="font-size: 0.96rem; color: #cbd5e1; line-height: 1.7;">
+                    <p style="font-size: clamp(0.88rem, 2vw, 0.96rem); color: #cbd5e1; line-height: 1.65; margin-bottom: 0;">
                         A cornerstone chapter initiative that serves as a premier showcase for Quezonian architects to exhibit architectural renderings, scale models, and regional heritage studies. It stimulates creative dialogue with local communities, encouraging appreciation of sustainable and resilient design.
                     </p>
                 </div>
-                <div style="text-align: right;">
-                    <a href="<?php echo BASE_URL; ?>/public/contact.php" class="btn-portal" style="font-size: 0.85rem;">
-                        Inquire About Sponsorship &rarr;
+                <div class="highlight-exhibit-action">
+                    <a href="<?php echo BASE_URL; ?>/public/contact.php" class="btn-primary-quezon">
+                        <span>Inquire About Sponsorship</span> &rarr;
                     </a>
                 </div>
             </div>

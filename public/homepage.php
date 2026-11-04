@@ -1063,8 +1063,6 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             .brand-title { font-size: 0.95rem; }
             .brand-sub { display: none; }
             .btn-portal { padding: 0.45rem 0.75rem; font-size: 0.75rem; gap: 4px; }
-            .btn-portal span { display: none; }
-            .btn-portal::after { content: 'Portal'; }
             .hero { padding: 3rem 0.85rem 2rem; }
             .hero h1 { font-size: 1.65rem; }
             .hero p.lead { font-size: 0.88rem; }
