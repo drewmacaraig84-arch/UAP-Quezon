@@ -251,5 +251,116 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   </div>
 </div>
+
+<?php if (isset($_SESSION['user_id'])): ?>
+<!-- Automatic Inactivity Logout Modal & Client Monitor -->
+<div id="uapInactivityModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:999999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);">
+  <div style="background:var(--card-bg, #131d33);border:1px solid rgba(245,158,11,0.5);border-radius:16px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.8);color:var(--text-primary);animation:fadeIn 0.25s ease;">
+    <div style="padding:26px;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+        <div style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(245,158,11,0.18);color:#f59e0b;flex-shrink:0;">
+          <?php echo function_exists('icon') ? icon('clock', '', 22) : '⏱'; ?>
+        </div>
+        <div>
+          <h3 style="margin:0;font-size:17px;font-weight:700;color:var(--text-primary);">Session Expiring Soon</h3>
+          <span style="font-size:12px;color:var(--text-secondary);">Portal Inactivity Security Check</span>
+        </div>
+      </div>
+      <p style="margin:0 0 20px 0;font-size:13.5px;line-height:1.55;color:var(--text-secondary);">
+        You have been inactive. For your account security, your session will automatically log out in <strong id="uapInactivitySeconds" style="color:#f59e0b;font-size:15px;">60</strong> seconds.
+      </p>
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <a href="<?php echo BASE_URL; ?>/auth/logout.php?timeout=1" class="btn btn-sm btn-secondary" style="padding:8px 14px;font-size:12px;">Log Out Now</a>
+        <button type="button" onclick="staySignedIn()" class="btn btn-sm btn-primary" style="padding:8px 20px;font-weight:700;font-size:12.5px;background:var(--gradient-brand,#f59e0b);color:#fff;cursor:pointer;">
+          Keep Me Signed In
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const IDLE_TIMEOUT_SECONDS = 900; // 15 minutes
+  const WARNING_SECONDS = 60; // 60 seconds warning
+  let lastActiveTime = Date.now();
+  let warningActive = false;
+  let countdownTimer = null;
+  let pingDebounceTimer = null;
+
+  function resetActivity(triggerPing = true) {
+    lastActiveTime = Date.now();
+    if (warningActive) {
+      hideInactivityWarning();
+    }
+    if (triggerPing) {
+      if (pingDebounceTimer) clearTimeout(pingDebounceTimer);
+      pingDebounceTimer = setTimeout(function() {
+        fetch('<?php echo BASE_URL; ?>/auth/ping.php', { method: 'GET', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.logged_out) {
+              window.location.href = '<?php echo BASE_URL; ?>/auth/login.php?timeout=1';
+            }
+          }).catch(() => {});
+      }, 5000);
+    }
+  }
+
+  function showInactivityWarning() {
+    warningActive = true;
+    const modal = document.getElementById('uapInactivityModal');
+    if (modal) modal.style.display = 'flex';
+    
+    let remaining = WARNING_SECONDS;
+    const countEl = document.getElementById('uapInactivitySeconds');
+    if (countEl) countEl.textContent = remaining;
+
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = setInterval(function() {
+      remaining--;
+      if (countEl) countEl.textContent = remaining;
+      if (remaining <= 0) {
+        clearInterval(countdownTimer);
+        window.location.href = '<?php echo BASE_URL; ?>/auth/logout.php?timeout=1';
+      }
+    }, 1000);
+  }
+
+  function hideInactivityWarning() {
+    warningActive = false;
+    const modal = document.getElementById('uapInactivityModal');
+    if (modal) modal.style.display = 'none';
+    if (countdownTimer) clearInterval(countdownTimer);
+  }
+
+  window.staySignedIn = function() {
+    resetActivity(true);
+    fetch('<?php echo BASE_URL; ?>/auth/ping.php', { method: 'GET', headers: { 'X-Requested-With': 'XMLHttpRequest' } }).catch(() => {});
+  };
+
+  const events = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+  events.forEach(function(evt) {
+    window.addEventListener(evt, function() {
+      if (!warningActive) {
+        lastActiveTime = Date.now();
+      }
+    }, { passive: true });
+  });
+
+  setInterval(function() {
+    const elapsedSeconds = Math.floor((Date.now() - lastActiveTime) / 1000);
+    const threshold = IDLE_TIMEOUT_SECONDS - WARNING_SECONDS;
+    
+    if (elapsedSeconds >= IDLE_TIMEOUT_SECONDS) {
+      window.location.href = '<?php echo BASE_URL; ?>/auth/logout.php?timeout=1';
+    } else if (elapsedSeconds >= threshold && !warningActive) {
+      showInactivityWarning();
+    }
+  }, 2000);
+})();
+</script>
+<?php endif; ?>
 </body>
+
 </html>

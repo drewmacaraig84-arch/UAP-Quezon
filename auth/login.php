@@ -67,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['name'] = $user['name'];
                 $_SESSION['role'] = $user['role'];
+                $_SESSION['last_activity'] = time();
                 if (function_exists('audit_log')) {
                     audit_log('LOGIN_SUCCESS', 'AUTH', "Logged in as {$user['role']}", $user['id']);
                 }
@@ -147,6 +148,18 @@ include __DIR__ . '/../includes/header.php';
           <div>
             <strong>Registration Submitted!</strong><br>
             <span style="font-size: 12.5px;">Your account is pending admin verification.</span>
+          </div>
+        </div>
+      <?php endif; ?>
+
+      <?php if (isset($_GET['timeout'])): ?>
+        <div class="alert alert-warning" style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; border-radius: 8px; padding: 12px 14px;">
+          <div style="color: #f59e0b; flex-shrink: 0;">
+            <?php echo icon('clock', '', 20); ?>
+          </div>
+          <div>
+            <strong style="color: #f59e0b;">Session Expired Due to Inactivity</strong><br>
+            <span style="font-size: 12.5px; color: #cbd5e1;">You were automatically signed out because the portal was idle. Please sign in again to continue.</span>
           </div>
         </div>
       <?php endif; ?>

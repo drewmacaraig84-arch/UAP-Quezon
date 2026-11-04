@@ -9,6 +9,10 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 // Clear session data
 $_SESSION = [];
 
-// Redirect to login
-header('Location: ' . BASE_URL . '/auth/login.php', true, 302);
+// Redirect to login (preserving timeout query param if idle timeout occurred)
+$redirectUrl = BASE_URL . '/auth/login.php';
+if (!empty($_GET['timeout'])) {
+    $redirectUrl .= '?timeout=1';
+}
+header('Location: ' . $redirectUrl, true, 302);
 exit;

@@ -54,6 +54,12 @@ $verifiedPayments = (int)$paymentCountStmt->fetchColumn();
 
 $halfAmount = round($effectiveTotal / 2, 2);
 
+// Generate unique Idempotency Key for this payment session
+if (empty($_SESSION['pay_idempotency_key'][$member_due_id])) {
+    $_SESSION['pay_idempotency_key'][$member_due_id] = 'IDEM-' . current_user_id() . '-' . $member_due_id . '-' . bin2hex(random_bytes(8)) . '-' . time();
+}
+$idempotencyKey = $_SESSION['pay_idempotency_key'][$member_due_id];
+
 // Load QR codes
 $qrcodes = $pdo->query("SELECT * FROM qr_codes")->fetchAll();
 $qr_by_method = [];
@@ -61,6 +67,60 @@ foreach ($qrcodes as $q) { $qr_by_method[$q['method']] = $q['image_path']; }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
+
+    $idempotency_key = trim($_POST['idempotency_key'] ?? '');
+    $reference_number = trim($_POST['reference_number'] ?? '');
+    $method = $_POST['method'] ?? '';
+    $payment_type = $_POST['payment_type'] ?? '';
+
+    // =========================================================================
+    // IDEMPOTENCY HANDLING:
+    // If user clicked repeatedly or refreshed, recognize the already-processed
+    // transaction and return the exact same success response!
+    // =========================================================================
+    $isIdempotentHit = false;
+
+    // 1. Check idempotency key in payments table
+    if ($idempotency_key !== '') {
+        $checkIdem = $pdo->prepare("SELECT id, status FROM payments WHERE idempotency_key = ? LIMIT 1");
+        $checkIdem->execute([$idempotency_key]);
+        if ($checkIdem->fetch()) {
+            $isIdempotentHit = true;
+        }
+        
+        if (!$isIdempotentHit) {
+            $checkIdemTab = $pdo->prepare("SELECT id, status FROM idempotency_keys WHERE idempotency_key = ? AND status = 'completed' LIMIT 1");
+            $checkIdemTab->execute([$idempotency_key]);
+            if ($checkIdemTab->fetch()) {
+                $isIdempotentHit = true;
+            }
+        }
+    }
+
+    // 2. Also check if the exact same reference was submitted by this user within the last 15 minutes
+    if (!$isIdempotentHit && $reference_number !== '') {
+        $recentCheck = $pdo->prepare("SELECT id, submitted_at FROM payments 
+                                      WHERE member_due_id = ? AND reference_number = ? AND status != 'rejected' 
+                                      ORDER BY id DESC LIMIT 1");
+        $recentCheck->execute([$member_due_id, $reference_number]);
+        $recentPayment = $recentCheck->fetch();
+        if ($recentPayment) {
+            $subTs = strtotime($recentPayment['submitted_at'] ?? 'now');
+            if ((time() - $subTs) < 900) {
+                $isIdempotentHit = true;
+            }
+        }
+    }
+
+    // Idempotent Match: Return the exact same success state!
+    if ($isIdempotentHit) {
+        unset($_SESSION['pay_idempotency_key'][$member_due_id]);
+        if (function_exists('set_flash')) {
+            set_flash('success', 'Payment submitted successfully! Please wait for admin verification.');
+        }
+        header("Location: dashboard.php");
+        exit;
+    }
 
     if ($hasPendingPayment) {
         if (function_exists('set_flash')) {
@@ -70,9 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $method = $_POST['method'] ?? '';
-    $reference_number = trim($_POST['reference_number'] ?? '');
-    $payment_type = $_POST['payment_type'] ?? '';
+// Variables already extracted and checked for idempotency
 
     switch ($payment_type) {
         case "full":
@@ -151,6 +209,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     try {
                         $pdo->beginTransaction();
 
+                        // Record processing in idempotency_keys table
+                        if (!empty($idempotency_key)) {
+                            try {
+                                $pdo->prepare("INSERT INTO idempotency_keys (user_id, idempotency_key, scope, status) VALUES (?, ?, 'payment', 'processing')
+                                               ON DUPLICATE KEY UPDATE status = VALUES(status)")
+                                    ->execute([current_user_id(), $idempotency_key]);
+                            } catch (Throwable $eIgnore) {}
+                        }
+
                         $stmt = $pdo->prepare("
                             INSERT INTO payments
                             (
@@ -158,12 +225,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 amount_paid,
                                 method,
                                 reference_number,
+                                idempotency_key,
                                 proof_image,
                                 installment_number,
                                 status
                             )
                             VALUES
-                            (?, ?, ?, ?, ?, ?, 'pending')
+                            (?, ?, ?, ?, ?, ?, ?, 'pending')
                         ");
 
                         $stmt->execute([
@@ -171,9 +239,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $amount_paid,
                             $method,
                             $reference_number,
+                            $idempotency_key ?: null,
                             $proof_path,
                             $inst_num
                         ]);
+
+                        if (!empty($idempotency_key)) {
+                            try {
+                                $pdo->prepare("UPDATE idempotency_keys SET status = 'completed', response_summary = 'Payment pending verification' WHERE idempotency_key = ?")
+                                    ->execute([$idempotency_key]);
+                            } catch (Throwable $eIgnore) {}
+                        }
 
                         $stmt = $pdo->prepare("
                             UPDATE member_dues
@@ -188,6 +264,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ]);
 
                         $pdo->commit();
+
+                        // Clear current idempotency key so future payments receive fresh key
+                        unset($_SESSION['pay_idempotency_key'][$member_due_id]);
 
                         if (function_exists('set_flash')) {
                             set_flash('success', 'Payment submitted successfully! Please wait for admin verification.');
@@ -237,6 +316,7 @@ include __DIR__ . '/../includes/header.php';
     <!-- Payment submission form -->
     <form method="post" enctype="multipart/form-data" style="margin-top:20px;" id="paymentForm" onsubmit="return handlePaymentSubmit(this);">
       <?php echo csrf_field(); ?>
+      <input type="hidden" name="idempotency_key" value="<?php echo htmlspecialchars($idempotencyKey); ?>">
 
       <!-- Payment Option -->
       <div class="field">
@@ -321,14 +401,23 @@ if (window.history.replaceState) {
 
 let isSubmitting = false;
 function handlePaymentSubmit(form) {
-  if (isSubmitting) return false;
+  if (isSubmitting) {
+    return false;
+  }
+  // Let HTML5 required validation run first if empty
+  const ref = form.querySelector('input[name="reference_number"]');
+  if (ref && !ref.value.trim()) return true;
+  const proof = form.querySelector('input[name="proof"]');
+  if (proof && !proof.files.length) return true;
+
   isSubmitting = true;
   const btn = document.getElementById('submitBtn');
   if (btn) {
     btn.disabled = true;
-    btn.innerText = 'Submitting Payment... Please wait';
+    btn.innerText = 'Processing Payment... Please wait';
     btn.style.opacity = '0.75';
     btn.style.cursor = 'not-allowed';
+    btn.style.pointerEvents = 'none';
   }
   return true;
 }

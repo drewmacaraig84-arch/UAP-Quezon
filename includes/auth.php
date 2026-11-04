@@ -390,6 +390,36 @@ function ensure_user_profile_photo_column($pdo) {
 
 
 
+function ensure_idempotency_schema($pdo) {
+    static $checked = false;
+    if ($checked || !$pdo) return;
+    $checked = true;
+
+    try {
+        // 1. Column on payments table
+        $col = $pdo->query("SHOW COLUMNS FROM payments LIKE 'idempotency_key'")->fetch();
+        if (!$col) {
+            $pdo->exec("ALTER TABLE payments ADD COLUMN idempotency_key VARCHAR(64) NULL AFTER reference_number");
+            try {
+                $pdo->exec("ALTER TABLE payments ADD INDEX idx_payments_idempotency (idempotency_key)");
+            } catch (Throwable $eIgnore) {}
+        }
+
+        // 2. Table idempotency_keys
+        $pdo->exec("CREATE TABLE IF NOT EXISTS idempotency_keys (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            idempotency_key VARCHAR(64) NOT NULL UNIQUE,
+            scope VARCHAR(50) NOT NULL DEFAULT 'payment',
+            status ENUM('processing', 'completed', 'failed') NOT NULL DEFAULT 'processing',
+            response_summary VARCHAR(255) NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_user_idem (user_id, idempotency_key),
+            INDEX idx_scope (scope)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) {}
+}
+
 function detect_social_link_type($url, $selectedType = 'auto') {
 
     if ($selectedType && $selectedType !== 'auto') {
@@ -454,9 +484,47 @@ function require_login() {
 
     }
 
+    // Portal Idle Inactivity Timeout (Default: 15 minutes = 900 seconds)
+    $maxIdleSeconds = 900;
+    if (isset($pdo)) {
+        try {
+            $configuredTimeout = (int)get_site_setting($pdo, 'session_idle_timeout_minutes', 15);
+            if ($configuredTimeout > 0) {
+                $maxIdleSeconds = $configuredTimeout * 60;
+            }
+        } catch (Throwable $e) {}
+    }
+
+    $now = time();
+    if (isset($_SESSION['last_activity']) && ($now - $_SESSION['last_activity'] > $maxIdleSeconds)) {
+        $timedOutUserId = (int)($_SESSION['user_id'] ?? 0);
+        if (function_exists('audit_log') && $timedOutUserId > 0) {
+            audit_log('SESSION_TIMEOUT', 'AUTH', "Session expired after inactivity", $timedOutUserId);
+        }
+        $_SESSION = [];
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            @session_destroy();
+        }
+
+        $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+                  || (str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json'));
+        if ($isAjax) {
+            http_response_code(401);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'session_timeout', 'message' => 'Session expired due to inactivity. Please sign in again.']);
+            exit;
+        }
+
+        header('Location: ' . BASE_URL . '/auth/login.php?timeout=1');
+        exit;
+    }
+
+    $_SESSION['last_activity'] = $now;
+
     if (isset($pdo)) {
 
         ensure_user_profile_photo_column($pdo);
+        ensure_idempotency_schema($pdo);
 
     }
 
