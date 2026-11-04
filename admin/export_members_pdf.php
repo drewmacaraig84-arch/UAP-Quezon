@@ -129,8 +129,8 @@ foreach ($membersQuery as $m) {
 }
 
 $totalDisplayCount = count($processedMembers);
-$adminUser = current_user();
-$adminName = $adminUser['name'] ?? 'Chapter Administrator';
+$adminUser = function_exists('current_user') ? current_user($pdo) : null;
+$adminName = $adminUser['name'] ?? ($_SESSION['name'] ?? ($_SESSION['user_name'] ?? 'Chapter Administrator'));
 $pdfFilename = "UAP_Quezon_Members_Masterlist_" . date('Ymd');
 ?>
 <!DOCTYPE html>
@@ -896,3 +896,4 @@ function render_pdf_members_table(array $list, int $startIndex = 1): void {
     <?php
 }
 ?>
+

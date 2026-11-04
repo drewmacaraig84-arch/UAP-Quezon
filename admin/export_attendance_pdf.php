@@ -34,8 +34,8 @@ $totalAttendees = count($logs);
 $displayDate = !empty($eventDate) ? date('F j, Y', strtotime($eventDate)) : date('F j, Y');
 $currentDate = date('F j, Y');
 
-$adminUser = current_user();
-$adminName = $adminUser['name'] ?? 'Chapter Administrator';
+$adminUser = function_exists('current_user') ? current_user($pdo) : null;
+$adminName = $adminUser['name'] ?? ($_SESSION['name'] ?? ($_SESSION['user_name'] ?? 'Chapter Administrator'));
 $pdfFilename = "Attendance_Roster_" . preg_replace('/[^a-zA-Z0-9_-]/', '_', $selectedEventTitle) . "_" . date('Ymd');
 ?>
 <!DOCTYPE html>

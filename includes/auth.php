@@ -594,6 +594,28 @@ function current_user_id() {
 
 }
 
+if (!function_exists('current_user')) {
+    function current_user($db = null) {
+        $id = current_user_id();
+        if (!$id) return null;
+        global $pdo;
+        $dbConn = ($db instanceof PDO) ? $db : (isset($pdo) && $pdo instanceof PDO ? $pdo : null);
+        if ($dbConn) {
+            try {
+                $stmt = $dbConn->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
+                $stmt->execute([$id]);
+                $u = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($u) return $u;
+            } catch (Throwable $e) {}
+        }
+        return [
+            'id' => $id,
+            'name' => $_SESSION['name'] ?? ($_SESSION['user_name'] ?? 'Chapter Administrator'),
+            'role' => $_SESSION['role'] ?? 'admin'
+        ];
+    }
+}
+
 
 
 function is_good_member($pdo, $userId) {
