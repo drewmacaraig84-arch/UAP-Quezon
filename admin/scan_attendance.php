@@ -300,8 +300,14 @@ include __DIR__ . '/../includes/header.php';
       </h2>
       <span class="muted" style="font-size: 12px;">Official verified check-ins for the active event.</span>
     </div>
-    <div>
-      <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-weight: 800; font-size: 12px; padding: 6px 12px;">
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <a href="export_attendance_pdf.php?event_key=<?php echo urlencode($selectedEventKey); ?>&fy=<?php echo urlencode($fy); ?>" target="_blank" class="btn btn-sm" style="background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.35); font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; text-decoration: none; border-radius: 8px; transition: transform 0.2s;" title="Export Attendance Roster to PDF">
+        <?php echo icon('pdf', '', 14); ?> <span>Export PDF</span>
+      </a>
+      <a href="scan_attendance.php?event_key=<?php echo urlencode($selectedEventKey); ?>&export=csv" class="btn btn-sm" style="background: rgba(59,130,246,0.12); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; text-decoration: none; border-radius: 8px;" title="Export Attendance to CSV">
+        <?php echo icon('download', '', 14); ?> <span>CSV</span>
+      </a>
+      <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-weight: 800; font-size: 12px; padding: 6px 12px; border-radius: 8px;">
         <span id="tableCountBadge"><?php echo $totalAttendeesCount; ?></span> Total Verified
       </span>
     </div>
