@@ -1855,6 +1855,565 @@ header.scrolled {
     100% { background-position: -200% 0; }
 }
 
+
+/* ==========================================================================
+   COMPLETED WORKS ARCHITECTURAL PORTFOLIO & INTERACTIVE MODAL SHOWCASE
+   Modeled after uap_mc high-end architectural directory standards
+   ========================================================================== */
+
+.profile-completed-works-section {
+    margin-top: 2.5rem;
+    padding-top: 2.2rem;
+    border-top: 1px solid var(--quezon-border);
+}
+
+.completed-works-header {
+    margin-bottom: 1.8rem;
+}
+
+.completed-works-eyebrow {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.completed-works-title {
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #ffffff;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.completed-works-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.75rem;
+}
+
+.completed-work-card {
+    display: block;
+    cursor: pointer;
+    text-decoration: none;
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--quezon-card-inner);
+    border: 1px solid var(--quezon-border);
+    padding: 0;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s ease, box-shadow 0.35s ease;
+    position: relative;
+    user-select: none;
+}
+
+.completed-work-card:hover,
+.completed-work-card:focus-visible {
+    transform: translateY(-8px);
+    border-color: var(--quezon-gold);
+    box-shadow: 0 18px 42px -10px rgba(0, 0, 0, 0.75), 0 0 24px rgba(245, 158, 11, 0.22);
+    outline: none;
+}
+
+.completed-work-photo-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 11;
+    overflow: hidden;
+    background: #090d19;
+}
+
+.completed-work-photo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.65s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.completed-work-card:hover .completed-work-photo-wrap img,
+.completed-work-card:focus-visible .completed-work-photo-wrap img {
+    transform: scale(1.08);
+}
+
+/* Dark Gradient Slide-Up Hover Overlay */
+.completed-work-hover-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(6, 9, 19, 0.15) 0%, rgba(6, 9, 19, 0.8) 55%, rgba(6, 9, 19, 0.98) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 22px;
+    opacity: 0;
+    transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.completed-work-card:hover .completed-work-hover-overlay,
+.completed-work-card:focus-visible .completed-work-hover-overlay {
+    opacity: 1;
+}
+
+.completed-work-hover-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transform: translateY(14px);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.completed-work-card:hover .completed-work-hover-content,
+.completed-work-card:focus-visible .completed-work-hover-content {
+    transform: translateY(0);
+}
+
+.completed-work-hover-cat {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--quezon-gold);
+}
+
+.completed-work-hover-title {
+    font-family: var(--font-heading, 'Space Grotesk', sans-serif);
+    font-size: 1.18rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.completed-work-hover-loc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.completed-work-hover-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--quezon-gold);
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* ==========================================================================
+   INTERACTIVE PROJECT DETAIL MODAL / LIGHTBOX SHOWCASE
+   ========================================================================== */
+
+.project-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(4, 7, 15, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    overflow-y: auto;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.project-modal.active {
+    display: flex;
+    opacity: 1;
+}
+
+.project-modal-dialog {
+    width: 100%;
+    max-width: 1060px;
+    background: #0d1527;
+    border: 1px solid var(--quezon-border);
+    border-radius: 20px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(245, 158, 11, 0.15);
+    position: relative;
+    overflow: hidden;
+    margin: auto;
+    animation: modalPopIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes modalPopIn {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.project-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(19, 29, 51, 0.85);
+    border: 1px solid var(--quezon-border);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.project-modal-close:hover {
+    background: var(--quezon-gold);
+    color: #0b1120;
+    transform: rotate(90deg);
+}
+
+.project-modal-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--quezon-border);
+    background: rgba(11, 17, 32, 0.7);
+}
+
+.project-modal-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.project-modal-back-btn:hover {
+    color: var(--quezon-gold);
+}
+
+.project-modal-verified-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #34d399;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 4px 12px;
+    border-radius: 9999px;
+    margin-right: 36px;
+}
+
+.modal-slideshow-container {
+    position: relative;
+    width: 100%;
+    background: #050811;
+}
+
+.modal-slide-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 520px;
+    overflow: hidden;
+}
+
+.modal-slide-item {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+}
+
+.modal-slide-item.active {
+    opacity: 1;
+    z-index: 1;
+}
+
+.modal-slide-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.modal-slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(11, 17, 32, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 5;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+    backdrop-filter: blur(4px);
+}
+
+.modal-slider-btn:hover {
+    background: var(--quezon-gold);
+    color: #0b1120;
+    transform: translateY(-50%) scale(1.08);
+}
+
+.modal-slider-prev {
+    left: 16px;
+}
+
+.modal-slider-next {
+    right: 16px;
+}
+
+.modal-slider-meta {
+    position: absolute;
+    bottom: 14px;
+    right: 16px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(11, 17, 32, 0.75);
+    padding: 6px 14px;
+    border-radius: 9999px;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-slider-dots {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.modal-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.modal-dot.active {
+    background: var(--quezon-gold);
+    transform: scale(1.3);
+}
+
+.modal-slider-counter {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.05em;
+}
+
+.modal-thumbs-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    background: rgba(8, 12, 22, 0.95);
+    border-bottom: 1px solid var(--quezon-border);
+    overflow-x: auto;
+}
+
+.modal-thumb-btn {
+    width: 72px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    background: #000;
+    padding: 0;
+    opacity: 0.6;
+    transition: opacity 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.modal-thumb-btn:hover,
+.modal-thumb-btn.active {
+    opacity: 1;
+    border-color: var(--quezon-gold);
+    transform: translateY(-2px);
+}
+
+.modal-thumb-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.modal-editorial-card {
+    padding: 1.8rem;
+    background: #0d1527;
+}
+
+.modal-editorial-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.35fr;
+    gap: 2rem;
+}
+
+.modal-cat-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid var(--quezon-border-gold);
+    color: var(--quezon-gold);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.modal-project-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.25;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.01em;
+}
+
+.modal-project-loc {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+}
+
+.modal-firm-info {
+    padding: 12px 14px;
+    background: var(--quezon-card-inner);
+    border: 1px solid var(--quezon-border);
+    border-radius: 10px;
+    font-size: 0.85rem;
+}
+
+.modal-firm-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--quezon-gold);
+    font-weight: 700;
+    margin: 0 0 4px 0;
+}
+
+.modal-lead-architect {
+    color: #cbd5e1;
+    margin: 0;
+}
+
+.modal-narrative-heading {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 8px 0;
+}
+
+.modal-narrative-text {
+    color: #cbd5e1;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    margin: 0 0 16px 0;
+    white-space: pre-line;
+}
+
+.modal-team-block {
+    padding: 12px 16px;
+    background: rgba(11, 17, 32, 0.6);
+    border-left: 3px solid var(--quezon-gold);
+    border-radius: 0 8px 8px 0;
+}
+
+.modal-team-heading {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--quezon-gold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 6px 0;
+}
+
+.modal-team-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.modal-team-member {
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.modal-team-member::before {
+    content: "•";
+    color: var(--quezon-gold);
+    font-weight: bold;
+}
+
+@media (max-width: 820px) {
+    .modal-editorial-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    .modal-slide-stage {
+        aspect-ratio: 4 / 3;
+    }
+    .modal-project-title {
+        font-size: 1.3rem;
+    }
+    .completed-works-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Accessibility: Respect Reduced Motion Preferences */
 @media (prefers-reduced-motion: reduce) {
     *, ::before, ::after {

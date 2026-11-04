@@ -96,7 +96,7 @@ if ($member && !empty($member['user_id'])) {
     }
 }
 
-// Decode multiple project gallery photos
+// Decode multiple project gallery photos & structured Completed Works
 $gallery = [];
 if ($member) {
     if (!empty($member['gallery_json'])) {
@@ -112,6 +112,85 @@ if ($member) {
     }
 }
 
+$projects = [];
+if ($member) {
+    if (!empty($member['projects_json'])) {
+        $decodedProjects = json_decode($member['projects_json'], true);
+        if (is_array($decodedProjects)) {
+            $projects = $decodedProjects;
+        }
+    }
+
+    // Backward compatibility fallback: If projects_json is empty, adapt gallery photos into completed works cards
+    if (empty($projects) && !empty($gallery)) {
+        foreach ($gallery as $gIdx => $gItem) {
+            $gPath = $gItem['path'] ?? '';
+            if (empty($gPath)) continue;
+            $gTitle = !empty(trim($gItem['description'] ?? '')) ? trim($gItem['description']) : 'Completed Architectural Work ' . ($gIdx + 1);
+            $projects[] = [
+                'id' => 'legacy_' . ($gIdx + 1),
+                'title' => $gTitle,
+                'category' => 'RESIDENTIAL',
+                'location' => !empty($member['location']) ? $member['location'] : 'Quezon Province',
+                'description' => !empty(trim($gItem['description'] ?? '')) ? trim($gItem['description']) : 'Architectural design, space planning, and construction documentation executed with high standards of design excellence.',
+                'project_team' => $member['name'] ?? '',
+                'cover_photo' => $gPath,
+                'photos' => [ $gPath ]
+            ];
+        }
+    }
+}
+
+// Client-side structured projects for the interactive modal
+$clientProjects = [];
+if (!empty($projects)) {
+    foreach ($projects as $proj) {
+        $rawPhotos = [];
+        if (!empty($proj['cover_photo'])) {
+            $rawPhotos[] = (str_starts_with($proj['cover_photo'], 'http://') || str_starts_with($proj['cover_photo'], 'https://')) 
+                ? $proj['cover_photo'] 
+                : (BASE_URL . '/' . ltrim($proj['cover_photo'], '/'));
+        }
+        if (!empty($proj['photos']) && is_array($proj['photos'])) {
+            foreach ($proj['photos'] as $ph) {
+                if (!empty($ph)) {
+                    $u = (str_starts_with($ph, 'http://') || str_starts_with($ph, 'https://')) 
+                        ? $ph 
+                        : (BASE_URL . '/' . ltrim($ph, '/'));
+                    if (!in_array($u, $rawPhotos, true)) {
+                        $rawPhotos[] = $u;
+                    }
+                }
+            }
+        }
+        if (empty($rawPhotos)) {
+            $rawPhotos[] = BASE_URL . '/public/logo.jpg';
+        }
+        
+        $teamList = [];
+        if (!empty($proj['project_team'])) {
+            $lines = preg_split('/\r?\n/', $proj['project_team']);
+            foreach ($lines as $ln) {
+                $t = trim($ln);
+                if ($t !== '') $teamList[] = $t;
+            }
+        }
+        if (empty($teamList) && !empty($member['name'])) {
+            $teamList[] = $member['name'];
+        }
+
+        $clientProjects[] = [
+            'id' => $proj['id'] ?? '',
+            'title' => $proj['title'] ?? 'Completed Architectural Work',
+            'category' => !empty($proj['category']) ? strtoupper($proj['category']) : 'RESIDENTIAL',
+            'location' => $proj['location'] ?? '',
+            'description' => $proj['description'] ?? '',
+            'photos' => $rawPhotos,
+            'team' => $teamList
+        ];
+    }
+}
+
 $pageTitle = $member ? htmlspecialchars($member['name']) . ' • Verified Architect Profile | UAP Quezon' : 'Member Profile Not Found • UAP Quezon Province Chapter';
 $activePage = 'architects';
 ?>
@@ -121,7 +200,7 @@ $activePage = 'architects';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $pageTitle; ?></title>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/public_theme.css?v=2.3">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/public_theme.css?v=2.4">
     <link rel="icon" type="image/jpeg" href="<?php echo BASE_URL; ?>/public/logo.jpg">
     <style>
         .profile-container {
@@ -413,7 +492,7 @@ $activePage = 'architects';
                     <?php else: ?>
                         <div class="profile-avatar-initials"><?php echo htmlspecialchars($initials); ?></div>
                     <?php endif; ?>
-                    <div class="verified-badge-floating" title="Verified PRC Registered Architect">
+                    <div class="verified-badge-floating" title="Verified Chapter Registered Architect">
                         <?php echo icon('check', '', 16); ?>
                     </div>
                 </div>
@@ -559,28 +638,55 @@ $activePage = 'architects';
                 </div>
             </div>
 
-            <!-- 2. PROJECT PORTFOLIO / GALLERY -->
-            <?php if (!empty($gallery)): ?>
-            <div class="section-box">
-                <div class="section-header-row">
-                    <h2>
-                        <span style="color: var(--quezon-gold);"><?php echo icon('camera', '', 20); ?></span>
-                        <span>Project Portfolio &amp; Works Gallery (<?php echo count($gallery); ?>)</span>
+            <!-- 2. PORTFOLIO & ARCHITECTURAL PRACTICE / COMPLETED WORKS -->
+            <?php if (!empty($projects)): ?>
+            <div class="profile-completed-works-section reveal-pop">
+                <div class="completed-works-header">
+                    <p class="completed-works-eyebrow">PORTFOLIO &amp; ARCHITECTURAL PRACTICE</p>
+                    <h2 class="completed-works-title">
+                        COMPLETED <span style="color: var(--quezon-gold);">WORKS</span>
                     </h2>
                 </div>
-                <div class="gallery-grid">
-                    <?php foreach ($gallery as $gIndex => $gItem): ?>
-                        <div class="gallery-card">
-                            <div class="gallery-card-img-wrap">
-                                <img src="<?php echo BASE_URL; ?>/<?php echo htmlspecialchars($gItem['path']); ?>" 
-                                     alt="<?php echo htmlspecialchars($member['name']); ?> Project Work <?php echo $gIndex + 1; ?>"
-                                     loading="lazy">
-                            </div>
-                            <?php if (!empty(trim($gItem['description'] ?? ''))): ?>
-                                <div class="gallery-card-desc">
-                                    <?php echo nl2br(htmlspecialchars($gItem['description'])); ?>
+                <div class="completed-works-grid reveal-stagger">
+                    <?php foreach ($projects as $pIdx => $proj): ?>
+                        <?php
+                            $coverUrl = !empty($proj['cover_photo']) ? $proj['cover_photo'] : (!empty($proj['photos'][0]) ? $proj['photos'][0] : '');
+                            $resolvedCover = '';
+                            if (!empty($coverUrl)) {
+                                $resolvedCover = (str_starts_with($coverUrl, 'http://') || str_starts_with($coverUrl, 'https://')) ? $coverUrl : (BASE_URL . '/' . ltrim($coverUrl, '/'));
+                            } else {
+                                $resolvedCover = BASE_URL . '/public/logo.jpg';
+                            }
+                        ?>
+                        <div class="completed-work-card" 
+                             onclick="openProjectModal(<?php echo $pIdx; ?>)" 
+                             role="button" 
+                             tabindex="0"
+                             aria-label="View details for <?php echo htmlspecialchars($proj['title'] ?? 'Architectural Project'); ?>">
+                            <div class="completed-work-photo-wrap">
+                                <img src="<?php echo htmlspecialchars($resolvedCover); ?>"
+                                     alt="<?php echo htmlspecialchars($proj['title'] ?? 'Architectural Project'); ?>"
+                                     loading="lazy"
+                                     onerror="this.onerror=null;this.src='<?php echo BASE_URL; ?>/public/logo.jpg';">
+                                <div class="completed-work-hover-overlay">
+                                    <div class="completed-work-hover-content">
+                                        <?php if (!empty($proj['category'])): ?>
+                                            <span class="completed-work-hover-cat"><?php echo htmlspecialchars($proj['category']); ?></span>
+                                        <?php endif; ?>
+                                        <h3 class="completed-work-hover-title"><?php echo htmlspecialchars($proj['title'] ?? 'Completed Architectural Work'); ?></h3>
+                                        <?php if (!empty($proj['location'])): ?>
+                                            <p class="completed-work-hover-loc">
+                                                <?php echo icon('map_pin', '', 12); ?>
+                                                <span><?php echo htmlspecialchars($proj['location']); ?></span>
+                                            </p>
+                                        <?php endif; ?>
+                                        <div class="completed-work-hover-action">
+                                            <span>View Full Project Details</span>
+                                            <?php echo icon('arrow_right', '', 14); ?>
+                                        </div>
+                                    </div>
                                 </div>
-                            <?php endif; ?>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -657,6 +763,317 @@ $activePage = 'architects';
         <?php endif; ?>
 
     </div>
+
+    <?php if (!empty($clientProjects)): ?>
+    <!-- INTERACTIVE PROJECT DETAILS MODAL & SLIDESHOW LIGHTBOX -->
+    <div id="projectModal" class="project-modal" aria-hidden="true" role="dialog" aria-modal="true" onclick="if(event.target === this) closeProjectModal()">
+        <div class="project-modal-dialog">
+            <button type="button" class="project-modal-close" onclick="closeProjectModal()" aria-label="Close Project Modal">
+                <?php echo icon('x', '', 20); ?>
+            </button>
+            
+            <div class="project-modal-topbar">
+                <div class="project-modal-back-btn" onclick="closeProjectModal()">
+                    <?php echo icon('arrow_left', '', 16); ?>
+                    <span>Back to <?php echo htmlspecialchars($member['name']); ?>'s Profile</span>
+                </div>
+                <div class="project-modal-verified-pill">
+                    <?php echo icon('shield_check', '', 14); ?>
+                    <span>Certified Chapter Architect</span>
+                </div>
+            </div>
+
+            <!-- HERO SLIDESHOW STAGE -->
+            <div class="modal-slideshow-container" onmouseenter="pauseSlideshow()" onmouseleave="resumeSlideshow()">
+                <div class="modal-slide-stage" id="modalSlideStage">
+                    <!-- Slides injected dynamically -->
+                </div>
+                
+                <button type="button" class="modal-slider-btn modal-slider-prev" onclick="prevModalSlide()" aria-label="Previous Slide">
+                    <?php echo icon('arrow_left', '', 22); ?>
+                </button>
+                <button type="button" class="modal-slider-btn modal-slider-next" onclick="nextModalSlide()" aria-label="Next Slide">
+                    <?php echo icon('arrow_right', '', 22); ?>
+                </button>
+
+                <div class="modal-slider-meta">
+                    <div class="modal-slider-dots" id="modalSliderDots"></div>
+                    <span class="modal-slider-counter" id="modalSliderCounter">1 / 1</span>
+                </div>
+            </div>
+
+            <!-- THUMBNAIL PREVIEW STRIP -->
+            <div class="modal-thumbs-strip" id="modalThumbsStrip"></div>
+
+            <!-- EDITORIAL SPLIT DETAILS -->
+            <div class="modal-editorial-card">
+                <div class="modal-editorial-grid">
+                    <!-- LEFT COLUMN: Meta & Architecture details -->
+                    <div class="modal-meta-col">
+                        <span class="modal-cat-badge" id="modalCatBadge">RESIDENTIAL</span>
+                        <h2 class="modal-project-title" id="modalProjectTitle">Project Title</h2>
+                        <p class="modal-project-loc" id="modalProjectLoc">
+                            <?php echo icon('map_pin', '', 14); ?>
+                            <span id="modalProjectLocText">QUEZON PROVINCE</span>
+                        </p>
+                        <div class="modal-firm-info">
+                            <?php if (!empty($member['company_name'])): ?>
+                                <p class="modal-firm-name">
+                                    <?php echo icon('building', '', 14); ?>
+                                    <span><?php echo htmlspecialchars($member['company_name']); ?></span>
+                                </p>
+                            <?php endif; ?>
+                            <p class="modal-lead-architect">
+                                Principal Architect: <strong><?php echo htmlspecialchars($member['name']); ?></strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: Narrative & Project Team -->
+                    <div class="modal-narrative-col">
+                        <div class="modal-narrative-content">
+                            <h3 class="modal-narrative-heading">Architectural Concept &amp; Narrative</h3>
+                            <p class="modal-narrative-text" id="modalNarrativeText"></p>
+                        </div>
+                        <div class="modal-team-block" id="modalTeamBlock">
+                            <h3 class="modal-team-heading">Project Team &amp; Collaborators:</h3>
+                            <ul class="modal-team-list" id="modalTeamList"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    window.chapterProjects = <?php echo json_encode($clientProjects, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
+    window.currentModalProjectIdx = 0;
+    window.currentModalSlideIdx = 0;
+    window.modalSlideTimer = null;
+    window.isModalPaused = false;
+
+    function openProjectModal(projectIdx) {
+        var proj = window.chapterProjects[projectIdx];
+        if (!proj) return;
+        window.currentModalProjectIdx = projectIdx;
+        window.currentModalSlideIdx = 0;
+        window.isModalPaused = false;
+
+        document.getElementById('modalCatBadge').textContent = proj.category || 'RESIDENTIAL';
+        document.getElementById('modalProjectTitle').textContent = proj.title || 'Completed Architectural Work';
+        
+        var locText = document.getElementById('modalProjectLocText');
+        var locContainer = document.getElementById('modalProjectLoc');
+        if (proj.location && proj.location.trim() !== '') {
+            locText.textContent = proj.location.toUpperCase();
+            locContainer.style.display = 'flex';
+        } else {
+            locContainer.style.display = 'none';
+        }
+
+        var narrText = document.getElementById('modalNarrativeText');
+        narrText.textContent = proj.description || 'Architectural design, space planning, and construction documentation executed with high standards of design excellence.';
+
+        var teamBlock = document.getElementById('modalTeamBlock');
+        var teamList = document.getElementById('modalTeamList');
+        teamList.innerHTML = '';
+        if (proj.team && proj.team.length > 0) {
+            proj.team.forEach(function(member) {
+                var li = document.createElement('li');
+                li.className = 'modal-team-member';
+                li.textContent = member;
+                teamList.appendChild(li);
+            });
+            teamBlock.style.display = 'block';
+        } else {
+            teamBlock.style.display = 'none';
+        }
+
+        var stage = document.getElementById('modalSlideStage');
+        var thumbs = document.getElementById('modalThumbsStrip');
+        var dots = document.getElementById('modalSliderDots');
+        stage.innerHTML = '';
+        thumbs.innerHTML = '';
+        dots.innerHTML = '';
+
+        var photos = proj.photos && proj.photos.length > 0 ? proj.photos : ['<?php echo BASE_URL; ?>/public/logo.jpg'];
+        var totalPhotos = photos.length;
+
+        photos.forEach(function(url, idx) {
+            var slide = document.createElement('div');
+            slide.className = 'modal-slide-item' + (idx === 0 ? ' active' : '');
+            slide.id = 'modalSlide_' + idx;
+            var img = document.createElement('img');
+            img.src = url;
+            img.alt = (proj.title || 'Project') + ' - Photo ' + (idx + 1);
+            img.onerror = function() { this.src = '<?php echo BASE_URL; ?>/public/logo.jpg'; };
+            slide.appendChild(img);
+            stage.appendChild(slide);
+
+            var dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'modal-dot' + (idx === 0 ? ' active' : '');
+            dot.id = 'modalDot_' + idx;
+            dot.setAttribute('aria-label', 'Go to photo ' + (idx + 1));
+            dot.onclick = function() { setModalSlide(idx); };
+            dots.appendChild(dot);
+
+            if (totalPhotos > 1) {
+                var thumbBtn = document.createElement('button');
+                thumbBtn.type = 'button';
+                thumbBtn.className = 'modal-thumb-btn' + (idx === 0 ? ' active' : '');
+                thumbBtn.id = 'modalThumb_' + idx;
+                thumbBtn.setAttribute('aria-label', 'Thumbnail ' + (idx + 1));
+                var tImg = document.createElement('img');
+                tImg.src = url;
+                tImg.alt = 'Thumbnail ' + (idx + 1);
+                tImg.onerror = function() { this.src = '<?php echo BASE_URL; ?>/public/logo.jpg'; };
+                thumbBtn.appendChild(tImg);
+                thumbBtn.onclick = function() { setModalSlide(idx); };
+                thumbs.appendChild(thumbBtn);
+            }
+        });
+
+        var prevBtn = document.querySelector('.modal-slider-prev');
+        var nextBtn = document.querySelector('.modal-slider-next');
+        if (totalPhotos <= 1) {
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            thumbs.style.display = 'none';
+            dots.style.display = 'none';
+        } else {
+            if (prevBtn) prevBtn.style.display = 'flex';
+            if (nextBtn) nextBtn.style.display = 'flex';
+            thumbs.style.display = 'flex';
+            dots.style.display = 'flex';
+        }
+
+        updateSlideCounter();
+
+        var modal = document.getElementById('projectModal');
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        restartSlideTimer();
+    }
+
+    function setModalSlide(idx) {
+        var proj = window.chapterProjects[window.currentModalProjectIdx];
+        if (!proj) return;
+        var total = proj.photos.length;
+        if (total <= 1) return;
+
+        var oldSlide = document.getElementById('modalSlide_' + window.currentModalSlideIdx);
+        var oldDot = document.getElementById('modalDot_' + window.currentModalSlideIdx);
+        var oldThumb = document.getElementById('modalThumb_' + window.currentModalSlideIdx);
+        if (oldSlide) oldSlide.classList.remove('active');
+        if (oldDot) oldDot.classList.remove('active');
+        if (oldThumb) oldThumb.classList.remove('active');
+
+        window.currentModalSlideIdx = idx;
+
+        var newSlide = document.getElementById('modalSlide_' + idx);
+        var newDot = document.getElementById('modalDot_' + idx);
+        var newThumb = document.getElementById('modalThumb_' + idx);
+        if (newSlide) newSlide.classList.add('active');
+        if (newDot) newDot.classList.add('active');
+        if (newThumb) {
+            newThumb.classList.add('active');
+            newThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+
+        updateSlideCounter();
+        restartSlideTimer();
+    }
+
+    function nextModalSlide() {
+        var proj = window.chapterProjects[window.currentModalProjectIdx];
+        if (!proj || !proj.photos) return;
+        var next = (window.currentModalSlideIdx + 1) % proj.photos.length;
+        setModalSlide(next);
+    }
+
+    function prevModalSlide() {
+        var proj = window.chapterProjects[window.currentModalProjectIdx];
+        if (!proj || !proj.photos) return;
+        var prev = (window.currentModalSlideIdx - 1 + proj.photos.length) % proj.photos.length;
+        setModalSlide(prev);
+    }
+
+    function updateSlideCounter() {
+        var proj = window.chapterProjects[window.currentModalProjectIdx];
+        var total = (proj && proj.photos) ? proj.photos.length : 1;
+        var counter = document.getElementById('modalSliderCounter');
+        if (counter) {
+            counter.textContent = (window.currentModalSlideIdx + 1) + ' / ' + total;
+        }
+    }
+
+    function pauseSlideshow() {
+        window.isModalPaused = true;
+        if (window.modalSlideTimer) {
+            clearInterval(window.modalSlideTimer);
+            window.modalSlideTimer = null;
+        }
+    }
+
+    function resumeSlideshow() {
+        window.isModalPaused = false;
+        restartSlideTimer();
+    }
+
+    function restartSlideTimer() {
+        if (window.modalSlideTimer) {
+            clearInterval(window.modalSlideTimer);
+            window.modalSlideTimer = null;
+        }
+        var proj = window.chapterProjects[window.currentModalProjectIdx];
+        if (!proj || !proj.photos || proj.photos.length <= 1) return;
+        if (window.isModalPaused) return;
+
+        window.modalSlideTimer = setInterval(function() {
+            if (!window.isModalPaused) {
+                nextModalSlide();
+            }
+        }, 3800);
+    }
+
+    function closeProjectModal() {
+        var modal = document.getElementById('projectModal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+        document.body.style.overflow = '';
+        if (window.modalSlideTimer) {
+            clearInterval(window.modalSlideTimer);
+            window.modalSlideTimer = null;
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        var modal = document.getElementById('projectModal');
+        if (!modal || !modal.classList.contains('active')) return;
+        if (e.key === 'Escape') {
+            closeProjectModal();
+        } else if (e.key === 'ArrowRight') {
+            nextModalSlide();
+        } else if (e.key === 'ArrowLeft') {
+            prevModalSlide();
+        }
+    });
+
+    window.addEventListener('DOMContentLoaded', function() {
+        if (window.location.hash && window.location.hash.startsWith('#project-')) {
+            var num = parseInt(window.location.hash.replace('#project-', ''), 10);
+            if (!isNaN(num) && num >= 1 && num <= window.chapterProjects.length) {
+                openProjectModal(num - 1);
+            }
+        }
+    });
+    </script>
+    <?php endif; ?>
 
     <?php include __DIR__ . '/../includes/public_footer.php'; ?>
 
