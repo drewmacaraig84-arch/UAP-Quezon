@@ -197,6 +197,22 @@ try {
     echo "Notice: " . $e->getMessage() . "\n";
 }
 
+// Explicit check for website_members unique constraint on user_id and deduplication
+try {
+    $pdo->exec("
+        DELETE wm1 FROM website_members wm1
+        INNER JOIN website_members wm2 
+        WHERE wm1.id < wm2.id 
+          AND wm1.user_id = wm2.user_id 
+          AND wm1.user_id IS NOT NULL
+    ");
+
+    $idxCheck = $pdo->query("SHOW INDEX FROM website_members WHERE Key_name = 'uq_website_member_user'")->fetch();
+    if (!$idxCheck) {
+        $pdo->exec("ALTER TABLE website_members ADD UNIQUE KEY uq_website_member_user (user_id)");
+    }
+} catch (Throwable $e) {}
+
 // Explicit check for dues soft-delete columns
 try {
     $colCheck = $pdo->query("SHOW COLUMNS FROM dues LIKE 'deleted_at'")->fetch();

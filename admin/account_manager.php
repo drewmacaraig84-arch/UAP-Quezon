@@ -6,6 +6,17 @@ $error = '';
 $success = '';
 $expanded_user_id = 0;
 
+// Auto-clean any duplicate website_members rows across the system
+try {
+    $pdo->exec("
+        DELETE wm1 FROM website_members wm1
+        INNER JOIN website_members wm2 
+        WHERE wm1.id < wm2.id 
+          AND wm1.user_id = wm2.user_id 
+          AND wm1.user_id IS NOT NULL
+    ");
+} catch (Throwable $e) {}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_csrf();
     $action = $_POST['action'] ?? '';
@@ -272,16 +283,34 @@ $search = trim($_GET['search'] ?? '');
 if ($search) {
     $stmt = $pdo->prepare("SELECT u.*, wm.photo_path as wm_photo_path, wm.role_title, wm.specialty, wm.company_name, wm.link_url, wm.link_type 
                           FROM users u 
-                          LEFT JOIN website_members wm ON wm.user_id = u.id 
+                          LEFT JOIN (
+                              SELECT wm_inner.* FROM website_members wm_inner
+                              INNER JOIN (
+                                  SELECT user_id, MAX(id) as max_id 
+                                  FROM website_members 
+                                  WHERE user_id IS NOT NULL 
+                                  GROUP BY user_id
+                              ) latest_wm ON wm_inner.id = latest_wm.max_id
+                          ) wm ON wm.user_id = u.id 
                           WHERE u.role = 'member' AND u.deleted_at IS NULL AND (u.name LIKE ? OR u.id_number LIKE ? OR u.prc_number LIKE ? OR u.email LIKE ? OR wm.company_name LIKE ?) 
+                          GROUP BY u.id
                           ORDER BY u.name ASC");
     $like = "%$search%";
     $stmt->execute([$like, $like, $like, $like, $like]);
 } else {
     $stmt = $pdo->query("SELECT u.*, wm.photo_path as wm_photo_path, wm.role_title, wm.specialty, wm.company_name, wm.link_url, wm.link_type 
                         FROM users u 
-                        LEFT JOIN website_members wm ON wm.user_id = u.id 
+                        LEFT JOIN (
+                            SELECT wm_inner.* FROM website_members wm_inner
+                            INNER JOIN (
+                                SELECT user_id, MAX(id) as max_id 
+                                FROM website_members 
+                                WHERE user_id IS NOT NULL 
+                                GROUP BY user_id
+                            ) latest_wm ON wm_inner.id = latest_wm.max_id
+                        ) wm ON wm.user_id = u.id 
                         WHERE u.role = 'member' AND u.deleted_at IS NULL 
+                        GROUP BY u.id
                         ORDER BY u.name ASC");
 }
 $members = $stmt->fetchAll();

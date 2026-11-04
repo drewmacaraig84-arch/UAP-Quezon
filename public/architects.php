@@ -38,6 +38,15 @@ try {
           AND user_id NOT IN (SELECT id FROM users WHERE deleted_at IS NULL AND status = 'approved')
     ");
 
+    // Auto-cleanup any duplicate website_members rows across the system
+    $pdo->exec("
+        DELETE wm1 FROM website_members wm1
+        INNER JOIN website_members wm2 
+        WHERE wm1.id < wm2.id 
+          AND wm1.user_id = wm2.user_id 
+          AND wm1.user_id IS NOT NULL
+    ");
+
     $activeFy = function_exists('get_active_fiscal_year') ? get_active_fiscal_year() : '2026-2027';
 
     // Rule:
@@ -80,7 +89,7 @@ try {
         $params[] = "%$filterSpec%";
     }
 
-    $sql .= " ORDER BY wm.name ASC";
+    $sql .= " GROUP BY wm.user_id ORDER BY wm.name ASC";
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $rows = $stmt->fetchAll();

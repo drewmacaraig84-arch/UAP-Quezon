@@ -4,6 +4,17 @@ require_once __DIR__ . '/../includes/attendance_helper.php';
 require_member();
 
 $userId = current_user_id();
+
+// Auto-cleanup any duplicate website_members rows for this user
+try {
+    $pdo->prepare("
+        DELETE wm1 FROM website_members wm1
+        INNER JOIN website_members wm2 
+        WHERE wm1.id < wm2.id 
+          AND wm1.user_id = wm2.user_id 
+          AND wm1.user_id = ?
+    ")->execute([$userId]);
+} catch (Throwable $e) {}
 $app = get_directory_application($pdo, $userId);
 $isUnlocked = has_unlocked_website_directory($pdo, $userId);
 
@@ -50,9 +61,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['
                 $stmt->execute([$userId]);
 
                 // Ensure website_members row exists and is published
-                $wmCheck = $pdo->prepare("SELECT id FROM website_members WHERE user_id = ?");
+                $wmCheck = $pdo->prepare("SELECT id FROM website_members WHERE user_id = ? ORDER BY id DESC LIMIT 1");
                 $wmCheck->execute([$userId]);
-                if (!$wmCheck->fetch()) {
+                $foundWmId = (int)$wmCheck->fetchColumn();
+                if ($foundWmId === 0) {
                     $uData = $pdo->prepare("SELECT name, id_number, profile_photo FROM users WHERE id = ?");
                     $uData->execute([$userId]);
                     $u = $uData->fetch();
@@ -62,7 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['
                             ->execute([$userId, $u['name'], $u['id_number'], $u['profile_photo'] ?: null]);
                     }
                 } else {
-                    $pdo->prepare("UPDATE website_members SET is_published = 1 WHERE user_id = ?")->execute([$userId]);
+                    $pdo->prepare("UPDATE website_members SET is_published = 1, deleted_at = NULL WHERE id = ?")->execute([$foundWmId]);
+                    $pdo->prepare("DELETE FROM website_members WHERE user_id = ? AND id != ?")->execute([$userId, $foundWmId]);
                 }
 
                 if (file_exists(__DIR__ . '/../includes/qr_helper.php')) {
@@ -283,40 +296,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
         $firstPhoto = !empty($userPhoto) ? $userPhoto : null;
 
         ensure_user_profile_photo_column($pdo);
-        $stmt = $pdo->prepare("INSERT INTO website_members 
-            (user_id, name, id_number, role_title, specialty, location, company_name, company_logo_path, link_url, link_type, links_json, achievements, awards, photo_path, is_published)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-            ON DUPLICATE KEY UPDATE
-                name = VALUES(name),
-                id_number = VALUES(id_number),
-                role_title = VALUES(role_title),
-                specialty = VALUES(specialty),
-                location = VALUES(location),
-                company_name = VALUES(company_name),
-                company_logo_path = VALUES(company_logo_path),
-                link_url = VALUES(link_url),
-                link_type = VALUES(link_type),
-                links_json = VALUES(links_json),
-                achievements = VALUES(achievements),
-                awards = VALUES(awards),
-                photo_path = VALUES(photo_path),
-                is_published = 1");
-        $stmt->execute([
-            $userId,
-            $name,
-            $idNumber,
-            $role,
-            $specialty,
-            $location,
-            $companyName !== '' ? $companyName : null,
-            $companyLogoPath,
-            $primaryLinkUrl,
-            $primaryLinkType,
-            $linksJson,
-            $achievements,
-            $awards,
-            $firstPhoto
-        ]);
+
+        // Check if a website_members record already exists for this user
+        $existingWmStmt = $pdo->prepare("SELECT id FROM website_members WHERE user_id = ? ORDER BY id DESC LIMIT 1");
+        $existingWmStmt->execute([$userId]);
+        $existingWmId = (int)$existingWmStmt->fetchColumn();
+
+        if ($existingWmId > 0) {
+            // Update the exact existing row to prevent duplicate profile creation
+            $stmt = $pdo->prepare("UPDATE website_members SET 
+                name = ?,
+                id_number = ?,
+                role_title = ?,
+                specialty = ?,
+                location = ?,
+                company_name = ?,
+                company_logo_path = ?,
+                link_url = ?,
+                link_type = ?,
+                links_json = ?,
+                achievements = ?,
+                awards = ?,
+                photo_path = COALESCE(?, photo_path),
+                is_published = 1,
+                deleted_at = NULL,
+                updated_at = NOW()
+                WHERE id = ?");
+            $stmt->execute([
+                $name,
+                $idNumber,
+                $role,
+                $specialty,
+                $location,
+                $companyName !== '' ? $companyName : null,
+                $companyLogoPath,
+                $primaryLinkUrl,
+                $primaryLinkType,
+                $linksJson,
+                $achievements,
+                $awards,
+                $firstPhoto,
+                $existingWmId
+            ]);
+
+            // Clean up any extra duplicate rows for this user if any exist
+            $pdo->prepare("DELETE FROM website_members WHERE user_id = ? AND id != ?")->execute([$userId, $existingWmId]);
+        } else {
+            // Insert brand new row
+            $stmt = $pdo->prepare("INSERT INTO website_members 
+                (user_id, name, id_number, role_title, specialty, location, company_name, company_logo_path, link_url, link_type, links_json, achievements, awards, photo_path, is_published, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())");
+            $stmt->execute([
+                $userId,
+                $name,
+                $idNumber,
+                $role,
+                $specialty,
+                $location,
+                $companyName !== '' ? $companyName : null,
+                $companyLogoPath,
+                $primaryLinkUrl,
+                $primaryLinkType,
+                $linksJson,
+                $achievements,
+                $awards,
+                $firstPhoto
+            ]);
+        }
 
         // Automatically generate public QR code for this website directory member
         if (file_exists(__DIR__ . '/../includes/qr_helper.php')) {
