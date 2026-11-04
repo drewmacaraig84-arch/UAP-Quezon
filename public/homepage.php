@@ -1863,22 +1863,49 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                         <p style="color: var(--text-muted); font-size: 0.85rem;">Partner showcase loading...</p>
                     <?php else: ?>
                         <div class="sponsor-grid">
-                            <?php foreach ($sponsors as $sp): ?>
+                            <?php foreach ($sponsors as $sp): 
+                                $spTier = strtolower($sp['tier'] ?? 'gold');
+                                $spLogoUrl = !empty($sp['logo_path']) ? media_url($sp['logo_path']) : '';
+                                $spUrl = !empty($sp['url']) ? $sp['url'] : (!empty($sp['website_url']) ? $sp['website_url'] : '');
+                            ?>
                                 <div class="sponsor-card">
-                                    <span class="sponsor-tier-badge tier-<?php echo htmlspecialchars($sp['tier']); ?>">
-                                        <?php echo htmlspecialchars($sp['tier']); ?> Partner
+                                    <span class="sponsor-tier-badge tier-<?php echo htmlspecialchars($spTier); ?>">
+                                        <?php echo htmlspecialchars(strtoupper($spTier)); ?> PARTNER
                                     </span>
-                                    <div style="font-weight: 700; color: #ffffff; font-size: 0.95rem; margin-top: 4px;">
-                                        <?php echo htmlspecialchars($sp['name']); ?>
+
+                                    <?php if ($spLogoUrl): ?>
+                                        <div class="sponsor-logo-box">
+                                            <?php if ($spUrl): ?>
+                                                <a href="<?php echo htmlspecialchars($spUrl); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo htmlspecialchars($sp['name']); ?>" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+                                                    <img src="<?php echo htmlspecialchars($spLogoUrl); ?>" alt="<?php echo htmlspecialchars($sp['name']); ?>" class="sponsor-logo-img" loading="lazy" onerror="this.closest('.sponsor-logo-box').style.display='none';">
+                                                </a>
+                                            <?php else: ?>
+                                                <img src="<?php echo htmlspecialchars($spLogoUrl); ?>" alt="<?php echo htmlspecialchars($sp['name']); ?>" class="sponsor-logo-img" loading="lazy" onerror="this.closest('.sponsor-logo-box').style.display='none';">
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <div style="font-weight: 700; color: #ffffff; font-size: 0.95rem; margin-top: <?php echo $spLogoUrl ? '4px' : '6px'; ?>;">
+                                        <?php if ($spUrl): ?>
+                                            <a href="<?php echo htmlspecialchars($spUrl); ?>" target="_blank" rel="noopener noreferrer" class="sponsor-name-link">
+                                                <?php echo htmlspecialchars($sp['name']); ?>
+                                            </a>
+                                        <?php else: ?>
+                                            <?php echo htmlspecialchars($sp['name']); ?>
+                                        <?php endif; ?>
                                     </div>
-                                    <?php if ($sp['description']): ?>
-                                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+
+                                    <?php if (!empty($sp['description'])): ?>
+                                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
                                             <?php echo htmlspecialchars($sp['description']); ?>
                                         </div>
                                     <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
                         </div>
+                        <a href="<?php echo BASE_URL; ?>/public/partners.php" class="sponsor-view-all">
+                            View All Chapter Partners &rarr;
+                        </a>
                     <?php endif; ?>
                 </div>
 
