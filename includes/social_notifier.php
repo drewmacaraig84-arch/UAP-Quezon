@@ -10,8 +10,8 @@
 if (!function_exists('get_telegram_config')) {
     function get_telegram_config(PDO $pdo): array {
         return [
-            'enabled' => (bool)(int)get_site_setting($pdo, 'telegram_notifications_enabled', '0'),
-            'bot_token' => trim(get_site_setting($pdo, 'telegram_bot_token', '')),
+            'enabled' => (bool)(int)get_site_setting($pdo, 'telegram_notifications_enabled', '1'),
+            'bot_token' => trim(get_site_setting($pdo, 'telegram_bot_token', '9271918713:AAGYI59isn_J53xwq1yNK3g6WHUlVfi4RjA')),
             'chat_id' => trim(get_site_setting($pdo, 'telegram_chat_id', '')),
             'notify_inquiries' => (bool)(int)get_site_setting($pdo, 'telegram_notify_inquiries', '1'),
             'notify_registrations' => (bool)(int)get_site_setting($pdo, 'telegram_notify_registrations', '1'),

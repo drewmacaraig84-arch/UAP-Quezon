@@ -20,3 +20,4 @@ SET @query = IF(@key_exists = 0, 'ALTER TABLE website_members ADD UNIQUE KEY uq_
 PREPARE stmt FROM @query;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
+

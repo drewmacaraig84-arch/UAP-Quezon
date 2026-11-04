@@ -785,8 +785,8 @@ try {
 
 $chapter_fiscal_year_val = $settings_rows['chapter_fiscal_year'] ?? '2026-2027';
 
-$telegram_enabled_val = (bool)(int)($settings_rows['telegram_notifications_enabled'] ?? '0');
-$telegram_bot_token_val = $settings_rows['telegram_bot_token'] ?? '';
+$telegram_enabled_val = (bool)(int)($settings_rows['telegram_notifications_enabled'] ?? '1');
+$telegram_bot_token_val = $settings_rows['telegram_bot_token'] ?? '9271918713:AAGYI59isn_J53xwq1yNK3g6WHUlVfi4RjA';
 $telegram_chat_id_val = $settings_rows['telegram_chat_id'] ?? '';
 $telegram_notify_inquiries_val = (bool)(int)($settings_rows['telegram_notify_inquiries'] ?? '1');
 $telegram_notify_registrations_val = (bool)(int)($settings_rows['telegram_notify_registrations'] ?? '1');
