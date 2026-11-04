@@ -553,6 +553,20 @@ include __DIR__ . '/../includes/header.php';
     $sc = $selectedAttendance['computed'];
     $customAtt = !empty($selectedAttendance['custom_events_json']) ? json_decode($selectedAttendance['custom_events_json'], true) : [];
     if (!is_array($customAtt)) $customAtt = [];
+
+    // Auto-detect verified CPD seminars/tours attended by this member
+    $autoAttendedCpd = 0;
+    try {
+        $cpdStmt = $pdo->prepare("
+            SELECT COUNT(*) FROM event_attendance_logs l
+            JOIN chapter_events ce ON l.event_key = CONCAT('ce_', ce.id)
+            WHERE l.user_id = ? AND l.fiscal_year = ? AND (ce.event_type = 'cpd_seminar' OR ce.cpd_units > 0) AND ce.deleted_at IS NULL
+        ");
+        $cpdStmt->execute([$selectedMemberId, $fy]);
+        $autoAttendedCpd = (int)$cpdStmt->fetchColumn();
+    } catch (Throwable $e) {}
+
+    $initialCpdCount = max((int)($selectedAttendance['cpd_seminars_count'] ?? 0), $autoAttendedCpd);
   ?>
     <div class="card" style="margin-bottom: 24px; padding: 24px; border: 2px solid var(--accent-primary); background: var(--card-bg);" id="edit-attendance-panel">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
@@ -621,7 +635,7 @@ include __DIR__ . '/../includes/header.php';
                   $checked = !empty($selectedAttendance[$col]) || !empty($customAtt[$col]);
               ?>
                 <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; cursor: pointer;">
-                  <input type="checkbox" name="<?php echo htmlspecialchars($col); ?>" value="1" <?php echo $checked ? 'checked' : ''; ?> style="width: 16px; height: 16px; accent-color: #10b981;">
+                  <input type="checkbox" name="<?php echo htmlspecialchars($col); ?>" value="1" data-major-event="1" <?php echo $checked ? 'checked' : ''; ?> style="width: 16px; height: 16px; accent-color: #10b981;">
                   <span style="color: var(--text-primary);"><?php echo htmlspecialchars($title); ?></span>
                 </label>
               <?php endforeach; ?>
@@ -644,7 +658,7 @@ include __DIR__ . '/../includes/header.php';
               ?>
                 <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; cursor: pointer; padding: 4px 6px; border-radius: 4px; background: rgba(255,255,255,0.01);">
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <input type="checkbox" name="<?php echo htmlspecialchars($col); ?>" value="1" <?php echo $checked ? 'checked' : ''; ?> style="width: 16px; height: 16px; accent-color: #f59e0b;">
+                    <input type="checkbox" name="<?php echo htmlspecialchars($col); ?>" value="1" data-special-points="<?php echo (float)$meta['points']; ?>" <?php echo $checked ? 'checked' : ''; ?> style="width: 16px; height: 16px; accent-color: #f59e0b;">
                     <span style="color: var(--text-primary);"><?php echo htmlspecialchars($meta['title']); ?></span>
                   </div>
                   <span class="badge" style="font-size: 10.5px; font-weight: 700; background: rgba(245,158,11,0.12); color: #f59e0b;">
@@ -654,15 +668,36 @@ include __DIR__ . '/../includes/header.php';
               <?php endforeach; ?>
             </div>
 
-            <!-- CPD Seminars or Tours Count -->
-            <div style="padding-top: 10px; border-top: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+            <!-- CPD Seminars or Tours Count (Auto-Summed & Editable) -->
+            <div style="padding-top: 12px; border-top: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
               <div>
                 <strong style="font-size: 12px; color: var(--text-primary); display: block;">Chapter or District CPD Seminars &amp; Tours:</strong>
-                <span class="muted" style="font-size: 11px;">1.0 pt per attended seminar/tour</span>
+                <span class="muted" style="font-size: 11px;">
+                  1.0 pt per attended seminar/tour <?php if ($autoAttendedCpd > 0): ?>&bull; <span style="color: #10b981; font-weight: 600;">(<?php echo $autoAttendedCpd; ?> auto-detected from logs)</span><?php endif; ?>
+                </span>
               </div>
               <div style="display: flex; align-items: center; gap: 6px;">
-                <input type="number" name="cpd_seminars_count" min="0" max="50" value="<?php echo (int)($selectedAttendance['cpd_seminars_count'] ?? 0); ?>" style="width: 70px; font-size: 12px; padding: 5px 8px; text-align: center;" class="form-control">
-                <span style="font-size: 11px; color: #f59e0b; font-weight: 700;">pts</span>
+                <input type="number" id="cpd_seminars_count" name="cpd_seminars_count" min="0" max="100" value="<?php echo $initialCpdCount; ?>" style="width: 65px; font-size: 12px; padding: 5px 8px; text-align: center; font-weight: 700;" class="form-control">
+                <span style="font-size: 11px; color: #f59e0b; font-weight: 700;">seminar(s) &bull; +<span id="cpd_points_calc"><?php echo number_format($initialCpdCount * 1.0, 1); ?></span> pts</span>
+              </div>
+            </div>
+
+            <!-- Automatic Section 3 Points Sum Box -->
+            <div style="margin-top: 12px; padding: 10px 14px; background: rgba(245,158,11,0.08); border: 1.5px solid var(--accent-primary, #f59e0b); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <strong style="font-size: 12.5px; color: #f59e0b; display: flex; align-items: center; gap: 4px;">
+                    <?php echo icon('sparkles', '', 14); ?> Total Special Points:
+                  </strong>
+                  <span class="badge" style="background: rgba(245,158,11,0.2); color: #f59e0b; font-size: 9.5px; font-weight: 800; padding: 2px 6px;">AUTO-SUMMED</span>
+                </div>
+                <span class="muted" style="font-size: 11px; display: block; margin-top: 2px;">
+                  Accurately calculated from checked special events + CPD seminars
+                </span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <input type="text" id="auto_special_points_sum" readonly value="<?php echo number_format($sc['special_points'], 1); ?>" style="width: 76px; font-size: 15px; font-weight: 800; padding: 5px 8px; text-align: center; background: rgba(0,0,0,0.5); border: 1.5px solid #f59e0b; color: #f59e0b; border-radius: 6px;" class="form-control">
+                <span style="font-size: 13px; color: #f59e0b; font-weight: 800;">pts</span>
               </div>
             </div>
           </div>
@@ -673,20 +708,161 @@ include __DIR__ . '/../includes/header.php';
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
             <div>
               <span class="muted" style="font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Board Resolution Compliance Preview</span>
-              <div style="font-size: 14px; font-weight: 800; color: <?php echo $sc['badge_color']; ?>; margin-top: 2px;">
-                <?php echo htmlspecialchars($sc['badge_label']); ?> &bull; <em><?php echo htmlspecialchars($sc['scheme_label']); ?></em>
+              <div id="live_compliance_badge" style="font-size: 14px; font-weight: 800; color: <?php echo $sc['badge_color']; ?>; margin-top: 2px;">
+                <span id="live_badge_label"><?php echo htmlspecialchars($sc['badge_label']); ?></span> &bull; <em id="live_scheme_label"><?php echo htmlspecialchars($sc['scheme_label']); ?></em>
               </div>
             </div>
             <div style="text-align: right;">
-              <span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: 12px; font-weight: 800; padding: 5px 12px;">
+              <span class="badge" id="banner_total_special_points" style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: 12px; font-weight: 800; padding: 5px 12px;">
                 Total Special Points: <?php echo number_format($sc['special_points'], 1); ?> pts
               </span>
             </div>
           </div>
-          <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
+          <div id="live_qualification_note" style="font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
             <?php echo htmlspecialchars($sc['qualification_note']); ?>
           </div>
         </div>
+
+
+      <!-- Real-Time Auto-Sum & Compliance Calculation Script -->
+      <script>
+      (function() {
+        function recalculateAttendanceCompliance() {
+          var panel = document.getElementById('edit-attendance-panel');
+          if (!panel) return;
+
+          // 1. Calculate Special Points from Checkboxes
+          var specialSum = 0.0;
+          var specialCheckboxes = panel.querySelectorAll('input[data-special-points]');
+          specialCheckboxes.forEach(function(cb) {
+            if (cb.checked) {
+              specialSum += parseFloat(cb.getAttribute('data-special-points') || 0);
+            }
+          });
+
+          // CPD Seminars & Tours
+          var cpdInput = document.getElementById('cpd_seminars_count');
+          var cpdCount = cpdInput ? Math.max(0, parseInt(cpdInput.value) || 0) : 0;
+          var cpdPoints = cpdCount * 1.0;
+
+          var cpdCalcEl = document.getElementById('cpd_points_calc');
+          if (cpdCalcEl) {
+            cpdCalcEl.textContent = cpdPoints.toFixed(1);
+          }
+
+          var totalSpecialPoints = Math.round((specialSum + cpdPoints) * 10) / 10;
+
+          // Update Section 3 Auto-Sum Input Box
+          var autoSumInput = document.getElementById('auto_special_points_sum');
+          if (autoSumInput) {
+            autoSumInput.value = totalSpecialPoints.toFixed(1);
+          }
+
+          // Update Banner Total Points Badge
+          var bannerBadge = document.getElementById('banner_total_special_points');
+          if (bannerBadge) {
+            bannerBadge.textContent = 'Total Special Points: ' + totalSpecialPoints.toFixed(1) + ' pts';
+          }
+
+          // 2. Count GMMs from Select Dropdowns
+          var gmmF2F = 0;
+          var gmmZoom = 0;
+          var monthSelects = panel.querySelectorAll('select[name^="month_"]');
+          monthSelects.forEach(function(sel) {
+            var val = sel.value;
+            if (val === 'f2f') gmmF2F++;
+            else if (val === 'zoom') gmmZoom++;
+          });
+
+          // 3. Count Major Events Checkboxes
+          var majorCount = 0;
+          var majorCheckboxes = panel.querySelectorAll('input[data-major-event]');
+          majorCheckboxes.forEach(function(cb) {
+            if (cb.checked) majorCount++;
+          });
+
+          // 4. Board Resolution Evaluation Schemes
+          // Scheme 1: Face-to-Face Scheme (Sec. 2) -> 7 In-Person GMMs + 2 Major Events
+          var defGmmF2F = Math.max(0, 7 - gmmF2F);
+          var defMajorF2F = Math.max(0, 2 - majorCount);
+          var pointsNeededF2F = (defGmmF2F * 5) + (defMajorF2F * 7);
+          var isF2FQualified = (defGmmF2F === 0 && defMajorF2F === 0) || (totalSpecialPoints >= pointsNeededF2F);
+
+          // Scheme 2: Hybrid Attendance Scheme (Sec. 3) -> 4 In-Person + 6 Zoom + 2 Major Events
+          var defF2FHybrid = Math.max(0, 4 - gmmF2F);
+          var defZoomHybrid = Math.max(0, 6 - gmmZoom);
+          var defMajorHybrid = Math.max(0, 2 - majorCount);
+          var pointsNeededHybrid = (defF2FHybrid * 5) + (defZoomHybrid * 5) + (defMajorHybrid * 7);
+          var isHybridQualified = (defF2FHybrid === 0 && defZoomHybrid === 0 && defMajorHybrid === 0) || (totalSpecialPoints >= pointsNeededHybrid);
+
+          var badgeLabel = 'INACTIVE';
+          var schemeLabel = 'Inactive';
+          var badgeColor = '#ef4444';
+          var note = '';
+
+          if (isF2FQualified) {
+            badgeLabel = 'ACTIVE';
+            schemeLabel = 'Face-to-Face Scheme';
+            badgeColor = '#10b981';
+            if (defGmmF2F === 0 && defMajorF2F === 0) {
+              note = 'Fully compliant under Reso. Sec. 2 (' + gmmF2F + ' In-Person GMMs & ' + majorCount + ' Major Events attended).';
+            } else {
+              note = 'Qualified via Deficiencies Compensation (Needed ' + pointsNeededF2F + ' pts, Earned ' + totalSpecialPoints.toFixed(1) + ' special pts).';
+            }
+          } else if (isHybridQualified) {
+            badgeLabel = 'ACTIVE';
+            schemeLabel = 'Hybrid Attendance Scheme';
+            badgeColor = '#06b6d4';
+            if (defF2FHybrid === 0 && defZoomHybrid === 0 && defMajorHybrid === 0) {
+              note = 'Fully compliant under Reso. Sec. 3 (' + gmmF2F + ' F2F + ' + gmmZoom + ' Zoom GMMs & ' + majorCount + ' Major Events attended).';
+            } else {
+              note = 'Qualified under Hybrid with Point Compensation (Needed ' + pointsNeededHybrid + ' pts, Earned ' + totalSpecialPoints.toFixed(1) + ' special pts).';
+            }
+          } else {
+            badgeLabel = 'INACTIVE';
+            schemeLabel = 'Inactive';
+            badgeColor = '#ef4444';
+            note = 'Attended ' + gmmF2F + ' F2F GMMs, ' + gmmZoom + ' Zoom, ' + majorCount + ' Major Events. Special Points earned: ' + totalSpecialPoints.toFixed(1) + ' pts (Deficiency compensation requires ' + pointsNeededF2F + ' pts for F2F scheme).';
+          }
+
+          var liveBadgeEl = document.getElementById('live_compliance_badge');
+          if (liveBadgeEl) {
+            liveBadgeEl.style.color = badgeColor;
+          }
+          var liveBadgeLabel = document.getElementById('live_badge_label');
+          if (liveBadgeLabel) liveBadgeLabel.textContent = badgeLabel;
+          var liveSchemeLabel = document.getElementById('live_scheme_label');
+          if (liveSchemeLabel) liveSchemeLabel.textContent = schemeLabel;
+          var liveNoteEl = document.getElementById('live_qualification_note');
+          if (liveNoteEl) liveNoteEl.textContent = note;
+        }
+
+        // Attach real-time recalculation event listeners
+        function attachListeners() {
+          var panel = document.getElementById('edit-attendance-panel');
+          if (!panel) return;
+
+          panel.querySelectorAll('input[type="checkbox"]').forEach(function(el) {
+            el.addEventListener('change', recalculateAttendanceCompliance);
+          });
+          panel.querySelectorAll('select').forEach(function(el) {
+            el.addEventListener('change', recalculateAttendanceCompliance);
+          });
+          var cpdInput = document.getElementById('cpd_seminars_count');
+          if (cpdInput) {
+            cpdInput.addEventListener('input', recalculateAttendanceCompliance);
+            cpdInput.addEventListener('change', recalculateAttendanceCompliance);
+          }
+          recalculateAttendanceCompliance();
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', attachListeners);
+        } else {
+          attachListeners();
+        }
+      })();
+      </script>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px;">
           <a href="attendance.php?tab=roster" class="btn btn-secondary">Cancel</a>
