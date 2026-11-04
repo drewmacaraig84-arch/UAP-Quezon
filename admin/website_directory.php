@@ -7,7 +7,7 @@ $error = '';
 $success = '';
 
 // Load default fee from site_settings
-$defaultFee = '500.00';
+$defaultFee = '1000.00';
 try {
     $sStmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'website_directory_fee'");
     $sStmt->execute();
@@ -255,9 +255,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // 1. Fetch Pending Applications (Awaiting Fee)
-$pendingApps = $pdo->query("SELECT da.*, u.name, u.id_number
+$pendingApps = $pdo->query("SELECT da.*, u.name, u.id_number,
+    COALESCE(u.good_standing_override, 'auto') as good_standing_override,
+    COALESCE(ma.activity_status, 'inactive') as activity_status
     FROM directory_applications da
     JOIN users u ON da.user_id = u.id
+    LEFT JOIN member_attendance ma ON ma.user_id = u.id AND ma.fiscal_year = '2026-2027'
     WHERE da.status = 'pending_fee'
     ORDER BY da.created_at DESC")->fetchAll();
 
@@ -281,10 +284,13 @@ try {
     }
 } catch (Throwable $e) {}
 
-$activeMembers = $pdo->query("SELECT wm.*, COALESCE(wm.id, da.user_id) as id, wm.id as wm_id, u.id as user_id, u.name, u.id_number, wm.created_at as profile_updated, da.id as app_id
+$activeMembers = $pdo->query("SELECT wm.*, COALESCE(wm.id, da.user_id) as id, wm.id as wm_id, u.id as user_id, u.name, u.id_number, wm.created_at as profile_updated, da.id as app_id, da.fee_amount, da.status as app_status,
+    COALESCE(u.good_standing_override, 'auto') as good_standing_override,
+    COALESCE(ma.activity_status, 'inactive') as activity_status
     FROM website_members wm
     JOIN users u ON wm.user_id = u.id
     LEFT JOIN directory_applications da ON da.user_id = u.id
+    LEFT JOIN member_attendance ma ON ma.user_id = u.id AND ma.fiscal_year = '2026-2027'
     WHERE (wm.is_published = 1 OR da.status = 'paid')
       AND wm.deleted_at IS NULL
       AND u.deleted_at IS NULL
@@ -352,8 +358,8 @@ include __DIR__ . '/../includes/header.php';
         <?php echo icon('settings', '', 20); ?>
       </div>
       <div>
-        <strong style="color:var(--text-primary); font-size:14px; display:block;">Default Directory Advertising Fee</strong>
-        <span class="muted" style="font-size:12px;">Pre-filled base amount when assigning advertising dues to new applicants</span>
+        <strong style="color:var(--text-primary); font-size:14px; display:block;">Default Directory Listing Fee (Inactive / Non-Good Standing)</strong>
+        <span class="muted" style="font-size:12px;">Active Members in Good Standing apply for FREE (₱0.00). This fee applies to Inactive applicants.</span>
       </div>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
@@ -566,18 +572,29 @@ include __DIR__ . '/../includes/header.php';
                 <?php
                   $isStandingOk = function_exists('is_good_member') ? is_good_member($pdo, (int)$am['user_id']) : true;
                 ?>
-                <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
-                  <?php if ($isStandingOk): ?>
+                <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                  <?php 
+                    $isPaidFee = ((float)($am['fee_amount'] ?? 0) > 0);
+                    $isActiveAtt = ($am['activity_status'] ?? 'inactive') !== 'inactive';
+                  ?>
+                  <?php if ($isActiveAtt && $isStandingOk): ?>
                     <span class="badge-pill badge-paid" style="font-size: 10px; padding: 2px 7px; display: inline-flex; align-items: center; gap: 4px;">
-                      <?php echo icon('check', '', 10); ?> Live on Website
+                      <?php echo icon('sparkles', '', 10); ?> Free &bull; Active Member
+                    </span>
+                    <span class="badge-pill" style="font-size: 10px; padding: 2px 7px; background: rgba(16,185,129,0.12); color: #10b981;">
+                      Live on Directory
+                    </span>
+                  <?php elseif ($isPaidFee || ($am['app_status'] ?? '') === 'paid'): ?>
+                    <span class="badge-pill" style="font-size: 10px; padding: 2px 7px; background: rgba(245,158,11,0.15); color: #f59e0b; display: inline-flex; align-items: center; gap: 4px;">
+                      <?php echo icon('payments', '', 10); ?> Paid Listing (₱<?php echo number_format((float)($am['fee_amount'] ?: 1000), 2); ?>)
+                    </span>
+                    <span class="badge-pill" style="font-size: 10px; padding: 2px 7px; background: rgba(16,185,129,0.12); color: #10b981;">
+                      Live (No Badges)
                     </span>
                   <?php else: ?>
-                    <span class="badge-pill badge-unpaid" style="font-size: 10px; padding: 2px 7px; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: inline-flex; align-items: center; gap: 4px;" title="Profile is hidden from public directory due to inactive attendance (<= 2 events), overdue dues, or administrative hold">
-                      <?php echo icon('alert', '', 10); ?> Hidden: Inactive Attendance / Hold
+                    <span class="badge-pill badge-paid" style="font-size: 10px; padding: 2px 7px;">
+                      Live on Directory
                     </span>
-                    <a href="good_members.php" style="font-size: 10.5px; color: var(--accent-primary); text-decoration: underline;" title="Manage Good Standing">
-                      Manage &rarr;
-                    </a>
                   <?php endif; ?>
                 </div>
               </td>

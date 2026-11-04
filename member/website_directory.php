@@ -14,24 +14,113 @@ $isGoodStanding = !empty($standing['is_good']);
 $attendance = get_or_create_member_attendance($pdo, $userId);
 $isActiveMember = ($attendance['activity_status'] ?? '') === 'active' || ($attendance['computed']['status'] ?? '') === 'active';
 
-$isEligibleToApply = ($isActiveMember && $isGoodStanding);
+// New Rules: Active + Good Standing = FREE. Inactive or non-good standing = Paid (Admin Fee).
+$isEligibleFree = ($isActiveMember && $isGoodStanding);
+$isEligibleToApply = true; // All chapter members may apply (free or paid)
+
+// Fetch configured directory listing fee for inactive members
+$directoryFee = '1000.00';
+try {
+    $sStmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'website_directory_fee'");
+    $sStmt->execute();
+    $sRow = $sStmt->fetch();
+    if ($sRow && !empty($sRow['setting_value'])) {
+        $directoryFee = number_format((float)$sRow['setting_value'], 2, '.', '');
+    }
+} catch (Throwable $e) {}
 
 $error = '';
 $success = '';
 
-// Handle Application Submission & Re-application
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['apply_directory', 'reapply_directory'], true)) {
+// Handle Application Submission, Claim Free Listing, & Re-application
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['claim_free_directory', 'apply_directory_paid', 'reapply_directory', 'apply_directory'], true)) {
     require_csrf();
+    $act = $_POST['action'] ?? '';
 
-    if (!$isEligibleToApply) {
-        $error = 'Ineligible to apply: Under chapter policy, you must be an Active Member (meeting attendance compliance) and in Good Standing (annual dues settled) to apply for the Website Directory listing.';
-    } elseif (!$app) {
-        $stmt = $pdo->prepare("INSERT INTO directory_applications (user_id, status) VALUES (?, 'pending_fee')
-                               ON DUPLICATE KEY UPDATE status = 'pending_fee'");
-        $stmt->execute([$userId]);
-        $success = 'Application submitted successfully! The Chapter Admin will review and assign your advertising fee shortly.';
-        $app = get_directory_application($pdo, $userId);
-    } elseif ($app['status'] === 'rejected') {
+    // Action A: Claim Free Directory Listing (Active Badge + Good Standing)
+    if ($act === 'claim_free_directory' || ($act === 'apply_directory' && $isEligibleFree)) {
+        if (!$isEligibleFree) {
+            $error = 'Free directory listing is exclusively reserved for Active Members in Good Standing. Please use the standard listing application.';
+        } else {
+            try {
+                $pdo->beginTransaction();
+                $stmt = $pdo->prepare("INSERT INTO directory_applications (user_id, status, fee_amount, notes) 
+                                       VALUES (?, 'paid', 0.00, 'Complimentary Active Member Good Standing Listing')
+                                       ON DUPLICATE KEY UPDATE status = 'paid', fee_amount = 0.00, notes = 'Complimentary Active Member Good Standing Listing'");
+                $stmt->execute([$userId]);
+
+                // Ensure website_members row exists and is published
+                $wmCheck = $pdo->prepare("SELECT id FROM website_members WHERE user_id = ?");
+                $wmCheck->execute([$userId]);
+                if (!$wmCheck->fetch()) {
+                    $uData = $pdo->prepare("SELECT name, id_number, profile_photo FROM users WHERE id = ?");
+                    $uData->execute([$userId]);
+                    $u = $uData->fetch();
+                    if ($u) {
+                        $pdo->prepare("INSERT INTO website_members (user_id, name, id_number, role_title, specialty, location, photo_path, is_published) 
+                                       VALUES (?, ?, ?, 'Architect', 'General Practice', 'Quezon Province', ?, 1)")
+                            ->execute([$userId, $u['name'], $u['id_number'], $u['profile_photo'] ?: null]);
+                    }
+                } else {
+                    $pdo->prepare("UPDATE website_members SET is_published = 1 WHERE user_id = ?")->execute([$userId]);
+                }
+
+                if (file_exists(__DIR__ . '/../includes/qr_helper.php')) {
+                    require_once __DIR__ . '/../includes/qr_helper.php';
+                    $fStmt = $pdo->prepare("SELECT id FROM website_members WHERE user_id = ?");
+                    $fStmt->execute([$userId]);
+                    $wmId = (int)$fStmt->fetchColumn();
+                    if ($wmId > 0 && function_exists('generate_member_directory_qr')) {
+                        generate_member_directory_qr($pdo, $wmId, true);
+                    }
+                }
+
+                $pdo->commit();
+                $isUnlocked = true;
+                $app = get_directory_application($pdo, $userId);
+                $success = '🎉 Congratulations! Your complimentary Website Directory feature has been instantly unlocked! You can now build your public practice profile below.';
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                $error = 'Failed to activate free listing: ' . $e->getMessage();
+            }
+        }
+    }
+
+    // Action B: Apply for Directory Listing with Fee (Inactive or Non-Good Standing)
+    elseif ($act === 'apply_directory_paid' || ($act === 'apply_directory' && !$isEligibleFree)) {
+        try {
+            $pdo->beginTransaction();
+            $feeVal = (float)$directoryFee;
+            $dueDate = date('Y-m-d', strtotime('+14 days'));
+
+            // Create due program specifically for this directory fee
+            $dStmt = $pdo->prepare("INSERT INTO dues (title, description, amount, due_date, term) 
+                                   VALUES ('Website Directory Listing Fee', 'Annual chapter website directory listing and portfolio showcase', ?, ?, 'Annual')");
+            $dStmt->execute([$feeVal, $dueDate]);
+            $dueId = (int)$pdo->lastInsertId();
+
+            // Assign to member in member_dues
+            $mStmt = $pdo->prepare("INSERT INTO member_dues (user_id, due_id, status) VALUES (?, ?, 'unpaid')");
+            $mStmt->execute([$userId, $dueId]);
+            $memberDueId = (int)$pdo->lastInsertId();
+
+            // Update/insert directory application
+            $stmt = $pdo->prepare("INSERT INTO directory_applications (user_id, status, fee_amount, member_due_id, notes) 
+                                   VALUES (?, 'fee_set', ?, ?, 'Standard Inactive/Non-Good Standing Listing')
+                                   ON DUPLICATE KEY UPDATE status = 'fee_set', fee_amount = VALUES(fee_amount), member_due_id = VALUES(member_due_id), notes = VALUES(notes)");
+            $stmt->execute([$userId, $feeVal, $memberDueId]);
+
+            $pdo->commit();
+            $app = get_directory_application($pdo, $userId);
+            $success = 'Application submitted! An advertising fee invoice of ₱' . number_format($feeVal, 2) . ' has been generated. Please proceed to payment below to unlock your listing.';
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            $error = 'Failed to create directory application: ' . $e->getMessage();
+        }
+    }
+
+    // Action C: Re-application after decline
+    elseif ($act === 'reapply_directory') {
         $allowed = (int)($app['reapply_allowed'] ?? 1);
         $reapplyDate = $app['reapply_after'] ?? null;
         $canReapply = ($allowed === 1) && (empty($reapplyDate) || strtotime($reapplyDate) <= strtotime(date('Y-m-d')));
@@ -41,20 +130,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['
         } elseif (!$canReapply) {
             $error = 'You will be eligible to re-apply on or after ' . date('F d, Y', strtotime($reapplyDate)) . '.';
         } else {
-            $stmt = $pdo->prepare("UPDATE directory_applications 
-                                   SET status = 'pending_fee', 
-                                       fee_amount = NULL, 
-                                       member_due_id = NULL, 
-                                       notes = NULL, 
-                                       reapply_allowed = 1, 
-                                       reapply_after = NULL, 
-                                       dismissed_notification = 0, 
-                                       rejected_at = NULL, 
-                                       created_at = NOW() 
-                                   WHERE user_id = ?");
-            $stmt->execute([$userId]);
-            $success = 'Your directory application has been re-submitted! The Chapter Admin will review it shortly.';
-            $app = get_directory_application($pdo, $userId);
+            // If they are now Active + Good Standing, unlock immediately for free!
+            if ($isEligibleFree) {
+                $stmt = $pdo->prepare("UPDATE directory_applications 
+                                       SET status = 'paid', 
+                                           fee_amount = 0.00, 
+                                           member_due_id = NULL, 
+                                           notes = 'Complimentary Active Member Good Standing Listing (Re-application)', 
+                                           reapply_allowed = 1, 
+                                           reapply_after = NULL, 
+                                           dismissed_notification = 0, 
+                                           rejected_at = NULL, 
+                                           created_at = NOW() 
+                                       WHERE user_id = ?");
+                $stmt->execute([$userId]);
+                $isUnlocked = true;
+                $app = get_directory_application($pdo, $userId);
+                $success = '🎉 Congratulations! Having achieved Active Good Standing status, your directory listing is now instantly unlocked for free!';
+            } else {
+                $stmt = $pdo->prepare("UPDATE directory_applications 
+                                       SET status = 'pending_fee', 
+                                           fee_amount = NULL, 
+                                           member_due_id = NULL, 
+                                           notes = NULL, 
+                                           reapply_allowed = 1, 
+                                           reapply_after = NULL, 
+                                           dismissed_notification = 0, 
+                                           rejected_at = NULL, 
+                                           created_at = NOW() 
+                                       WHERE user_id = ?");
+                $stmt->execute([$userId]);
+                $success = 'Your directory application has been re-submitted! The Chapter Admin will review it shortly.';
+                $app = get_directory_application($pdo, $userId);
+            }
         }
     }
 }
@@ -428,75 +536,100 @@ include __DIR__ . '/../includes/header.php';
   <?php if (!$isUnlocked): ?>
     <!-- Application & Unlock Flow -->
     <?php if (!$app): ?>
-      <div style="background: rgba(245,158,11,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 28px 24px; text-align: center; margin-bottom: 20px;">
-        <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 8px 0; color: var(--text-primary);">
-          Official Website Directory Listing
-        </h2>
-        <p class="muted" style="max-width: 580px; margin: 0 auto 20px; font-size: 13.5px; line-height: 1.5;">
-          Promote your architectural practice, services, portfolio, and contact credentials directly on the public UAP Quezon Chapter website directory.
-        </p>
-
-        <!-- Eligibility Checklist Card -->
-        <div style="max-width: 620px; margin: 0 auto 24px; text-align: left; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 18px 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-            <strong style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">Application Eligibility Requirements</strong>
-            <span class="badge" style="font-size: 10.5px; padding: 2px 8px; <?php echo $isEligibleToApply ? 'background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);' : 'background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3);'; ?>">
-              <?php echo $isEligibleToApply ? 'ELIGIBLE TO APPLY' : 'REQUIREMENTS INCOMPLETE'; ?>
+      <?php if ($isEligibleFree): ?>
+        <!-- TIER 1: ACTIVE + GOOD STANDING (100% FREE) -->
+        <div style="background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(245,158,11,0.06)); border: 1.5px solid #10b981; border-radius: 12px; padding: 32px 24px; text-align: center; margin-bottom: 24px;">
+          <div style="width: 58px; height: 58px; border-radius: 50%; background: rgba(16,185,129,0.15); color: #10b981; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+            <?php echo icon('sparkles', '', 30); ?>
+          </div>
+          <h2 style="font-size: 21px; font-weight: 800; margin: 0 0 6px 0; color: var(--text-primary);">
+            Official Website Directory Listing
+          </h2>
+          <div style="margin-bottom: 12px;">
+            <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; font-weight: 800; font-size: 11px; padding: 3px 10px; border-radius: 20px;">
+              ACTIVE MEMBER &bull; GOOD STANDING PRIVILEGE (FREE)
             </span>
           </div>
+          <p class="muted" style="max-width: 620px; margin: 0 auto 20px; font-size: 13.5px; line-height: 1.55;">
+            🎉 Congratulations! Because you have achieved an <strong>Active Member badge</strong> and are in <strong>Good Standing</strong> for FY <?php echo htmlspecialchars(get_active_fiscal_year()); ?>, you are entitled to apply for the public chapter website directory completely <strong>FREE OF CHARGE (₱0.00)</strong>!
+          </p>
 
-          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
-            <!-- Rule 1: Active Member -->
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
-              <div>
-                <strong style="color: var(--text-primary); display: block;">1. Active Chapter Member</strong>
-                <span class="muted" style="font-size: 11.5px;">Compliant with required GMMs and Major Events under Chapter Board Resolution.</span>
-              </div>
-              <div>
-                <?php if ($isActiveMember): ?>
-                  <span class="badge-pill badge-paid" style="font-size: 11px;">Active Member</span>
-                <?php else: ?>
-                  <a href="chapter_status.php" class="badge-pill badge-unpaid" style="font-size: 11px; text-decoration: none;">Inactive &rarr;</a>
-                <?php endif; ?>
-              </div>
-            </div>
-
-            <!-- Rule 2: Good Standing -->
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
-              <div>
-                <strong style="color: var(--text-primary); display: block;">2. Good Standing Status</strong>
-                <span class="muted" style="font-size: 11.5px;">Fiscal year chapter dues and official financial obligations settled.</span>
-              </div>
-              <div>
-                <?php if ($isGoodStanding): ?>
-                  <span class="badge-pill badge-paid" style="font-size: 11px;">Good Standing</span>
-                <?php else: ?>
-                  <a href="dues.php" class="badge-pill badge-unpaid" style="font-size: 11px; text-decoration: none;">Settle Dues &rarr;</a>
-                <?php endif; ?>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <?php if ($isEligibleToApply): ?>
           <form method="POST" style="display: inline-block; margin: 0;">
             <?php echo csrf_field(); ?>
-            <input type="hidden" name="action" value="apply_directory">
-            <button class="btn btn-primary" type="submit" style="padding: 10px 28px; font-weight:700; font-size: 13.5px;">
-              Apply for Website Directory Listing
+            <input type="hidden" name="action" value="claim_free_directory">
+            <button class="btn btn-success" type="submit" style="padding: 12px 32px; font-weight: 800; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16,185,129,0.3);">
+              <?php echo icon('check', '', 18); ?> Claim Free Directory Listing (₱0.00)
             </button>
           </form>
-        <?php else: ?>
-          <div>
-            <button class="btn btn-secondary" type="button" disabled style="padding: 10px 24px; opacity: 0.6; cursor: not-allowed; font-weight: 700; font-size: 13.5px;">
-              Application Locked (Incomplete Requirements)
-            </button>
-            <p class="muted" style="font-size: 12px; margin: 8px 0 0 0;">
-              Please complete your chapter meeting attendance and settle any pending dues to qualify for directory application.
-            </p>
+        </div>
+
+      <?php else: ?>
+        <!-- TIER 2: INACTIVE OR NON-GOOD STANDING (WITH ADMIN FEE) -->
+        <div style="background: rgba(245,158,11,0.03); border: 1.5px solid rgba(245,158,11,0.3); border-radius: 12px; padding: 30px 24px; text-align: center; margin-bottom: 24px;">
+          <div style="width: 54px; height: 54px; border-radius: 50%; background: rgba(245,158,11,0.12); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+            <?php echo icon('building', '', 26); ?>
           </div>
-        <?php endif; ?>
-      </div>
+          <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 6px 0; color: var(--text-primary);">
+            Official Website Directory Listing
+          </h2>
+          <div style="margin-bottom: 12px;">
+            <span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; font-weight: 800; font-size: 11px; padding: 3px 10px; border-radius: 20px;">
+              SPECIAL DIRECTORY LISTING RATE &bull; ₱<?php echo number_format($directoryFee, 2); ?>
+            </span>
+          </div>
+          <p class="muted" style="max-width: 620px; margin: 0 auto 20px; font-size: 13.5px; line-height: 1.55;">
+            You currently do not have an Active badge or Good Standing for FY <?php echo htmlspecialchars(get_active_fiscal_year()); ?>. Under chapter policy, Active Good Standing members receive free directory listings, but you can still showcase your practice, firm, and completed projects on the official website directory by paying the Chapter Listing Fee of <strong>₱<?php echo number_format($directoryFee, 2); ?></strong>.
+          </p>
+
+          <!-- Current Standing Breakdown Card -->
+          <div style="max-width: 580px; margin: 0 auto 24px; text-align: left; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+              <strong style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">Your Current Chapter Status</strong>
+              <span class="badge" style="font-size: 10px; padding: 2px 7px; background: rgba(245,158,11,0.12); color: #f59e0b;">
+                PAID LISTING TIER APPLIES
+              </span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12.5px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                <div>
+                  <strong style="color: var(--text-primary); display: block;">1. Meeting Attendance Status</strong>
+                  <span class="muted" style="font-size: 11px;">Active badge requires 7+ F2F GMMs or hybrid compliance.</span>
+                </div>
+                <div>
+                  <?php if ($isActiveMember): ?>
+                    <span class="badge-pill badge-paid" style="font-size: 10.5px;">Active</span>
+                  <?php else: ?>
+                    <span class="badge-pill badge-unpaid" style="font-size: 10.5px;">Inactive</span>
+                  <?php endif; ?>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
+                <div>
+                  <strong style="color: var(--text-primary); display: block;">2. Financial Good Standing</strong>
+                  <span class="muted" style="font-size: 11px;">Annual chapter dues settlement.</span>
+                </div>
+                <div>
+                  <?php if ($isGoodStanding): ?>
+                    <span class="badge-pill badge-paid" style="font-size: 10.5px;">Good Standing</span>
+                  <?php else: ?>
+                    <span class="badge-pill badge-unpaid" style="font-size: 10.5px;">Unsettled Dues</span>
+                  <?php endif; ?>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <form method="POST" style="display: inline-block; margin: 0;">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="action" value="apply_directory_paid">
+            <button class="btn btn-primary" type="submit" style="padding: 12px 30px; font-weight: 800; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+              <?php echo icon('check', '', 18); ?> Apply for Directory Listing (₱<?php echo number_format($directoryFee, 2); ?> Fee)
+            </button>
+          </form>
+        </div>
+      <?php endif; ?>
 
     <?php elseif ($app['status'] === 'pending_fee'): ?>
       <div class="alert alert-info" style="display: flex; gap: 14px; align-items: center;">
@@ -513,13 +646,13 @@ include __DIR__ . '/../includes/header.php';
             <span class="badge badge-unpaid" style="font-size: 12px;">Payment Required</span>
             <h3 style="margin: 6px 0 0;">Website Directory Advertising Fee: ₱<?php echo number_format($app['fee_amount'], 2); ?></h3>
           </div>
-          <?php if (!empty($app['due_id'])): ?>
-            <a href="pay.php?id=<?php echo (int)$app['due_id']; ?>" class="btn btn-success" style="font-weight: 700; padding: 10px 20px;">
+          <?php if (!empty($app['member_due_id_val'])): ?>
+            <a href="pay.php?member_due_id=<?php echo (int)$app['member_due_id_val']; ?>" class="btn btn-success" style="font-weight: 700; padding: 10px 20px;">
               Pay Now &rarr;
             </a>
           <?php else: ?>
-            <a href="pay.php" class="btn btn-success" style="font-weight: 700; padding: 10px 20px;">
-              Go to Payments &rarr;
+            <a href="dues.php" class="btn btn-success" style="font-weight: 700; padding: 10px 20px;">
+              Go to Dues &rarr;
             </a>
           <?php endif; ?>
         </div>

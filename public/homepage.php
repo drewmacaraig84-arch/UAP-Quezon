@@ -40,10 +40,14 @@ try {
     $stmt = $pdo->prepare("
         SELECT wm.*,
                u.good_standing_override,
-               COALESCE(ma.activity_status, 'inactive') as activity_status
+               COALESCE(ma.activity_status, 'inactive') as activity_status,
+               da.status as dir_app_status,
+               md.status as dir_payment_status
         FROM website_members wm
         JOIN users u ON wm.user_id = u.id
         LEFT JOIN member_attendance ma ON ma.user_id = u.id AND ma.fiscal_year = ?
+        LEFT JOIN directory_applications da ON da.user_id = u.id
+        LEFT JOIN member_dues md ON da.member_due_id = md.id
         WHERE wm.is_published = 1 
           AND wm.deleted_at IS NULL 
           AND u.deleted_at IS NULL 
@@ -51,6 +55,8 @@ try {
           AND (
               COALESCE(u.good_standing_override, 'auto') = 'granted'
               OR COALESCE(ma.activity_status, 'inactive') != 'inactive'
+              OR da.status = 'paid'
+              OR md.status = 'paid'
           )
         ORDER BY wm.name ASC
     ");
@@ -58,10 +64,16 @@ try {
     $publishedMembers = $stmt->fetchAll();
     if (!empty($publishedMembers)) {
         foreach ($publishedMembers as $wm) {
-            if (!empty($wm['user_id']) && function_exists('is_good_member')) {
-                if (!is_good_member($pdo, (int)$wm['user_id'])) {
-                    continue;
-                }
+            $uId = (int)($wm['user_id'] ?? 0);
+            $isPaidDir = ($wm['dir_app_status'] === 'paid' || ($wm['dir_payment_status'] ?? '') === 'paid');
+            $isGood = function_exists('is_good_member') ? is_good_member($pdo, $uId) : false;
+            $isActive = ($wm['activity_status'] ?? 'inactive') !== 'inactive';
+            $hasGoodOverride = (($wm['good_standing_override'] ?? 'auto') === 'granted');
+
+            $isCompliantActive = ($isActive && ($isGood || $hasGoodOverride));
+
+            if (!$isCompliantActive && !$isPaidDir) {
+                continue;
             }
             $members[] = [
                 'id' => $wm['id'],

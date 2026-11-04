@@ -22,10 +22,14 @@ if ($memberId > 0) {
                                   u.phone as user_phone,
                                   u.address as user_address,
                                   u.good_standing_override,
-                                  COALESCE(ma.activity_status, 'inactive') as activity_status
+                                  COALESCE(ma.activity_status, 'inactive') as activity_status,
+                                  da.status as dir_app_status,
+                                  md.status as dir_payment_status
                            FROM website_members wm 
                            JOIN users u ON wm.user_id = u.id 
                            LEFT JOIN member_attendance ma ON ma.user_id = u.id AND ma.fiscal_year = ?
+                           LEFT JOIN directory_applications da ON da.user_id = u.id
+                           LEFT JOIN member_dues md ON da.member_due_id = md.id
                            WHERE (wm.id = ? OR wm.user_id = ?) 
                              AND wm.is_published = 1 
                              AND wm.deleted_at IS NULL
@@ -34,6 +38,8 @@ if ($memberId > 0) {
                              AND (
                                  COALESCE(u.good_standing_override, 'auto') = 'granted'
                                  OR COALESCE(ma.activity_status, 'inactive') != 'inactive'
+                                 OR da.status = 'paid'
+                                 OR md.status = 'paid'
                              )");
     $stmt->execute([$activeFy, $memberId, $memberId]);
     $member = $stmt->fetch();
@@ -419,16 +425,14 @@ $activePage = 'architects';
                     <div class="profile-badges-row">
                         <?php
                             $standingDetails = function_exists('get_member_standing_details') ? get_member_standing_details($pdo, (int)$member['user_id']) : ['is_good' => true, 'label' => 'Good Standing'];
-                            if (!empty($standingDetails['is_good'])):
+                            $isActiveMemberProf = ($member['activity_status'] ?? 'inactive') !== 'inactive';
+                            $isGoodProf = !empty($standingDetails['is_good']) || (($member['good_standing_override'] ?? 'auto') === 'granted');
+                            $isCompliantActiveProf = ($isActiveMemberProf && $isGoodProf);
                         ?>
+                        <?php if ($isCompliantActiveProf): ?>
                             <span class="badge-verified-pill" style="background: rgba(16,185,129,0.15); border-color: #10b981; color: #10b981;">
                                 <?php echo icon('shield_check', '', 14); ?>
                                 <span>Good Standing (Verified)</span>
-                            </span>
-                        <?php else: ?>
-                            <span class="badge-verified-pill" style="background: rgba(239,68,68,0.15); border-color: #ef4444; color: #ef4444;">
-                                <?php echo icon('alert', '', 14); ?>
-                                <span><?php echo htmlspecialchars($standingDetails['label']); ?></span>
                             </span>
                         <?php endif; ?>
                         <span class="badge-gold-pill">
@@ -545,10 +549,10 @@ $activePage = 'architects';
                     <div class="cred-item">
                         <span class="cred-label">Public Directory Status</span>
                         <span class="cred-value">
-                            <?php if (!empty($standingDetails['is_good'])): ?>
+                            <?php if (!empty($isCompliantActiveProf)): ?>
                                 <span style="color: #10b981; font-weight: 700;">Active Verified Chapter Member</span>
                             <?php else: ?>
-                                <span style="color: #ef4444; font-weight: 700;">Hidden from Directory &bull; <?php echo htmlspecialchars($standingDetails['label']); ?></span>
+                                <span style="color: var(--quezon-gold); font-weight: 700;">Verified Chapter Directory Member</span>
                             <?php endif; ?>
                         </span>
                     </div>

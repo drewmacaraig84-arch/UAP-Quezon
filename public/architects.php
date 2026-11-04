@@ -40,17 +40,23 @@ try {
 
     $activeFy = function_exists('get_active_fiscal_year') ? get_active_fiscal_year() : '2026-2027';
 
-    // Direct SQL enforcement: Exclude members with Inactive Attendance (<= 2 events)
-    // unless an administrative override has explicitly granted good standing
+    // Rule:
+    // Tier 1: Free Active + Good Standing members are included (with badges).
+    // Tier 2: Inactive or Non-Good Standing members who paid the directory fee are included (without badges).
     $sql = "SELECT wm.*, 
                    COALESCE(NULLIF(u.profile_photo, ''), NULLIF(wm.photo_path, '')) as photo_path,
                    u.email as user_email,
                    u.phone as user_phone,
                    u.good_standing_override,
-                   COALESCE(ma.activity_status, 'inactive') as activity_status
+                   COALESCE(ma.activity_status, 'inactive') as activity_status,
+                   da.status as dir_app_status,
+                   da.fee_amount as dir_fee_amount,
+                   md.status as dir_payment_status
             FROM website_members wm 
             JOIN users u ON wm.user_id = u.id 
             LEFT JOIN member_attendance ma ON ma.user_id = u.id AND ma.fiscal_year = ?
+            LEFT JOIN directory_applications da ON da.user_id = u.id
+            LEFT JOIN member_dues md ON da.member_due_id = md.id
             WHERE wm.is_published = 1 
               AND wm.deleted_at IS NULL 
               AND u.deleted_at IS NULL 
@@ -58,6 +64,8 @@ try {
               AND (
                   COALESCE(u.good_standing_override, 'auto') = 'granted'
                   OR COALESCE(ma.activity_status, 'inactive') != 'inactive'
+                  OR da.status = 'paid'
+                  OR md.status = 'paid'
               )";
     $params = [$activeFy];
 
@@ -78,26 +86,45 @@ try {
     $rows = $stmt->fetchAll();
 
     foreach ($rows as $wm) {
-        if (!empty($wm['user_id']) && function_exists('is_good_member')) {
-            if (!is_good_member($pdo, (int)$wm['user_id'])) {
-                continue;
-            }
+        $uId = (int)($wm['user_id'] ?? 0);
+        $isPaidDir = ($wm['dir_app_status'] === 'paid' || ($wm['dir_payment_status'] ?? '') === 'paid');
+        $isGood = function_exists('is_good_member') ? is_good_member($pdo, $uId) : false;
+        $isActive = ($wm['activity_status'] ?? 'inactive') !== 'inactive';
+        $hasGoodOverride = (($wm['good_standing_override'] ?? 'auto') === 'granted');
+
+        $isCompliantActive = ($isActive && ($isGood || $hasGoodOverride));
+
+        // Skip only if member is NEITHER compliant active NOR paid directory
+        if (!$isCompliantActive && !$isPaidDir) {
+            continue;
         }
-        $members[] = [
-            'id' => $wm['id'],
-            'name' => $wm['name'],
-            'role' => $wm['role_title'] ?: 'Architect',
-            'specialty' => $wm['specialty'] ?: 'Professional Architect',
-            'id_number' => $wm['id_number'] ?: '—',
-            'location' => $wm['location'] ?: 'Quezon Province',
-            'officer_position' => (function() use ($wm, $officerMap) {
+
+        // Rule 2: Inactive/Non-Good Standing members who paid the directory fee:
+        // "don't put any tag no badge"
+        $showBadges = $isCompliantActive;
+
+        $officerPos = null;
+        if ($showBadges) {
+            $officerPos = (function() use ($wm, $officerMap) {
                 if (!empty($wm['user_id']) && isset($officerMap['uid_' . $wm['user_id']])) {
                     return $officerMap['uid_' . $wm['user_id']];
                 }
                 $cName = strtolower(trim(preg_replace('/^(Ar\.|Architect)\s+/i', '', $wm['name'])));
                 $cName = trim(preg_replace('/,\s*uap$/i', '', $cName));
                 return $officerMap['name_' . $cName] ?? null;
-            })(),
+            })();
+        }
+
+        $members[] = [
+            'id' => $wm['id'],
+            'user_id' => $uId,
+            'name' => $wm['name'],
+            'role' => $wm['role_title'] ?: 'Architect',
+            'specialty' => $wm['specialty'] ?: 'Professional Architect',
+            'id_number' => $wm['id_number'] ?: '—',
+            'location' => $wm['location'] ?: 'Quezon Province',
+            'officer_position' => $officerPos,
+            'show_badges' => $showBadges,
             'company' => $wm['company_name'] ?: '',
             'photo_path' => $wm['photo_path'] ?? '',
             'email' => $wm['user_email'] ?? '',
@@ -341,7 +368,7 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
                             <div>
                                 <h3 style="font-size: 1.1rem; color: #ffffff; font-weight: 700;"><?php echo htmlspecialchars($m['name']); ?></h3>
                                 <div style="font-size: 0.8rem; color: var(--quezon-gold); font-weight: 600;"><?php echo htmlspecialchars($m['role']); ?></div>
-                                <?php if (!empty($m['officer_position'])): ?>
+                                <?php if (!empty($m['show_badges']) && !empty($m['officer_position'])): ?>
                                     <div style="font-size: 0.74rem; color: #4ade80; font-weight: 700; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px; background: rgba(34,197,94,0.12); padding: 2px 7px; border-radius: 4px; border: 1px solid rgba(34,197,94,0.3);">
                                         <?php echo icon('award', '', 11); ?> <?php echo htmlspecialchars($m['officer_position']); ?>
                                     </div>
