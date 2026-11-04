@@ -1360,22 +1360,47 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
 
         @media (max-width: 768px) {
             .hero-intro-row {
-                flex-direction: column;
-                text-align: center;
-                gap: 14px;
-                padding: 14px;
+                flex-direction: row !important;
+                align-items: center;
+                text-align: left;
+                gap: clamp(10px, 2.5vw, 18px);
+                padding: clamp(10px, 2.5vw, 16px);
                 margin: 1.2rem auto 1.8rem;
             }
             .hero-intro-media {
-                flex: 0 0 auto;
-                width: 100%;
+                flex: 0 0 clamp(110px, 35vw, 180px);
+                max-width: 42%;
+                width: auto;
             }
             .hero-intro-img {
-                max-width: 250px;
+                width: 100%;
+                max-width: 100%;
+                height: auto;
+                border-radius: 8px;
+            }
+            .hero-intro-text {
+                flex: 1;
+                min-width: 0;
             }
             .hero-intro-text .lead {
-                text-align: center !important;
-                font-size: 0.92rem !important;
+                text-align: left !important;
+                font-size: clamp(0.72rem, 2.3vw, 0.88rem) !important;
+                line-height: 1.45 !important;
+                overflow-wrap: break-word;
+            }
+        }
+        @media (max-width: 420px) {
+            .hero-intro-row {
+                gap: 8px;
+                padding: 10px;
+            }
+            .hero-intro-media {
+                flex: 0 0 38%;
+                max-width: 38%;
+            }
+            .hero-intro-text .lead {
+                font-size: 0.70rem !important;
+                line-height: 1.4 !important;
             }
         }
 
