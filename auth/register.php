@@ -317,7 +317,7 @@ include __DIR__ . '/../includes/header.php';
 
 
 
-  <div class="auth-card-modern register-card" style="max-width: 1060px; margin: 0 auto;">
+  <div class="auth-card-modern register-card">
 
     <!-- LEFT BRANDING & HERO PANEL -->
 
@@ -463,7 +463,7 @@ include __DIR__ . '/../includes/header.php';
 
         <!-- Row 1: Last Name, First Name, Middle Initial -->
 
-        <div class="arch-identity-grid-1" style="display: grid; grid-template-columns: 1fr 1fr 110px; gap: 12px; margin-bottom: 14px;">
+        <div class="arch-identity-grid-1" style="display: grid; grid-template-columns: 1.2fr 1.2fr 100px; gap: 14px; margin-bottom: 14px;">
 
           <div class="field" style="margin: 0;">
 
@@ -510,7 +510,7 @@ include __DIR__ . '/../includes/header.php';
 
 
         <!-- Row 2: Name Suffix, Membership Status & Titles, PRC License # -->
-        <div class="arch-identity-grid-2" style="display: grid; grid-template-columns: 130px 1.5fr 1.1fr; gap: 12px; margin-bottom: 14px;">
+        <div class="arch-identity-grid-2" style="display: grid; grid-template-columns: 140px 1.6fr 1.2fr; gap: 14px; margin-bottom: 14px;">
           <div class="field" style="margin: 0;">
             <label>Name Suffix <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">(optional)</span></label>
             <input type="text" name="suffix" list="suffixList" maxlength="20" placeholder="e.g. Jr., III" value="<?php echo htmlspecialchars($_POST['suffix'] ?? ''); ?>" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg, #0f172a); color: var(--text-primary);">
@@ -849,14 +849,33 @@ include __DIR__ . '/../includes/header.php';
 
 
 
-@media (max-width: 768px) {
+.register-card {
+  max-width: 1380px !important;
+  width: 96% !important;
+  margin: 0 auto !important;
+  grid-template-columns: 370px 1fr !important;
+}
 
-  .arch-identity-grid-1, .arch-identity-grid-2 {
-
-    grid-template-columns: 1fr !important;
-
+@media (max-width: 1140px) {
+  .register-card {
+    grid-template-columns: 330px 1fr !important;
   }
+}
 
+@media (max-width: 920px) {
+  .register-card {
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+  }
+  .register-card .auth-hero-panel {
+    position: static !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .arch-identity-grid-1, .arch-identity-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 
