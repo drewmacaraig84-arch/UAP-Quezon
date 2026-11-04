@@ -162,6 +162,11 @@ try {
         $pdo->exec("ALTER TABLE website_members ADD COLUMN qr_code_path VARCHAR(255) NULL");
         echo "Added column 'qr_code_path' to 'website_members' table.\n";
     }
+    $colCheck = $pdo->query("SHOW COLUMNS FROM website_members LIKE 'updated_at'")->fetch();
+    if (!$colCheck) {
+        $pdo->exec("ALTER TABLE website_members ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+        echo "Added column 'updated_at' to 'website_members' table.\n";
+    }
 } catch (Throwable $e) {
     echo "Notice: " . $e->getMessage() . "\n";
 }

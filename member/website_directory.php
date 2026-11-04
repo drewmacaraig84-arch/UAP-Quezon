@@ -319,8 +319,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
                 awards = ?,
                 photo_path = COALESCE(?, photo_path),
                 is_published = 1,
-                deleted_at = NULL,
-                updated_at = NOW()
+                deleted_at = NULL
                 WHERE id = ?");
             $stmt->execute([
                 $name,
@@ -344,8 +343,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
         } else {
             // Insert brand new row
             $stmt = $pdo->prepare("INSERT INTO website_members 
-                (user_id, name, id_number, role_title, specialty, location, company_name, company_logo_path, link_url, link_type, links_json, achievements, awards, photo_path, is_published, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())");
+                (user_id, name, id_number, role_title, specialty, location, company_name, company_logo_path, link_url, link_type, links_json, achievements, awards, photo_path, is_published, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())");
             $stmt->execute([
                 $userId,
                 $name,
