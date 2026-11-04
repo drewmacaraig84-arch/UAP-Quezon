@@ -36,6 +36,15 @@ function ensure_user_profile_photo_column($pdo) {
 
         }
 
+        $colLast = $pdo->query("SHOW COLUMNS FROM users LIKE 'last_name'")->fetch();
+        if (!$colLast) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN first_name VARCHAR(60) NULL AFTER name");
+            $pdo->exec("ALTER TABLE users ADD COLUMN middle_initial VARCHAR(20) NULL AFTER first_name");
+            $pdo->exec("ALTER TABLE users ADD COLUMN last_name VARCHAR(60) NULL AFTER middle_initial");
+            $pdo->exec("ALTER TABLE users ADD COLUMN suffix VARCHAR(20) NULL AFTER last_name");
+            $pdo->exec("ALTER TABLE users ADD COLUMN membership_status VARCHAR(20) NOT NULL DEFAULT 'UAP' AFTER suffix");
+        }
+
         $wmCheck = $pdo->query("SHOW TABLES LIKE 'website_members'")->fetch();
 
         if ($wmCheck) {
@@ -592,6 +601,134 @@ function current_user_id() {
 
     return $_SESSION['user_id'] ?? null;
 
+}
+
+
+if (!function_exists('parse_member_full_name')) {
+    function parse_member_full_name($input) {
+        $str = trim((string)$input);
+        if ($str === '') {
+            return [
+                'first_name' => 'Ar.',
+                'middle_initial' => '',
+                'last_name' => '',
+                'suffix' => '',
+                'membership_status' => 'UAP'
+            ];
+        }
+
+        // 1. Extract membership status from the end if present (UAP, EUAP, FUAP)
+        $membership = 'UAP';
+        if (preg_match('/[,\s]+(uap|euap|fuap)\.?$/i', $str, $m)) {
+            $membership = strtoupper($m[1]);
+            $str = trim(substr($str, 0, -strlen($m[0])));
+        }
+
+        // 2. Strip professional prefixes like Ar., Arch., etc.
+        $str = trim(preg_replace('/^(ar\.?|arch\.?|architect)\s*/i', '', $str));
+
+        // 3. Extract suffixes (Jr., Sr., II, III, IV, etc.)
+        $suffix = '';
+        if (preg_match('/[,\s]+(jr\.?|sr\.?|ii|iii|iv|v)\.?$/i', $str, $m)) {
+            $matched = rtrim($m[1], '.');
+            if (in_array(strtolower($matched), ['jr', 'sr'])) {
+                $suffix = ucfirst(strtolower($matched)) . '.';
+            } else {
+                $suffix = strtoupper($matched);
+            }
+            $str = trim(substr($str, 0, -strlen($m[0])));
+        }
+
+        // Remove trailing comma if left
+        $str = rtrim($str, ',');
+
+        // 4. Split into remaining words
+        $parts = preg_split('/\s+/', $str);
+        $totalParts = count($parts);
+
+        $firstName = '';
+        $middleInitial = '';
+        $lastName = '';
+
+        if ($totalParts === 1) {
+            $lastName = $parts[0];
+            $firstName = 'Ar. ' . $parts[0];
+        } elseif ($totalParts === 2) {
+            $firstName = 'Ar. ' . $parts[0];
+            $lastName = $parts[1];
+        } else {
+            // Look for middle initial (1-2 chars, possibly with dot)
+            $miIndex = -1;
+            for ($i = 1; $i < $totalParts - 1; $i++) {
+                $cleaned = rtrim($parts[$i], '.');
+                if (strlen($cleaned) <= 2 && ctype_alpha($cleaned)) {
+                    $miIndex = $i;
+                    break;
+                }
+            }
+
+            if ($miIndex !== -1) {
+                $firstName = 'Ar. ' . implode(' ', array_slice($parts, 0, $miIndex));
+                $middleInitial = strtoupper(rtrim($parts[$miIndex], '.')) . '.';
+                $lastName = implode(' ', array_slice($parts, $miIndex + 1));
+            } else {
+                $lastName = $parts[$totalParts - 1];
+                $firstName = 'Ar. ' . implode(' ', array_slice($parts, 0, $totalParts - 1));
+            }
+        }
+
+        // Ensure Ar. prefix
+        $cleanFirst = trim(preg_replace('/^(ar\.?|arch\.?|architect)\s*/i', '', $firstName));
+        $firstName = 'Ar. ' . $cleanFirst;
+
+        return [
+            'first_name' => $firstName,
+            'middle_initial' => $middleInitial,
+            'last_name' => $lastName,
+            'suffix' => $suffix,
+            'membership_status' => $membership
+        ];
+    }
+}
+
+if (!function_exists('format_member_roster_name')) {
+    function format_member_roster_name($m) {
+        $lastName = trim($m['last_name'] ?? '');
+        $firstName = trim($m['first_name'] ?? '');
+        $mi = trim($m['middle_initial'] ?? '');
+        $suffix = trim($m['suffix'] ?? '');
+        $status = strtoupper(trim($m['membership_status'] ?? 'UAP'));
+
+        // If split columns are not yet present, parse dynamically from full name
+        if ($lastName === '' || $firstName === '') {
+            $parsed = parse_member_full_name($m['name'] ?? '');
+            $lastName = $lastName ?: $parsed['last_name'];
+            $firstName = $firstName ?: $parsed['first_name'];
+            $mi = $mi ?: $parsed['middle_initial'];
+            $suffix = $suffix ?: $parsed['suffix'];
+            $status = $status ?: $parsed['membership_status'];
+        }
+
+        // Ensure Ar. is at the front of first name
+        $cleanFirst = trim(preg_replace('/^(ar\.?|arch\.?|architect)\s*/i', '', $firstName));
+        $firstName = 'Ar. ' . $cleanFirst;
+
+        if ($mi !== '') {
+            $mi = strtoupper(rtrim($mi, '.')) . '.';
+        }
+
+        // Assemble: Last Name, First Name M.I. Suffix, Membership Status
+        $firstAndMiddle = $firstName . ($mi !== '' ? ' ' . $mi : '');
+        if ($suffix !== '') {
+            $firstAndMiddle .= ' ' . $suffix;
+        }
+
+        $result = $lastName . ', ' . $firstAndMiddle;
+        if ($status !== '') {
+            $result .= ', ' . $status;
+        }
+        return $result;
+    }
 }
 
 if (!function_exists('current_user')) {
