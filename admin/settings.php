@@ -903,144 +903,6 @@ function switchSettingsTab(tabId, btn) {
 })();
 </script>
 
-  // Officer Modal & Management Functions
-  function openAddOfficerModal() {
-    document.getElementById('addOfficerModal').style.display = 'flex';
-  }
-  function closeAddOfficerModal() {
-    document.getElementById('addOfficerModal').style.display = 'none';
-  }
-
-  function openEditOfficerModal(data) {
-    document.getElementById('edit_officer_id').value = data.id || '';
-    document.getElementById('edit_officer_user_id').value = data.user_id || '';
-    document.getElementById('edit_officer_name').value = data.name || '';
-    document.getElementById('edit_officer_prefix').value = data.title_prefix || 'Ar.';
-    document.getElementById('edit_officer_suffix').value = data.title_suffix || 'uap';
-    document.getElementById('edit_officer_position').value = data.position || '';
-    document.getElementById('edit_officer_committee').value = data.committee || '';
-    document.getElementById('edit_officer_fy').value = data.fiscal_year || '2026-2027';
-    document.getElementById('edit_officer_active').checked = !!parseInt(data.is_active);
-
-    var photoWrap = document.getElementById('editOfficerPhotoWrap');
-    var photoImg = document.getElementById('editOfficerCurrentPhoto');
-    var removeCheckbox = document.getElementById('edit_remove_officer_photo');
-    if (removeCheckbox) removeCheckbox.checked = false;
-
-    if (data.photo_path) {
-      var photoUrl = (data.photo_path.indexOf('http') === 0 || data.photo_path.indexOf('/') === 0) 
-        ? data.photo_path 
-        : ('<?php echo BASE_URL; ?>/' + data.photo_path);
-      photoImg.src = photoUrl;
-      photoWrap.style.display = 'flex';
-    } else {
-      photoWrap.style.display = 'none';
-    }
-
-    document.getElementById('editOfficerModal').style.display = 'flex';
-  }
-
-  function closeEditOfficerModal() {
-    document.getElementById('editOfficerModal').style.display = 'none';
-  }
-
-  function syncOfficerMember(mode) {
-    var select = document.getElementById(mode + '_officer_user_id');
-    var nameInput = document.getElementById(mode + '_officer_name');
-    if (!select || !nameInput) return;
-    var opt = select.options[select.selectedIndex];
-    if (opt && opt.value) {
-      var memberName = opt.getAttribute('data-name') || '';
-      if (memberName.indexOf('Ar. ') === 0) {
-        memberName = memberName.replace(/^Ar\.\s+/, '');
-      }
-      memberName = memberName.replace(/,\s*uap$/i, '');
-      nameInput.value = memberName;
-    }
-  }
-
-  // Officer drag-and-drop sortable
-  (function() {
-    var list = document.getElementById('officersSortableList');
-    if (!list || typeof Sortable === 'undefined') return;
-
-    list.addEventListener('mouseover', function(e) {
-      var item = e.target.closest('.officer-sortable-item');
-      if (item && !item.classList.contains('sortable-drag')) {
-        item.style.borderColor = 'rgba(229,138,19,0.5)';
-        var handle = item.querySelector('.drag-handle');
-        if (handle) handle.style.opacity = '1';
-      }
-    });
-    list.addEventListener('mouseout', function(e) {
-      var item = e.target.closest('.officer-sortable-item');
-      if (item && !item.classList.contains('sortable-drag')) {
-        item.style.borderColor = '';
-        var handle = item.querySelector('.drag-handle');
-        if (handle) handle.style.opacity = '0.5';
-      }
-    });
-
-    Sortable.create(list, {
-      handle: '.officer-sortable-item',
-      animation: 180,
-      ghostClass: 'news-drag-ghost',
-      chosenClass: 'news-drag-chosen',
-      dragClass: 'news-dragging',
-      onEnd: function() {
-        var items = list.querySelectorAll('.officer-sortable-item');
-        var ids = [];
-        items.forEach(function(el, i) {
-          ids.push(el.dataset.id);
-          var badge = el.querySelector('.officer-order-badge');
-          if (badge) badge.textContent = i + 1;
-        });
-
-        var orderInput = document.getElementById('officersOrderInput');
-        if (orderInput) orderInput.value = JSON.stringify(ids);
-
-        var saveBtn = document.getElementById('saveOfficersOrderBtn');
-        var saveBtnText = document.getElementById('saveOfficersOrderBtnText');
-        if (saveBtn && saveBtnText) {
-          saveBtn.style.background = 'var(--accent-primary, #f59e0b)';
-          saveBtnText.textContent = 'Save Officers Formation *';
-        }
-
-        var csrf = '<?php echo csrf_token(); ?>';
-        var form = new FormData();
-        form.append('_csrf_token', csrf);
-        form.append('csrf_token', csrf);
-        form.append('action', 'reorder_officers');
-        form.append('order', JSON.stringify(ids));
-
-        fetch('settings.php', {
-          method: 'POST',
-          headers: { 'X-Requested-With': 'XMLHttpRequest' },
-          body: form
-        }).then(function(r) { return r.json(); }).then(function(data) {
-          if (data.ok) {
-            var saved = document.getElementById('officersSortSaved');
-            if (saved) {
-              saved.style.display = 'inline-flex';
-              if (saveBtnText) saveBtnText.textContent = 'Save Officers Formation';
-              setTimeout(function() { saved.style.display = 'none'; }, 3000);
-            }
-          }
-        }).catch(function(){});
-      }
-    });
-
-    list.addEventListener('mousedown', function(e) {
-      var item = e.target.closest('.officer-sortable-item');
-      if (item) item.style.cursor = 'grabbing';
-    });
-    document.addEventListener('mouseup', function() {
-      list.querySelectorAll('.officer-sortable-item').forEach(function(el) {
-        el.style.cursor = 'grab';
-      });
-    });
-  })();
-
 
 <!-- TAB 1: BRANDING & ORGANIZATION -->
 <div id="brandingTab" class="settings-panel">
@@ -2701,7 +2563,6 @@ function switchSettingsTab(tabId, btn) {
     });
   });
 })();
-</script>
 
   // Officer Modal & Management Functions
   function openAddOfficerModal() {
@@ -2840,7 +2701,7 @@ function switchSettingsTab(tabId, btn) {
       });
     });
   })();
-
+</script>
 
 <style>
 .news-drag-ghost  { opacity: 0.4; background: rgba(245,158,11,0.08) !important; border: 1.5px dashed rgba(245,158,11,0.6) !important; }
