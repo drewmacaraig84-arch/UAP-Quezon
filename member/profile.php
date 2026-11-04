@@ -414,7 +414,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr(strrchr($user['name'
           </div>
           <div class="form-group">
             <label class="form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">PRC License #</label>
-            <input type="text" name="prc_number" class="form-control" value="<?php echo htmlspecialchars($user['prc_number'] ?? ''); ?>" placeholder="e.g. 0089452">
+            <input type="text" name="prc_number" class="form-control" value="<?php echo htmlspecialchars($user['prc_number'] ?? ''); ?>" placeholder="e.g. 89452">
             <small style="font-size: 11px; color: var(--text-secondary);">Registered PRC License / ID number.</small>
           </div>
         </div>

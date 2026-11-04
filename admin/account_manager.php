@@ -497,7 +497,7 @@ include __DIR__ . '/../includes/header.php';
               </div>
               <div class="field">
                 <label>PRC License #</label>
-                <input name="prc_number" value="<?php echo htmlspecialchars($m['prc_number'] ?: $m['id_number']); ?>" placeholder="e.g. 0089452">
+                <input name="prc_number" value="<?php echo htmlspecialchars($m['prc_number'] ?: $m['id_number']); ?>" placeholder="e.g. 89452">
               </div>
             </div>
 
@@ -682,7 +682,7 @@ include __DIR__ . '/../includes/header.php';
       <div class="modal-grid-responsive" style="margin-bottom:12px;">
         <div class="field">
           <label style="font-weight:600; font-size:13px;">PRC ID No. / Username <span style="color:#ef4444;">*</span></label>
-          <input type="text" name="id_number" id="newMemberIdNumber" placeholder="e.g. UAPQ-2026-001 or 0089452" required style="width:100%;" oninput="syncPrcNumber(this.value)">
+          <input type="text" name="id_number" id="newMemberIdNumber" placeholder="e.g. UAPQ-2026-001 or 89452" required style="width:100%;" oninput="syncPrcNumber(this.value)">
         </div>
         <div class="field">
           <label style="font-weight:600; font-size:13px;">PRC License #</label>

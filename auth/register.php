@@ -18,7 +18,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $suffix = trim($_POST['suffix'] ?? '');
 
-    $membership_status = strtoupper(trim($_POST['membership_status'] ?? 'UAP'));
+    $status_select = trim($_POST['membership_status_select'] ?? 'UAP');
+    $other_titles = trim($_POST['other_titles'] ?? '');
+
+    if ($status_select === 'OTHER') {
+        $membership_status = $other_titles !== '' ? $other_titles : 'UAP';
+    } else {
+        if ($other_titles !== '') {
+            $membership_status = $status_select . ', ' . $other_titles;
+        } else {
+            $membership_status = $status_select;
+        }
+    }
+    if (!empty($_POST['membership_status']) && empty($_POST['membership_status_select'])) {
+        $membership_status = trim($_POST['membership_status']);
+    }
 
     $id_number = trim($_POST['id_number'] ?? '');
 
@@ -495,8 +509,8 @@ include __DIR__ . '/../includes/header.php';
 
 
 
-        <!-- Row 2: Name Suffix, Titles / Post-Nominals, PRC License # -->
-        <div class="arch-identity-grid-2" style="display: grid; grid-template-columns: 140px 1.5fr 1.1fr; gap: 12px; margin-bottom: 14px;">
+        <!-- Row 2: Name Suffix, Membership Status & Titles, PRC License # -->
+        <div class="arch-identity-grid-2" style="display: grid; grid-template-columns: 130px 1.5fr 1.1fr; gap: 12px; margin-bottom: 14px;">
           <div class="field" style="margin: 0;">
             <label>Name Suffix <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">(optional)</span></label>
             <input type="text" name="suffix" list="suffixList" maxlength="20" placeholder="e.g. Jr., III" value="<?php echo htmlspecialchars($_POST['suffix'] ?? ''); ?>" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg, #0f172a); color: var(--text-primary);">
@@ -513,27 +527,30 @@ include __DIR__ . '/../includes/header.php';
           </div>
 
           <div class="field" style="margin: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
-              <label style="margin: 0;">Titles / Post-Nominals <span style="color:#ef4444;">*</span></label>
+            <label>Membership Status &amp; Titles <span style="color:#ef4444;">*</span></label>
+            <?php 
+              $currentSel = $_POST['membership_status_select'] ?? 'UAP';
+              $currentOther = $_POST['other_titles'] ?? '';
+            ?>
+            <select name="membership_status_select" id="membershipStatusSelect" class="form-control" onchange="toggleOtherTitles(this.value)" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg, #0f172a); color: var(--text-primary); font-weight: 600;">
+              <option value="UAP" <?php echo ($currentSel === 'UAP') ? 'selected' : ''; ?>>UAP — Regular Member</option>
+              <option value="EUAP" <?php echo ($currentSel === 'EUAP') ? 'selected' : ''; ?>>EUAP — Emeritus Member</option>
+              <option value="FUAP" <?php echo ($currentSel === 'FUAP') ? 'selected' : ''; ?>>FUAP — Fellow (UAP College of Fellows)</option>
+              <option value="OTHER" <?php echo ($currentSel === 'OTHER') ? 'selected' : ''; ?>>Other Titles — Please Type</option>
+            </select>
+
+            <div id="otherTitlesBox" style="display: <?php echo ($currentSel === 'OTHER' || !empty($currentOther)) ? 'block' : 'none'; ?>; margin-top: 8px;">
+              <input type="text" name="other_titles" id="otherTitlesInput" placeholder="Please type other titles (e.g. Dr., ASEAN, EnP, etc.)" value="<?php echo htmlspecialchars($currentOther); ?>" style="width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg, #0f172a); color: var(--text-primary); font-weight: 600; font-size: 13px;">
+              <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px;">
+                <button type="button" class="title-chip-btn" onclick="addOtherTitleTag('Dr.')">+ Dr.</button>
+                <button type="button" class="title-chip-btn" onclick="addOtherTitleTag('ASEAN')">+ ASEAN</button>
+                <button type="button" class="title-chip-btn" onclick="addOtherTitleTag('EnP')">+ EnP</button>
+                <button type="button" class="title-chip-btn" onclick="addOtherTitleTag('PIEP')">+ PIEP</button>
+              </div>
             </div>
-            <input type="text" name="membership_status" id="titleInput" required list="titlesList" placeholder="e.g. UAP, FUAP, Dr., ASEAN, EnP" value="<?php echo htmlspecialchars($_POST['membership_status'] ?? 'UAP'); ?>" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg, #0f172a); color: var(--text-primary); font-weight: 600;">
-            <datalist id="titlesList">
-              <option value="UAP">UAP (Regular Member)</option>
-              <option value="EUAP">EUAP (Emeritus)</option>
-              <option value="FUAP">FUAP (Fellow, UAP)</option>
-              <option value="UAP, EnP">UAP, EnP (Environmental Planner)</option>
-              <option value="FUAP, ASEAN Ar.">FUAP, ASEAN Ar.</option>
-              <option value="Dr., UAP">Dr., UAP</option>
-              <option value="Dr., FUAP, ASEAN Ar., EnP">Dr., FUAP, ASEAN Ar., EnP</option>
-            </datalist>
-            <!-- Quick Chips -->
-            <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px;">
-              <button type="button" class="title-chip-btn" onclick="addTitleTag('UAP')">+ UAP</button>
-              <button type="button" class="title-chip-btn" onclick="addTitleTag('EUAP')">+ EUAP</button>
-              <button type="button" class="title-chip-btn" onclick="addTitleTag('FUAP')">+ FUAP</button>
-              <button type="button" class="title-chip-btn" onclick="addTitleTag('Dr.')">+ Dr.</button>
-              <button type="button" class="title-chip-btn" onclick="addTitleTag('ASEAN')">+ ASEAN</button>
-              <button type="button" class="title-chip-btn" onclick="addTitleTag('EnP')">+ EnP</button>
+
+            <div id="addExtraTitlesLink" style="margin-top: 5px; display: <?php echo ($currentSel === 'OTHER' || !empty($currentOther)) ? 'none' : 'block'; ?>;">
+              <a href="javascript:void(0)" onclick="showOtherTitlesBox()" style="font-size: 11px; color: #fbbf24; text-decoration: underline;">+ Add other titles (Dr., ASEAN, EnP)</a>
             </div>
           </div>
 
@@ -541,7 +558,7 @@ include __DIR__ . '/../includes/header.php';
             <label>PRC License # <span style="color:#ef4444;">*</span></label>
             <div class="input-icon-wrap">
               <span class="input-leading-icon"><?php echo icon('shield_check', '', 18); ?></span>
-              <input type="text" name="id_number" required placeholder="e.g. 0089452" value="<?php echo htmlspecialchars($_POST['id_number'] ?? ''); ?>">
+              <input type="text" name="id_number" required placeholder="e.g. 89452" value="<?php echo htmlspecialchars($_POST['id_number'] ?? ''); ?>">
             </div>
           </div>
         </div>
@@ -865,6 +882,51 @@ include __DIR__ . '/../includes/header.php';
 
 
 <script>
+function toggleOtherTitles(val) {
+  const box = document.getElementById('otherTitlesBox');
+  const input = document.getElementById('otherTitlesInput');
+  const link = document.getElementById('addExtraTitlesLink');
+  if (val === 'OTHER') {
+    box.style.display = 'block';
+    if (link) link.style.display = 'none';
+    if (input) input.focus();
+  } else {
+    if (input && input.value.trim() !== '') {
+      box.style.display = 'block';
+      if (link) link.style.display = 'none';
+    } else {
+      box.style.display = 'none';
+      if (link) link.style.display = 'block';
+    }
+  }
+}
+
+function showOtherTitlesBox() {
+  const box = document.getElementById('otherTitlesBox');
+  const input = document.getElementById('otherTitlesInput');
+  const link = document.getElementById('addExtraTitlesLink');
+  box.style.display = 'block';
+  if (link) link.style.display = 'none';
+  if (input) input.focus();
+}
+
+function addOtherTitleTag(tag) {
+  showOtherTitlesBox();
+  const input = document.getElementById('otherTitlesInput');
+  if (!input) return;
+  let val = input.value.trim();
+  if (!val) {
+    input.value = tag;
+    return;
+  }
+  let tags = val.split(',').map(s => s.trim()).filter(Boolean);
+  if (!tags.some(t => t.toLowerCase() === tag.toLowerCase())) {
+    tags.push(tag);
+  }
+  input.value = tags.join(', ');
+  input.focus();
+}
+
 function addTitleTag(tag) {
   const input = document.getElementById('titleInput');
   if (!input) return;
