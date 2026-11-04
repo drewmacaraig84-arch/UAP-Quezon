@@ -1933,7 +1933,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                                     </p>
                                     <div class="birthday-footer-line">
                                         <span>With warmest felicitations,</span>
-                                        <strong>UAP Quezon Province Chapter Family</strong>
+                                        <strong>UAP Quezon Province Chapter</strong>
                                         <?php if (!empty($bday['badge'])): ?>
                                             <div class="birthday-date-pill"><?php echo htmlspecialchars($bday['badge']); ?></div>
                                         <?php endif; ?>
@@ -1959,7 +1959,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                                 </p>
                                 <div class="birthday-footer-line">
                                     <span>Warmest greetings,</span>
-                                    <strong>UAP Quezon Province Chapter Family</strong>
+                                    <strong>UAP Quezon Province Chapter</strong>
                                     <div class="birthday-date-pill"><?php echo date('F Y'); ?> Felicitations</div>
                                 </div>
                             </div>
