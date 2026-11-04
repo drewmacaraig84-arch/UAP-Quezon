@@ -16,3 +16,4 @@ if (session_status() === PHP_SESSION_ACTIVE && !empty($_SESSION['user_id'])) {
     ]);
 }
 exit;
+

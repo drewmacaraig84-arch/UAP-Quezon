@@ -112,46 +112,21 @@ try {
     $milestones = $pdo->query("SELECT * FROM chapter_milestones WHERE deleted_at IS NULL ORDER BY display_order ASC")->fetchAll();
 } catch (Exception $e) {}
 
-// Fetch Birthday Celebrants
+// Fetch Birthday Celebrants (Today Only - Hides completely when no birthdays)
 $birthdayCelebrants = [];
 try {
-    // 1. Priority: Celebrants today
     $todayStmt = $pdo->query("
         SELECT u.id, u.name, u.birth_date, u.profile_photo, wm.photo_path as wm_photo
         FROM users u
         LEFT JOIN website_members wm ON wm.user_id = u.id AND wm.deleted_at IS NULL
         WHERE u.status = 'approved' AND u.deleted_at IS NULL AND u.birth_date IS NOT NULL
           AND MONTH(u.birth_date) = MONTH(CURRENT_DATE()) AND DAY(u.birth_date) = DAY(CURRENT_DATE())
-        LIMIT 2
+        LIMIT 3
     ");
-    $todayRows = $todayStmt->fetchAll();
-
-    if (!empty($todayRows)) {
-        foreach ($todayRows as $row) {
-            $row['badge'] = 'Celebrating Today • ' . date('F j');
-            $birthdayCelebrants[] = $row;
-        }
-    } else {
-        // 2. Priority: Celebrants this month
-        $monthStmt = $pdo->query("
-            SELECT u.id, u.name, u.birth_date, u.profile_photo, wm.photo_path as wm_photo
-            FROM users u
-            LEFT JOIN website_members wm ON wm.user_id = u.id AND wm.deleted_at IS NULL
-            WHERE u.status = 'approved' AND u.deleted_at IS NULL AND u.birth_date IS NOT NULL
-              AND MONTH(u.birth_date) = MONTH(CURRENT_DATE())
-            ORDER BY DAY(u.birth_date) ASC
-            LIMIT 2
-        ");
-        $monthRows = $monthStmt->fetchAll();
-        if (!empty($monthRows)) {
-            foreach ($monthRows as $row) {
-                $row['badge'] = date('F j', strtotime($row['birth_date']));
-                $birthdayCelebrants[] = $row;
-            }
-        }
-    }
+    $birthdayCelebrants = $todayStmt->fetchAll();
 
     foreach ($birthdayCelebrants as &$b) {
+        $b['badge'] = 'Celebrating Today • ' . date('F j');
         $rawPhoto = !empty($b['profile_photo']) ? $b['profile_photo'] : (!empty($b['wm_photo']) ? $b['wm_photo'] : '');
         $b['avatar_url'] = !empty($rawPhoto) ? media_url($rawPhoto) : '';
         
@@ -1897,7 +1872,8 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                     <?php endif; ?>
                 </div>
 
-                <!-- CHAPTER BIRTHDAY GREETINGS (Placed between Partners and Contact) -->
+                <?php if (!empty($birthdayCelebrants)): ?>
+                <!-- CHAPTER BIRTHDAY GREETINGS (Shown only when there is an active celebrant today) -->
                 <div class="sidebar-box sidebar-birthday-card" id="birthday-greetings">
                     <div class="birthday-card-header">
                         <span class="birthday-tag">
@@ -1905,67 +1881,43 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                         </span>
                     </div>
 
-                    <?php if (!empty($birthdayCelebrants)): ?>
-                        <?php foreach ($birthdayCelebrants as $bday): ?>
-                            <div class="birthday-item-wrap">
-                                <!-- Circular Profile Photo -->
-                                <div class="birthday-avatar-wrap">
-                                    <?php if (!empty($bday['avatar_url'])): ?>
-                                        <img src="<?php echo htmlspecialchars($bday['avatar_url']); ?>" 
-                                             alt="<?php echo htmlspecialchars($bday['display_name']); ?>" 
-                                             class="birthday-avatar-img">
-                                    <?php else: ?>
-                                        <div class="birthday-avatar-placeholder">
-                                            <span><?php echo htmlspecialchars($bday['initials']); ?></span>
-                                        </div>
-                                    <?php endif; ?>
-                                    <div class="birthday-sparkle-badge" title="Birthday Celebrant">🎂</div>
-                                </div>
-
-                                <!-- Polite Greetings & Name -->
-                                <div class="birthday-text-wrap">
-                                    <h4 class="birthday-name">
-                                        Happy Birthday,<br>
-                                        <span class="highlight-gold"><?php echo htmlspecialchars($bday['display_name']); ?></span>
-                                    </h4>
-                                    <p class="birthday-message">
-                                        &ldquo;Wishing you good health, continued joy, and abundant blessings in your life and architectural practice on your special day.&rdquo;
-                                    </p>
-                                    <div class="birthday-footer-line">
-                                        <span>With warmest felicitations,</span>
-                                        <strong>UAP Quezon Province Chapter</strong>
-                                        <?php if (!empty($bday['badge'])): ?>
-                                            <div class="birthday-date-pill"><?php echo htmlspecialchars($bday['badge']); ?></div>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <!-- Monthly Chapter Felicitation Fallback -->
+                    <?php foreach ($birthdayCelebrants as $bday): ?>
                         <div class="birthday-item-wrap">
+                            <!-- Circular Profile Photo -->
                             <div class="birthday-avatar-wrap">
-                                <div class="birthday-avatar-placeholder">
-                                    <span>🎂</span>
-                                </div>
+                                <?php if (!empty($bday['avatar_url'])): ?>
+                                    <img src="<?php echo htmlspecialchars($bday['avatar_url']); ?>" 
+                                         alt="<?php echo htmlspecialchars($bday['display_name']); ?>" 
+                                         class="birthday-avatar-img">
+                                <?php else: ?>
+                                    <div class="birthday-avatar-placeholder">
+                                        <span><?php echo htmlspecialchars($bday['initials']); ?></span>
+                                    </div>
+                                <?php endif; ?>
+                                <div class="birthday-sparkle-badge" title="Birthday Celebrant">🎂</div>
                             </div>
+
+                            <!-- Polite Greetings & Name -->
                             <div class="birthday-text-wrap">
                                 <h4 class="birthday-name">
-                                    To All Our<br>
-                                    <span class="highlight-gold"><?php echo date('F'); ?> Birthday Celebrants</span>
+                                    Happy Birthday,<br>
+                                    <span class="highlight-gold"><?php echo htmlspecialchars($bday['display_name']); ?></span>
                                 </h4>
                                 <p class="birthday-message">
-                                    &ldquo;Wishing all esteemed chapter architects celebrating their birthdays this month good health, prosperous endeavors, and enduring fellowship.&rdquo;
+                                    &ldquo;Wishing you good health, continued joy, and abundant blessings in your life and architectural practice on your special day.&rdquo;
                                 </p>
                                 <div class="birthday-footer-line">
-                                    <span>Warmest greetings,</span>
+                                    <span>With warmest felicitations,</span>
                                     <strong>UAP Quezon Province Chapter</strong>
-                                    <div class="birthday-date-pill"><?php echo date('F Y'); ?> Felicitations</div>
+                                    <?php if (!empty($bday['badge'])): ?>
+                                        <div class="birthday-date-pill"><?php echo htmlspecialchars($bday['badge']); ?></div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
-                    <?php endif; ?>
+                    <?php endforeach; ?>
                 </div>
+                <?php endif; ?>
 
                 <!-- CONTACT SECRETARIAT -->
                 <div class="sidebar-box" id="contact">
