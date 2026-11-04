@@ -15,6 +15,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $active_tab = 'brandingTab';
     } elseif (in_array($action, ['update_about', 'add_milestone', 'edit_milestone', 'delete_milestone'])) {
         $active_tab = 'websiteTab';
+    } elseif (in_array($action, ['add_officer', 'edit_officer', 'delete_officer', 'reorder_officers', 'update_officer_settings'])) {
+        $active_tab = 'officersTab';
     } elseif (in_array($action, ['add_sponsor', 'edit_sponsor', 'delete_sponsor', 'reorder_sponsors'])) {
         $active_tab = 'sponsorsTab';
     } elseif (in_array($action, ['add_news', 'edit_news', 'delete_news', 'reorder_news'])) {
@@ -541,6 +543,166 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $stmt->execute([(int)$_POST['milestone_id']]);
         $success = 'Chapter milestone deleted successfully.';
     }
+
+    // ============ CHAPTER OFFICERS MANAGEMENT ============
+    if ($action === 'add_officer') {
+        $user_id = !empty($_POST['user_id']) ? (int)$_POST['user_id'] : null;
+        $name = trim($_POST['name'] ?? '');
+        $title_prefix = trim($_POST['title_prefix'] ?? 'Ar.');
+        $title_suffix = trim($_POST['title_suffix'] ?? 'uap');
+        $position = trim($_POST['position'] ?? '');
+        $committee = trim($_POST['committee'] ?? '');
+        $fiscal_year = trim($_POST['fiscal_year'] ?? '2026-2027');
+        $bio = trim($_POST['bio'] ?? '');
+        $is_active = isset($_POST['is_active']) ? 1 : 0;
+
+        if (empty($name) && $user_id) {
+            $u = $pdo->prepare("SELECT name FROM users WHERE id = ?");
+            $u->execute([$user_id]);
+            $name = $u->fetchColumn() ?: 'Chapter Officer';
+        }
+
+        if (empty($name) || empty($position)) {
+            $error = 'Please provide both the Officer Name and Position.';
+        } else {
+            $photo_path = null;
+            if (!empty($_FILES['officer_photo']['name']) && $_FILES['officer_photo']['error'] === UPLOAD_ERR_OK) {
+                $ext = strtolower(pathinfo($_FILES['officer_photo']['name'], PATHINFO_EXTENSION));
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+                $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mime = finfo_file($finfo, $_FILES['officer_photo']['tmp_name']);
+                finfo_close($finfo);
+
+                if (in_array($ext, $allowedExtensions) && in_array($mime, $allowedMimes)) {
+                    $filename = 'officer_' . time() . '_' . bin2hex(random_bytes(3)) . '.' . $ext;
+                    $dest = __DIR__ . '/../uploads/officers/' . $filename;
+                    if (!is_dir(dirname($dest))) {
+                        @mkdir(dirname($dest), 0775, true);
+                    }
+                    if (move_uploaded_file($_FILES['officer_photo']['tmp_name'], $dest)) {
+                        $photo_path = 'uploads/officers/' . $filename;
+                    }
+                }
+            }
+
+            if (!$photo_path && $user_id) {
+                $uPhoto = $pdo->prepare("SELECT profile_photo FROM users WHERE id = ?");
+                $uPhoto->execute([$user_id]);
+                $memberPhoto = $uPhoto->fetchColumn();
+                if ($memberPhoto) {
+                    $photo_path = $memberPhoto;
+                }
+            }
+
+            $maxOrder = (int)$pdo->query("SELECT COALESCE(MAX(display_order), 0) FROM chapter_officers WHERE deleted_at IS NULL")->fetchColumn();
+            $display_order = $maxOrder + 1;
+
+            $stmt = $pdo->prepare("
+                INSERT INTO chapter_officers 
+                (user_id, name, title_prefix, title_suffix, position, committee, fiscal_year, photo_path, bio, display_order, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([$user_id, $name, $title_prefix, $title_suffix, $position, $committee, $fiscal_year, $photo_path, $bio, $display_order, $is_active]);
+            $success = "Officer '{$name}' added successfully.";
+        }
+    }
+
+    if ($action === 'edit_officer' && !empty($_POST['officer_id'])) {
+        $officer_id = (int)$_POST['officer_id'];
+        $user_id = !empty($_POST['user_id']) ? (int)$_POST['user_id'] : null;
+        $name = trim($_POST['name'] ?? '');
+        $title_prefix = trim($_POST['title_prefix'] ?? 'Ar.');
+        $title_suffix = trim($_POST['title_suffix'] ?? 'uap');
+        $position = trim($_POST['position'] ?? '');
+        $committee = trim($_POST['committee'] ?? '');
+        $fiscal_year = trim($_POST['fiscal_year'] ?? '2026-2027');
+        $bio = trim($_POST['bio'] ?? '');
+        $is_active = isset($_POST['is_active']) ? 1 : 0;
+        $remove_photo = !empty($_POST['remove_officer_photo']);
+
+        if (empty($name) || empty($position)) {
+            $error = 'Please provide both the Officer Name and Position.';
+        } else {
+            $photo_path = null;
+            if (!empty($_FILES['officer_photo']['name']) && $_FILES['officer_photo']['error'] === UPLOAD_ERR_OK) {
+                $ext = strtolower(pathinfo($_FILES['officer_photo']['name'], PATHINFO_EXTENSION));
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+                $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mime = finfo_file($finfo, $_FILES['officer_photo']['tmp_name']);
+                finfo_close($finfo);
+
+                if (in_array($ext, $allowedExtensions) && in_array($mime, $allowedMimes)) {
+                    $filename = 'officer_' . time() . '_' . bin2hex(random_bytes(3)) . '.' . $ext;
+                    $dest = __DIR__ . '/../uploads/officers/' . $filename;
+                    if (!is_dir(dirname($dest))) {
+                        @mkdir(dirname($dest), 0775, true);
+                    }
+                    if (move_uploaded_file($_FILES['officer_photo']['tmp_name'], $dest)) {
+                        $photo_path = 'uploads/officers/' . $filename;
+                    }
+                }
+            }
+
+            if ($photo_path) {
+                $stmt = $pdo->prepare("
+                    UPDATE chapter_officers 
+                    SET user_id = ?, name = ?, title_prefix = ?, title_suffix = ?, position = ?, committee = ?, fiscal_year = ?, photo_path = ?, bio = ?, is_active = ?
+                    WHERE id = ?
+                ");
+                $stmt->execute([$user_id, $name, $title_prefix, $title_suffix, $position, $committee, $fiscal_year, $photo_path, $bio, $is_active, $officer_id]);
+            } elseif ($remove_photo) {
+                $stmt = $pdo->prepare("
+                    UPDATE chapter_officers 
+                    SET user_id = ?, name = ?, title_prefix = ?, title_suffix = ?, position = ?, committee = ?, fiscal_year = ?, photo_path = NULL, bio = ?, is_active = ?
+                    WHERE id = ?
+                ");
+                $stmt->execute([$user_id, $name, $title_prefix, $title_suffix, $position, $committee, $fiscal_year, $bio, $is_active, $officer_id]);
+            } else {
+                $stmt = $pdo->prepare("
+                    UPDATE chapter_officers 
+                    SET user_id = ?, name = ?, title_prefix = ?, title_suffix = ?, position = ?, committee = ?, fiscal_year = ?, bio = ?, is_active = ?
+                    WHERE id = ?
+                ");
+                $stmt->execute([$user_id, $name, $title_prefix, $title_suffix, $position, $committee, $fiscal_year, $bio, $is_active, $officer_id]);
+            }
+
+            $success = "Officer '{$name}' updated successfully.";
+        }
+    }
+
+    if ($action === 'delete_officer' && !empty($_POST['officer_id'])) {
+        $officer_id = (int)$_POST['officer_id'];
+        $stmt = $pdo->prepare("UPDATE chapter_officers SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?");
+        $stmt->execute([$officer_id]);
+        $success = 'Officer removed successfully.';
+    }
+
+    if ($action === 'reorder_officers' && !empty($_POST['order'])) {
+        $ids = json_decode($_POST['order'], true);
+        if (is_array($ids)) {
+            $stmt = $pdo->prepare("UPDATE chapter_officers SET display_order = ? WHERE id = ?");
+            foreach ($ids as $pos => $id) {
+                $stmt->execute([$pos + 1, (int)$id]);
+            }
+        }
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => true]);
+            exit;
+        }
+        $success = 'Officers order updated.';
+    }
+
+    if ($action === 'update_officer_settings') {
+        $fy = trim($_POST['chapter_fiscal_year'] ?? '2026-2027');
+        $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES ('chapter_fiscal_year', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+        $stmt->execute([$fy]);
+        $success = 'Chapter Fiscal Year updated.';
+    }
 }
 
 // Fetch current data
@@ -576,6 +738,35 @@ $milestones = [];
 try {
     $milestones = $pdo->query("SELECT * FROM chapter_milestones ORDER BY sort_order ASC, year ASC")->fetchAll();
 } catch (Throwable $e) {}
+
+$chapter_fiscal_year_val = $settings_rows['chapter_fiscal_year'] ?? '2026-2027';
+
+$chapterOfficers = [];
+try {
+    $chapterOfficers = $pdo->query("
+        SELECT co.*, u.id_number, u.prc_number, u.profile_photo AS member_avatar, u.status AS user_status,
+               wm.id as directory_id
+        FROM chapter_officers co
+        LEFT JOIN users u ON co.user_id = u.id AND u.deleted_at IS NULL
+        LEFT JOIN website_members wm ON co.user_id = wm.user_id AND wm.deleted_at IS NULL
+        WHERE co.deleted_at IS NULL
+        ORDER BY co.display_order ASC, co.id ASC
+    ")->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+    $chapterOfficers = [];
+}
+
+$eligibleMembers = [];
+try {
+    $eligibleMembers = $pdo->query("
+        SELECT id, name, prc_number, profile_photo, role
+        FROM users
+        WHERE deleted_at IS NULL AND status = 'approved'
+        ORDER BY name ASC
+    ")->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+    $eligibleMembers = [];
+}
 
 $page_title = 'System & Website Settings';
 include __DIR__ . '/../includes/header.php';
@@ -619,6 +810,9 @@ include __DIR__ . '/../includes/header.php';
   </button>
   <button type="button" class="tab-btn" data-tab="websiteTab" onclick="switchSettingsTab('websiteTab', this)">
     <?php echo icon('website_directory', '', 16); ?> <span>Website About Us</span>
+  </button>
+  <button type="button" class="tab-btn" data-tab="officersTab" onclick="switchSettingsTab('officersTab', this)">
+    <?php echo icon('members', '', 16); ?> <span>Chapter Officers (<?php echo count($chapterOfficers); ?>)</span>
   </button>
   <button type="button" class="tab-btn" data-tab="sponsorsTab" onclick="switchSettingsTab('sponsorsTab', this)">
     <?php echo icon('handshake', '', 16); ?> <span>Sponsors &amp; Partners (<?php echo count($sponsors); ?>)</span>
@@ -708,6 +902,145 @@ function switchSettingsTab(tabId, btn) {
   }
 })();
 </script>
+
+  // Officer Modal & Management Functions
+  function openAddOfficerModal() {
+    document.getElementById('addOfficerModal').style.display = 'flex';
+  }
+  function closeAddOfficerModal() {
+    document.getElementById('addOfficerModal').style.display = 'none';
+  }
+
+  function openEditOfficerModal(data) {
+    document.getElementById('edit_officer_id').value = data.id || '';
+    document.getElementById('edit_officer_user_id').value = data.user_id || '';
+    document.getElementById('edit_officer_name').value = data.name || '';
+    document.getElementById('edit_officer_prefix').value = data.title_prefix || 'Ar.';
+    document.getElementById('edit_officer_suffix').value = data.title_suffix || 'uap';
+    document.getElementById('edit_officer_position').value = data.position || '';
+    document.getElementById('edit_officer_committee').value = data.committee || '';
+    document.getElementById('edit_officer_fy').value = data.fiscal_year || '2026-2027';
+    document.getElementById('edit_officer_active').checked = !!parseInt(data.is_active);
+
+    var photoWrap = document.getElementById('editOfficerPhotoWrap');
+    var photoImg = document.getElementById('editOfficerCurrentPhoto');
+    var removeCheckbox = document.getElementById('edit_remove_officer_photo');
+    if (removeCheckbox) removeCheckbox.checked = false;
+
+    if (data.photo_path) {
+      var photoUrl = (data.photo_path.indexOf('http') === 0 || data.photo_path.indexOf('/') === 0) 
+        ? data.photo_path 
+        : ('<?php echo BASE_URL; ?>/' + data.photo_path);
+      photoImg.src = photoUrl;
+      photoWrap.style.display = 'flex';
+    } else {
+      photoWrap.style.display = 'none';
+    }
+
+    document.getElementById('editOfficerModal').style.display = 'flex';
+  }
+
+  function closeEditOfficerModal() {
+    document.getElementById('editOfficerModal').style.display = 'none';
+  }
+
+  function syncOfficerMember(mode) {
+    var select = document.getElementById(mode + '_officer_user_id');
+    var nameInput = document.getElementById(mode + '_officer_name');
+    if (!select || !nameInput) return;
+    var opt = select.options[select.selectedIndex];
+    if (opt && opt.value) {
+      var memberName = opt.getAttribute('data-name') || '';
+      if (memberName.indexOf('Ar. ') === 0) {
+        memberName = memberName.replace(/^Ar\.\s+/, '');
+      }
+      memberName = memberName.replace(/,\s*uap$/i, '');
+      nameInput.value = memberName;
+    }
+  }
+
+  // Officer drag-and-drop sortable
+  (function() {
+    var list = document.getElementById('officersSortableList');
+    if (!list || typeof Sortable === 'undefined') return;
+
+    list.addEventListener('mouseover', function(e) {
+      var item = e.target.closest('.officer-sortable-item');
+      if (item && !item.classList.contains('sortable-drag')) {
+        item.style.borderColor = 'rgba(229,138,19,0.5)';
+        var handle = item.querySelector('.drag-handle');
+        if (handle) handle.style.opacity = '1';
+      }
+    });
+    list.addEventListener('mouseout', function(e) {
+      var item = e.target.closest('.officer-sortable-item');
+      if (item && !item.classList.contains('sortable-drag')) {
+        item.style.borderColor = '';
+        var handle = item.querySelector('.drag-handle');
+        if (handle) handle.style.opacity = '0.5';
+      }
+    });
+
+    Sortable.create(list, {
+      handle: '.officer-sortable-item',
+      animation: 180,
+      ghostClass: 'news-drag-ghost',
+      chosenClass: 'news-drag-chosen',
+      dragClass: 'news-dragging',
+      onEnd: function() {
+        var items = list.querySelectorAll('.officer-sortable-item');
+        var ids = [];
+        items.forEach(function(el, i) {
+          ids.push(el.dataset.id);
+          var badge = el.querySelector('.officer-order-badge');
+          if (badge) badge.textContent = i + 1;
+        });
+
+        var orderInput = document.getElementById('officersOrderInput');
+        if (orderInput) orderInput.value = JSON.stringify(ids);
+
+        var saveBtn = document.getElementById('saveOfficersOrderBtn');
+        var saveBtnText = document.getElementById('saveOfficersOrderBtnText');
+        if (saveBtn && saveBtnText) {
+          saveBtn.style.background = 'var(--accent-primary, #f59e0b)';
+          saveBtnText.textContent = 'Save Officers Formation *';
+        }
+
+        var csrf = '<?php echo csrf_token(); ?>';
+        var form = new FormData();
+        form.append('_csrf_token', csrf);
+        form.append('csrf_token', csrf);
+        form.append('action', 'reorder_officers');
+        form.append('order', JSON.stringify(ids));
+
+        fetch('settings.php', {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          body: form
+        }).then(function(r) { return r.json(); }).then(function(data) {
+          if (data.ok) {
+            var saved = document.getElementById('officersSortSaved');
+            if (saved) {
+              saved.style.display = 'inline-flex';
+              if (saveBtnText) saveBtnText.textContent = 'Save Officers Formation';
+              setTimeout(function() { saved.style.display = 'none'; }, 3000);
+            }
+          }
+        }).catch(function(){});
+      }
+    });
+
+    list.addEventListener('mousedown', function(e) {
+      var item = e.target.closest('.officer-sortable-item');
+      if (item) item.style.cursor = 'grabbing';
+    });
+    document.addEventListener('mouseup', function() {
+      list.querySelectorAll('.officer-sortable-item').forEach(function(el) {
+        el.style.cursor = 'grab';
+      });
+    });
+  })();
+
 
 <!-- TAB 1: BRANDING & ORGANIZATION -->
 <div id="brandingTab" class="settings-panel">
@@ -1120,6 +1453,183 @@ function switchSettingsTab(tabId, btn) {
       document.getElementById('ms-form-' + id).style.display = 'none';
     }
     </script>
+  </div>
+</div>
+
+
+<!-- TAB: CHAPTER OFFICERS -->
+<div id="officersTab" class="settings-panel">
+  <!-- FY Configuration & Quick Tools -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h2 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #ffffff;">Executive Board &amp; Chapter Officers</h2>
+          <span style="font-size: 11px; padding: 3px 8px; border-radius: 999px; background: rgba(229,138,19,0.15); color: var(--quezon-gold, #e58a13); font-weight: 700; border: 1px solid rgba(229,138,19,0.3);">
+            FY <?php echo htmlspecialchars($chapter_fiscal_year_val); ?>
+          </span>
+        </div>
+        <p class="muted" style="font-size: 12.5px; margin: 4px 0 0;">
+          Manage the active leadership administration and board of directors featured on the About Us page.
+        </p>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <!-- Fiscal Year Updater Form -->
+        <form method="post" style="display: flex; align-items: center; gap: 6px; margin: 0;">
+          <?php echo csrf_field(); ?>
+          <input type="hidden" name="action" value="update_officer_settings">
+          <input type="hidden" name="current_tab" value="officersTab">
+          <label style="font-size: 12px; color: var(--text-secondary); margin: 0; white-space: nowrap;">Active Fiscal Year:</label>
+          <input type="text" name="chapter_fiscal_year" value="<?php echo htmlspecialchars($chapter_fiscal_year_val); ?>" placeholder="2026-2027" style="width: 100px; padding: 5px 8px; font-size: 12px; border-radius: 6px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: #fff;">
+          <button type="submit" class="btn btn-sm btn-secondary" style="font-size: 11.5px; padding: 5px 10px;">Save FY</button>
+        </form>
+
+        <button type="button" onclick="openAddOfficerModal()" class="btn btn-sm btn-primary" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #e58a13 0%, #15803d 100%); font-weight: 700; border: none; padding: 6px 14px;">
+          <?php echo icon('plus', '', 14); ?> <span>Add Chapter Officer</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Reorder Instructions and Save Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border: 1px dashed rgba(245,158,11,0.25); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-secondary);">
+        <?php echo icon('move', '', 14); ?>
+        <span>Drag and drop rows to reorder how officers appear on the public About page.</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span id="officersSortSaved" style="display: none; font-size: 12px; color: #22c55e; font-weight: 600; align-items: center; gap: 4px;">
+          <?php echo icon('check', '', 13); ?> Order saved!
+        </span>
+        <form method="post" id="saveOfficersOrderForm" style="margin: 0;">
+          <?php echo csrf_field(); ?>
+          <input type="hidden" name="action" value="reorder_officers">
+          <input type="hidden" name="current_tab" value="officersTab">
+          <input type="hidden" name="order" id="officersOrderInput" value="">
+          <button type="submit" id="saveOfficersOrderBtn" class="btn btn-sm btn-secondary" style="font-size: 12px; padding: 5px 12px;">
+            <span id="saveOfficersOrderBtnText">Save Officers Formation</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Officers List -->
+    <?php if (!empty($chapterOfficers)): ?>
+      <div id="officersSortableList" style="display: flex; flex-direction: column; gap: 10px;">
+        <?php foreach ($chapterOfficers as $idx => $officer): 
+          $officerFullName = trim($officer['title_prefix'] . ' ' . $officer['name'] . ($officer['title_suffix'] ? ', ' . $officer['title_suffix'] : ''));
+          $photoSrc = !empty($officer['photo_path']) ? media_url($officer['photo_path']) : (!empty($officer['member_avatar']) ? media_url($officer['member_avatar']) : null);
+        ?>
+          <div class="officer-sortable-item" data-id="<?php echo $officer['id']; ?>" style="display: flex; align-items: center; justify-content: space-between; gap: 14px; background: var(--card-bg, #18243a); border: 1px solid var(--border-color, rgba(255,255,255,0.12)); border-radius: 10px; padding: 12px 16px; cursor: grab; transition: all 0.2s ease;">
+            <!-- Left Info -->
+            <div style="display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1;">
+              <!-- Drag Handle & Order Badge -->
+              <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                <span class="drag-handle" style="opacity: 0.5; color: var(--text-secondary);"><?php echo icon('move', '', 14); ?></span>
+                <span class="officer-order-badge" style="width: 24px; height: 24px; border-radius: 6px; background: rgba(229,138,19,0.15); color: var(--quezon-gold, #e58a13); font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(229,138,19,0.3);">
+                  <?php echo $idx + 1; ?>
+                </span>
+              </div>
+
+              <!-- Officer Avatar Thumbnail -->
+              <div style="width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: #0b1120; border: 2px solid var(--quezon-gold, #e58a13); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                <?php if ($photoSrc): ?>
+                  <img src="<?php echo htmlspecialchars($photoSrc); ?>" alt="<?php echo htmlspecialchars($officerFullName); ?>" style="width: 100%; height: 100%; object-fit: cover;">
+                <?php else: ?>
+                  <span style="font-weight: 800; font-size: 14px; color: var(--quezon-gold, #e58a13);">
+                    <?php echo strtoupper(substr($officer['name'], 0, 1)); ?>
+                  </span>
+                <?php endif; ?>
+              </div>
+
+              <!-- Officer Details -->
+              <div style="min-width: 0; flex: 1;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 2px;">
+                  <strong style="color: #ffffff; font-size: 14.5px;"><?php echo htmlspecialchars($officerFullName); ?></strong>
+                  
+                  <!-- Position Badge -->
+                  <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: rgba(21,128,61,0.2); color: #4ade80; border: 1px solid rgba(21,128,61,0.4); font-weight: 700;">
+                    <?php echo htmlspecialchars($officer['position']); ?>
+                  </span>
+
+                  <!-- Status Badge -->
+                  <?php if (!empty($officer['is_active'])): ?>
+                    <span style="font-size: 10.5px; padding: 2px 7px; border-radius: 4px; background: rgba(34,197,94,0.12); color: #22c55e; font-weight: 600;">Published</span>
+                  <?php else: ?>
+                    <span style="font-size: 10.5px; padding: 2px 7px; border-radius: 4px; background: rgba(148,163,184,0.12); color: #94a3b8; font-weight: 600;">Hidden</span>
+                  <?php endif; ?>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text-secondary); flex-wrap: wrap;">
+                  <?php if (!empty($officer['committee'])): ?>
+                    <span><?php echo icon('award', '', 12); ?> <?php echo htmlspecialchars($officer['committee']); ?></span>
+                  <?php endif; ?>
+
+                  <span class="muted">&bull;</span>
+                  <span>FY <?php echo htmlspecialchars($officer['fiscal_year']); ?></span>
+
+                  <?php if (!empty($officer['user_id'])): ?>
+                    <span class="muted">&bull;</span>
+                    <a href="<?php echo BASE_URL; ?>/public/architects.php?q=<?php echo urlencode($officer['name']); ?>" target="_blank" style="color: var(--quezon-gold, #e58a13); text-decoration: none; display: inline-flex; align-items: center; gap: 3px;" title="View directory profile">
+                      <?php echo icon('shield_check', '', 12); ?> Linked Member (PRC: <?php echo htmlspecialchars($officer['prc_number'] ?: 'Registered'); ?>)
+                    </a>
+                  <?php else: ?>
+                    <span class="muted">&bull;</span>
+                    <span style="color: var(--text-secondary); font-size: 11px;">Manual / Appointed</span>
+                  <?php endif; ?>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
+              <button type="button" class="btn btn-sm btn-secondary"
+                      onclick="openEditOfficerModal(<?php echo htmlspecialchars(json_encode([
+                        'id' => $officer['id'],
+                        'user_id' => $officer['user_id'],
+                        'name' => $officer['name'],
+                        'title_prefix' => $officer['title_prefix'],
+                        'title_suffix' => $officer['title_suffix'],
+                        'position' => $officer['position'],
+                        'committee' => $officer['committee'] ?? '',
+                        'fiscal_year' => $officer['fiscal_year'],
+                        'photo_path' => $officer['photo_path'] ?? '',
+                        'bio' => $officer['bio'] ?? '',
+                        'is_active' => (int)$officer['is_active']
+                      ]), ENT_QUOTES, 'UTF-8'); ?>)"
+                      style="font-size: 12px; padding: 5px 10px; display: inline-flex; align-items: center; gap: 4px;">
+                <?php echo icon('edit', '', 12); ?> <span>Edit</span>
+              </button>
+
+              <form method="post" style="margin: 0;"
+                    data-confirm="Remove officer '<?php echo htmlspecialchars($officerFullName); ?>' from the leadership list?"
+                    data-confirm-title="Remove Officer"
+                    data-confirm-btn="Remove"
+                    data-confirm-class="btn-danger"
+                    data-confirm-icon="trash">
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="action" value="delete_officer">
+                <input type="hidden" name="current_tab" value="officersTab">
+                <input type="hidden" name="officer_id" value="<?php echo $officer['id']; ?>">
+                <button type="submit" class="btn btn-sm btn-danger" style="font-size: 12px; padding: 5px 10px; display: inline-flex; align-items: center; gap: 4px;">
+                  <?php echo icon('trash', '', 12); ?> <span>Delete</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    <?php else: ?>
+      <div style="text-align: center; padding: 36px 14px; color: var(--text-secondary); background: rgba(0,0,0,0.2); border-radius: 10px;">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(229,138,19,0.12); color: var(--quezon-gold, #e58a13); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+          <?php echo icon('members', '', 26); ?>
+        </div>
+        <strong style="display: block; font-size: 15px; color: #ffffff;">No Officers Registered Yet</strong>
+        <p class="muted" style="font-size: 12.5px; margin-top: 4px;">
+          Click "Add Chapter Officer" above to add your Chapter President, Vice Presidents, and Board of Directors.
+        </p>
+      </div>
+    <?php endif; ?>
   </div>
 </div>
 
@@ -1552,6 +2062,220 @@ function switchSettingsTab(tabId, btn) {
   </div>
 </div>
 
+<!-- ADD OFFICER MODAL -->
+<div id="addOfficerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:99999; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(6px);">
+  <div style="background:var(--card-bg, #18243a); border:1px solid var(--border-color, rgba(255,255,255,0.15)); border-radius:14px; max-width:600px; width:100%; max-height:92vh; overflow-y:auto; box-shadow:0 25px 50px -12px rgba(0,0,0,0.6); color:var(--text-primary);">
+    <div style="padding:22px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:rgba(229,138,19,0.15); color:var(--quezon-gold, #e58a13);">
+            <?php echo icon('members', '', 18); ?>
+          </div>
+          <div>
+            <h3 style="margin:0; font-size:17px; font-weight:700; color:#fff;">Add Chapter Officer</h3>
+            <span class="muted" style="font-size:12px;">Appoint an executive officer or committee director.</span>
+          </div>
+        </div>
+        <button type="button" onclick="closeAddOfficerModal()" style="background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:22px; padding:4px;">&times;</button>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" id="addOfficerForm">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="action" value="add_officer">
+        <input type="hidden" name="current_tab" value="officersTab">
+
+        <!-- Member Link Option -->
+        <div class="field" style="margin-bottom:14px;">
+          <label style="font-size:12.5px; font-weight:600; color:var(--quezon-gold, #e58a13);">Link with Registered Member (Optional)</label>
+          <select name="user_id" id="add_officer_user_id" onchange="syncOfficerMember('add')" style="width:100%; padding:8px 10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:6px; color:#fff;">
+            <option value="">-- Manual Non-Member / Custom Entry --</option>
+            <?php foreach ($eligibleMembers as $em): ?>
+              <option value="<?php echo $em['id']; ?>" data-name="<?php echo htmlspecialchars($em['name']); ?>" data-prc="<?php echo htmlspecialchars($em['prc_number'] ?? ''); ?>">
+                <?php echo htmlspecialchars($em['name']); ?> (PRC: <?php echo htmlspecialchars($em['prc_number'] ?: 'N/A'); ?>)
+              </option>
+            <?php endforeach; ?>
+          </select>
+          <span class="muted" style="font-size:11px; display:block; margin-top:3px;">
+            Selecting an approved chapter architect links this card directly to their directory profile.
+          </span>
+        </div>
+
+        <div class="grid-2" style="gap:12px; margin-bottom:12px;">
+          <div class="field" style="margin-bottom:0;">
+            <label>Prefix</label>
+            <input type="text" name="title_prefix" id="add_officer_prefix" value="Ar." style="width:100%; padding:8px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:#fff;">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Suffix</label>
+            <input type="text" name="title_suffix" id="add_officer_suffix" value="uap" style="width:100%; padding:8px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:#fff;">
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label>Officer Full Name *</label>
+          <input type="text" name="name" id="add_officer_name" required placeholder="e.g. Juan Dela Cruz" style="width:100%; padding:8px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:#fff;">
+        </div>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label>Executive Position / Designation *</label>
+          <input type="text" name="position" id="add_officer_position" list="officerPositionsList" required placeholder="e.g. Chapter President, Vice President on Operations" style="width:100%; padding:8px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:#fff;">
+          <datalist id="officerPositionsList">
+            <option value="Chapter President">
+            <option value="Vice President on Programs & Development">
+            <option value="Vice President on Operations">
+            <option value="Chapter Secretary">
+            <option value="Chapter Treasurer">
+            <option value="Chapter Auditor">
+            <option value="Immediate Past President">
+            <option value="Director for Professional Practice">
+            <option value="Director for CPD & Education">
+            <option value="Director for Heritage & Cultural Architecture">
+            <option value="Director for Membership & Fellowship">
+            <option value="Director for Public Relations & Media">
+          </datalist>
+        </div>
+
+        <div class="grid-2" style="gap:12px; margin-bottom:12px;">
+          <div class="field" style="margin-bottom:0;">
+            <label>Committee / Portfolio (Optional)</label>
+            <input type="text" name="committee" id="add_officer_committee" placeholder="e.g. Operations & Heritage" style="width:100%; padding:8px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:#fff;">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Fiscal Year</label>
+            <input type="text" name="fiscal_year" id="add_officer_fy" value="<?php echo htmlspecialchars($chapter_fiscal_year_val); ?>" required style="width:100%; padding:8px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:#fff;">
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom:14px;">
+          <label>Official Portrait Photo (Optional)</label>
+          <input type="file" name="officer_photo" accept="image/png, image/jpeg, image/webp" style="padding:6px; width:100%; font-size:12px;">
+          <span class="muted" style="font-size:11px; display:block; margin-top:3px;">
+            If left blank and a chapter member is selected above, their member avatar is used automatically.
+          </span>
+        </div>
+
+        <div class="field" style="margin-bottom:18px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" name="is_active" value="1" checked style="width:16px; height:16px; accent-color:var(--quezon-gold, #e58a13);">
+            <span style="font-weight:600; color:#fff;">Published (Visible on About Us page)</span>
+          </label>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" onclick="closeAddOfficerModal()" class="btn btn-sm btn-secondary" style="padding:8px 16px;">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-success" style="padding:8px 20px; font-weight:700; display:inline-flex; align-items:center; gap:6px; background:var(--quezon-gold, #e58a13); border:none; color:#111827;">
+            <?php echo icon('check', '', 14); ?> <span>Save Officer</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT OFFICER MODAL -->
+<div id="editOfficerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:99999; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(6px);">
+  <div style="background:var(--card-bg, #18243a); border:1px solid var(--border-color, rgba(255,255,255,0.15)); border-radius:14px; max-width:600px; width:100%; max-height:92vh; overflow-y:auto; box-shadow:0 25px 50px -12px rgba(0,0,0,0.6); color:var(--text-primary);">
+    <div style="padding:22px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:rgba(229,138,19,0.15); color:var(--quezon-gold, #e58a13);">
+            <?php echo icon('edit', '', 18); ?>
+          </div>
+          <div>
+            <h3 style="margin:0; font-size:17px; font-weight:700; color:#fff;">Edit Chapter Officer</h3>
+            <span class="muted" style="font-size:12px;">Update officer credentials, position, or status.</span>
+          </div>
+        </div>
+        <button type="button" onclick="closeEditOfficerModal()" style="background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:22px; padding:4px;">&times;</button>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" id="editOfficerForm">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="action" value="edit_officer">
+        <input type="hidden" name="current_tab" value="officersTab">
+        <input type="hidden" name="officer_id" id="edit_officer_id" value="">
+
+        <!-- Member Link Option -->
+        <div class="field" style="margin-bottom:14px;">
+          <label style="font-size:12.5px; font-weight:600; color:var(--quezon-gold, #e58a13);">Link with Registered Member (Optional)</label>
+          <select name="user_id" id="edit_officer_user_id" onchange="syncOfficerMember('edit')" style="width:100%; padding:8px 10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:6px; color:#fff;">
+            <option value="">-- Manual Non-Member / Custom Entry --</option>
+            <?php foreach ($eligibleMembers as $em): ?>
+              <option value="<?php echo $em['id']; ?>" data-name="<?php echo htmlspecialchars($em['name']); ?>" data-prc="<?php echo htmlspecialchars($em['prc_number'] ?? ''); ?>">
+                <?php echo htmlspecialchars($em['name']); ?> (PRC: <?php echo htmlspecialchars($em['prc_number'] ?: 'N/A'); ?>)
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <div class="grid-2" style="gap:12px; margin-bottom:12px;">
+          <div class="field" style="margin-bottom:0;">
+            <label>Prefix</label>
+            <input type="text" name="title_prefix" id="edit_officer_prefix" value="Ar." style="width:100%; padding:8px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:#fff;">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Suffix</label>
+            <input type="text" name="title_suffix" id="edit_officer_suffix" value="uap" style="width:100%; padding:8px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:#fff;">
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label>Officer Full Name *</label>
+          <input type="text" name="name" id="edit_officer_name" required placeholder="e.g. Juan Dela Cruz" style="width:100%; padding:8px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:#fff;">
+        </div>
+
+        <div class="field" style="margin-bottom:12px;">
+          <label>Executive Position / Designation *</label>
+          <input type="text" name="position" id="edit_officer_position" list="officerPositionsList" required placeholder="e.g. Chapter President" style="width:100%; padding:8px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:#fff;">
+        </div>
+
+        <div class="grid-2" style="gap:12px; margin-bottom:12px;">
+          <div class="field" style="margin-bottom:0;">
+            <label>Committee / Portfolio</label>
+            <input type="text" name="committee" id="edit_officer_committee" placeholder="e.g. Operations & Heritage" style="width:100%; padding:8px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:#fff;">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Fiscal Year</label>
+            <input type="text" name="fiscal_year" id="edit_officer_fy" required style="width:100%; padding:8px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:#fff;">
+          </div>
+        </div>
+
+        <!-- Current photo and upload -->
+        <div class="field" style="margin-bottom:14px;">
+          <label>Officer Portrait Photo</label>
+          <div id="editOfficerPhotoWrap" style="display:none; align-items:center; gap:12px; margin-bottom:8px; padding:8px 12px; background:rgba(0,0,0,0.25); border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+            <img id="editOfficerCurrentPhoto" src="" style="width:44px; height:44px; border-radius:50%; object-fit:cover; border:1px solid var(--quezon-gold, #e58a13);">
+            <div style="flex:1;">
+              <span style="font-size:12px; font-weight:600; display:block; color:var(--text-primary);">Current Attached Photo</span>
+              <label style="font-size:11.5px; color:#ef4444; cursor:pointer; display:inline-flex; align-items:center; gap:4px; margin-top:2px;">
+                <input type="checkbox" name="remove_officer_photo" value="1" id="edit_remove_officer_photo">
+                <span>Remove attached photo</span>
+              </label>
+            </div>
+          </div>
+          <input type="file" name="officer_photo" accept="image/png, image/jpeg, image/webp" style="padding:6px; width:100%; font-size:12px;">
+          <span class="muted" style="font-size:11px; display:block; margin-top:3px;">Upload new photo to replace current.</span>
+        </div>
+
+        <div class="field" style="margin-bottom:18px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" name="is_active" value="1" id="edit_officer_active" style="width:16px; height:16px; accent-color:var(--quezon-gold, #e58a13);">
+            <span style="font-weight:600; color:#fff;">Published (Visible on About Us page)</span>
+          </label>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" onclick="closeEditOfficerModal()" class="btn btn-sm btn-secondary" style="padding:8px 16px;">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-success" style="padding:8px 20px; font-weight:700; display:inline-flex; align-items:center; gap:6px; background:var(--quezon-gold, #e58a13); border:none; color:#111827;">
+            <?php echo icon('check', '', 14); ?> <span>Save Changes</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
 <!-- EDIT SPONSOR MODAL -->
 <div id="editSponsorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:99999; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(6px);">
   <div style="background:var(--card-bg, #18243a); border:1px solid var(--border-color, rgba(255,255,255,0.15)); border-radius:14px; max-width:640px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 25px 50px -12px rgba(0,0,0,0.6); color:var(--text-primary);">
@@ -1978,6 +2702,145 @@ function switchSettingsTab(tabId, btn) {
   });
 })();
 </script>
+
+  // Officer Modal & Management Functions
+  function openAddOfficerModal() {
+    document.getElementById('addOfficerModal').style.display = 'flex';
+  }
+  function closeAddOfficerModal() {
+    document.getElementById('addOfficerModal').style.display = 'none';
+  }
+
+  function openEditOfficerModal(data) {
+    document.getElementById('edit_officer_id').value = data.id || '';
+    document.getElementById('edit_officer_user_id').value = data.user_id || '';
+    document.getElementById('edit_officer_name').value = data.name || '';
+    document.getElementById('edit_officer_prefix').value = data.title_prefix || 'Ar.';
+    document.getElementById('edit_officer_suffix').value = data.title_suffix || 'uap';
+    document.getElementById('edit_officer_position').value = data.position || '';
+    document.getElementById('edit_officer_committee').value = data.committee || '';
+    document.getElementById('edit_officer_fy').value = data.fiscal_year || '2026-2027';
+    document.getElementById('edit_officer_active').checked = !!parseInt(data.is_active);
+
+    var photoWrap = document.getElementById('editOfficerPhotoWrap');
+    var photoImg = document.getElementById('editOfficerCurrentPhoto');
+    var removeCheckbox = document.getElementById('edit_remove_officer_photo');
+    if (removeCheckbox) removeCheckbox.checked = false;
+
+    if (data.photo_path) {
+      var photoUrl = (data.photo_path.indexOf('http') === 0 || data.photo_path.indexOf('/') === 0) 
+        ? data.photo_path 
+        : ('<?php echo BASE_URL; ?>/' + data.photo_path);
+      photoImg.src = photoUrl;
+      photoWrap.style.display = 'flex';
+    } else {
+      photoWrap.style.display = 'none';
+    }
+
+    document.getElementById('editOfficerModal').style.display = 'flex';
+  }
+
+  function closeEditOfficerModal() {
+    document.getElementById('editOfficerModal').style.display = 'none';
+  }
+
+  function syncOfficerMember(mode) {
+    var select = document.getElementById(mode + '_officer_user_id');
+    var nameInput = document.getElementById(mode + '_officer_name');
+    if (!select || !nameInput) return;
+    var opt = select.options[select.selectedIndex];
+    if (opt && opt.value) {
+      var memberName = opt.getAttribute('data-name') || '';
+      if (memberName.indexOf('Ar. ') === 0) {
+        memberName = memberName.replace(/^Ar\.\s+/, '');
+      }
+      memberName = memberName.replace(/,\s*uap$/i, '');
+      nameInput.value = memberName;
+    }
+  }
+
+  // Officer drag-and-drop sortable
+  (function() {
+    var list = document.getElementById('officersSortableList');
+    if (!list || typeof Sortable === 'undefined') return;
+
+    list.addEventListener('mouseover', function(e) {
+      var item = e.target.closest('.officer-sortable-item');
+      if (item && !item.classList.contains('sortable-drag')) {
+        item.style.borderColor = 'rgba(229,138,19,0.5)';
+        var handle = item.querySelector('.drag-handle');
+        if (handle) handle.style.opacity = '1';
+      }
+    });
+    list.addEventListener('mouseout', function(e) {
+      var item = e.target.closest('.officer-sortable-item');
+      if (item && !item.classList.contains('sortable-drag')) {
+        item.style.borderColor = '';
+        var handle = item.querySelector('.drag-handle');
+        if (handle) handle.style.opacity = '0.5';
+      }
+    });
+
+    Sortable.create(list, {
+      handle: '.officer-sortable-item',
+      animation: 180,
+      ghostClass: 'news-drag-ghost',
+      chosenClass: 'news-drag-chosen',
+      dragClass: 'news-dragging',
+      onEnd: function() {
+        var items = list.querySelectorAll('.officer-sortable-item');
+        var ids = [];
+        items.forEach(function(el, i) {
+          ids.push(el.dataset.id);
+          var badge = el.querySelector('.officer-order-badge');
+          if (badge) badge.textContent = i + 1;
+        });
+
+        var orderInput = document.getElementById('officersOrderInput');
+        if (orderInput) orderInput.value = JSON.stringify(ids);
+
+        var saveBtn = document.getElementById('saveOfficersOrderBtn');
+        var saveBtnText = document.getElementById('saveOfficersOrderBtnText');
+        if (saveBtn && saveBtnText) {
+          saveBtn.style.background = 'var(--accent-primary, #f59e0b)';
+          saveBtnText.textContent = 'Save Officers Formation *';
+        }
+
+        var csrf = '<?php echo csrf_token(); ?>';
+        var form = new FormData();
+        form.append('_csrf_token', csrf);
+        form.append('csrf_token', csrf);
+        form.append('action', 'reorder_officers');
+        form.append('order', JSON.stringify(ids));
+
+        fetch('settings.php', {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          body: form
+        }).then(function(r) { return r.json(); }).then(function(data) {
+          if (data.ok) {
+            var saved = document.getElementById('officersSortSaved');
+            if (saved) {
+              saved.style.display = 'inline-flex';
+              if (saveBtnText) saveBtnText.textContent = 'Save Officers Formation';
+              setTimeout(function() { saved.style.display = 'none'; }, 3000);
+            }
+          }
+        }).catch(function(){});
+      }
+    });
+
+    list.addEventListener('mousedown', function(e) {
+      var item = e.target.closest('.officer-sortable-item');
+      if (item) item.style.cursor = 'grabbing';
+    });
+    document.addEventListener('mouseup', function() {
+      list.querySelectorAll('.officer-sortable-item').forEach(function(el) {
+        el.style.cursor = 'grab';
+      });
+    });
+  })();
+
 
 <style>
 .news-drag-ghost  { opacity: 0.4; background: rgba(245,158,11,0.08) !important; border: 1.5px dashed rgba(245,158,11,0.6) !important; }

@@ -21,6 +21,27 @@ if (empty($contactPhone) || strpos($contactPhone, '555') !== false) {
 }
 $contactAddress = get_site_setting($pdo, 'contact_address', 'Lucena City, Quezon Province, Philippines');
 $logoSrc = BASE_URL . '/public/logo.jpg';
+$officersFiscalYear = get_site_setting($pdo, 'chapter_fiscal_year', '2026-2027');
+
+$chapterOfficers = [];
+try {
+    $chapterOfficers = $pdo->query("
+        SELECT co.*, 
+               u.prc_number as user_prc, 
+               u.profile_photo as user_avatar,
+               wm.id as directory_id,
+               wm.specialty,
+               wm.role_title
+        FROM chapter_officers co
+        LEFT JOIN users u ON co.user_id = u.id AND u.deleted_at IS NULL
+        LEFT JOIN website_members wm ON co.user_id = wm.user_id AND wm.deleted_at IS NULL AND wm.is_published = 1
+        WHERE co.deleted_at IS NULL AND co.is_active = 1
+        ORDER BY co.display_order ASC, co.id ASC
+    ")->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+    $chapterOfficers = [];
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -107,6 +128,147 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             .chapter-badge-card { padding: 1.4rem 1rem; }
             .history-stats-grid { grid-template-columns: 1fr; gap: 10px; }
         }
+
+        /* Chapter Officers Showcase Grid */
+        .officers-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.4rem;
+            margin-top: 1.8rem;
+        }
+        .officer-showcase-card {
+            background: var(--quezon-card-inner, #0f172a);
+            border: 1px solid var(--quezon-border, rgba(255,255,255,0.1));
+            border-radius: 16px;
+            padding: 1.8rem 1.2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        }
+        .officer-showcase-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--quezon-border-gold, #e58a13);
+            box-shadow: 0 10px 28px rgba(229,138,19,0.18);
+        }
+        .officer-president-card {
+            border-color: rgba(229,138,19,0.45);
+            background: linear-gradient(180deg, rgba(229,138,19,0.08) 0%, var(--quezon-card-inner, #0f172a) 100%);
+            box-shadow: 0 8px 24px rgba(229,138,19,0.2);
+        }
+        .officer-photo-wrapper {
+            position: relative;
+            width: 96px;
+            height: 96px;
+            margin-bottom: 1rem;
+        }
+        .officer-photo {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--quezon-gold, #e58a13);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+            background: #0b1120;
+        }
+        .officer-photo-fallback {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 3px solid var(--quezon-gold, #e58a13);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--quezon-gold, #e58a13);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+        }
+        .officer-lead-star {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--quezon-gold, #e58a13);
+            color: #111827;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #0f172a;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+        .officer-info-block {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+        .officer-position-tag {
+            font-size: 0.76rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(34,197,94,0.12);
+            color: var(--quezon-green-light, #22c55e);
+            border: 1px solid rgba(34,197,94,0.3);
+            margin-bottom: 0.65rem;
+            line-height: 1.2;
+        }
+        .officer-position-tag.tag-president {
+            background: rgba(229,138,19,0.18);
+            color: var(--quezon-gold, #f59e0b);
+            border-color: rgba(229,138,19,0.5);
+        }
+        .officer-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 0.35rem 0;
+            line-height: 1.35;
+        }
+        .officer-committee-text {
+            font-size: 0.82rem;
+            color: var(--text-muted, #94a3b8);
+            line-height: 1.4;
+            margin-bottom: 0.75rem;
+        }
+        .officer-action-wrap {
+            margin-top: auto;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            width: 100%;
+        }
+        .officer-profile-link {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--quezon-gold, #e58a13);
+            text-decoration: none;
+            transition: color 0.2s ease, transform 0.2s ease;
+            display: inline-block;
+        }
+        .officer-profile-link:hover {
+            color: #ffffff;
+            transform: translateX(3px);
+        }
+        @media (max-width: 640px) {
+            .officers-cards-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .officer-showcase-card {
+                padding: 1.4rem 1rem;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -213,6 +375,72 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 </a>
             </div>
         </section>
+
+        <!-- EXECUTIVE BOARD & CHAPTER OFFICERS -->
+        <?php if (!empty($chapterOfficers)): ?>
+        <section class="section-box" style="margin-bottom: 2.5rem;" id="officers">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h2><?php echo icon('members', '', 22); ?> Executive Board &amp; <span>Chapter Officers</span></h2>
+                    <p style="color: var(--text-muted); font-size: 0.92rem; margin: 6px 0 0;">
+                        The servant leaders steering UAP Quezon Province Chapter in promoting professional integrity, architectural excellence, and community stewardship.
+                    </p>
+                </div>
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; background: rgba(229,138,19,0.12); border: 1px solid var(--quezon-border-gold); color: var(--quezon-gold); font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+                    <?php echo icon('shield_check', '', 14); ?> Fiscal Year <?php echo htmlspecialchars($officersFiscalYear); ?>
+                </div>
+            </div>
+
+            <div class="officers-cards-grid">
+                <?php foreach ($chapterOfficers as $off): 
+                    $offFullName = trim($off['title_prefix'] . ' ' . $off['name'] . ($off['title_suffix'] ? ', ' . $off['title_suffix'] : ''));
+                    $offPhoto = !empty($off['photo_path']) ? media_url($off['photo_path']) : (!empty($off['user_avatar']) ? media_url($off['user_avatar']) : null);
+                    $isPresident = (stripos($off['position'], 'President') !== false && stripos($off['position'], 'Vice') === false && stripos($off['position'], 'Past') === false);
+                ?>
+                    <div class="officer-showcase-card <?php echo $isPresident ? 'officer-president-card' : ''; ?>">
+                        <div class="officer-photo-wrapper">
+                            <?php if ($offPhoto): ?>
+                                <img src="<?php echo htmlspecialchars($offPhoto); ?>" alt="<?php echo htmlspecialchars($offFullName); ?>" class="officer-photo" loading="lazy">
+                            <?php else: ?>
+                                <div class="officer-photo-fallback">
+                                    <span><?php echo strtoupper(substr($off['name'], 0, 1)); ?></span>
+                                </div>
+                            <?php endif; ?>
+                            <?php if ($isPresident): ?>
+                                <div class="officer-lead-star" title="Chapter President"><?php echo icon('award', '', 14); ?></div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="officer-info-block">
+                            <span class="officer-position-tag <?php echo $isPresident ? 'tag-president' : ''; ?>">
+                                <?php echo htmlspecialchars($off['position']); ?>
+                            </span>
+
+                            <h3 class="officer-name"><?php echo htmlspecialchars($offFullName); ?></h3>
+
+                            <?php if (!empty($off['committee'])): ?>
+                                <span class="officer-committee-text"><?php echo htmlspecialchars($off['committee']); ?></span>
+                            <?php endif; ?>
+
+                            <?php if (!empty($off['directory_id'])): ?>
+                                <div class="officer-action-wrap">
+                                    <a href="<?php echo BASE_URL; ?>/public/member_profile.php?id=<?php echo $off['directory_id']; ?>" class="officer-profile-link">
+                                        View Profile &rarr;
+                                    </a>
+                                </div>
+                            <?php elseif (!empty($off['user_id'])): ?>
+                                <div class="officer-action-wrap">
+                                    <a href="<?php echo BASE_URL; ?>/public/architects.php?q=<?php echo urlencode($off['name']); ?>" class="officer-profile-link">
+                                        Directory Record &rarr;
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </section>
+        <?php endif; ?>
 
         <!-- 4 PILLARS OF OUR PURPOSE -->
         <section class="section-box" style="margin-bottom: 2.5rem;">

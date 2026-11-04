@@ -13,6 +13,20 @@ $activePage = 'architects';
 $search = trim($_GET['q'] ?? '');
 $filterSpec = trim($_GET['specialty'] ?? '');
 
+// Load active chapter officer positions to badge directory members
+$officerMap = [];
+try {
+    $offRows = $pdo->query("SELECT user_id, name, position FROM chapter_officers WHERE deleted_at IS NULL AND is_active = 1")->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($offRows as $orow) {
+        if (!empty($orow['user_id'])) {
+            $officerMap['uid_' . $orow['user_id']] = $orow['position'];
+        }
+        $cleanedName = strtolower(trim(preg_replace('/^(Ar\.|Architect)\s+/i', '', $orow['name'])));
+        $cleanedName = trim(preg_replace('/,\s*uap$/i', '', $cleanedName));
+        $officerMap['name_' . $cleanedName] = $orow['position'];
+    }
+} catch (Throwable $e) {}
+
 $members = [];
 try {
     // Auto-synchronize and unpublish directory listings of deleted or unapproved accounts
@@ -76,6 +90,14 @@ try {
             'specialty' => $wm['specialty'] ?: 'Professional Architect',
             'id_number' => $wm['id_number'] ?: '—',
             'location' => $wm['location'] ?: 'Quezon Province',
+            'officer_position' => (function() use ($wm, $officerMap) {
+                if (!empty($wm['user_id']) && isset($officerMap['uid_' . $wm['user_id']])) {
+                    return $officerMap['uid_' . $wm['user_id']];
+                }
+                $cName = strtolower(trim(preg_replace('/^(Ar\.|Architect)\s+/i', '', $wm['name'])));
+                $cName = trim(preg_replace('/,\s*uap$/i', '', $cName));
+                return $officerMap['name_' . $cName] ?? null;
+            })(),
             'company' => $wm['company_name'] ?: '',
             'photo_path' => $wm['photo_path'] ?? '',
             'email' => $wm['user_email'] ?? '',
@@ -319,6 +341,11 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
                             <div>
                                 <h3 style="font-size: 1.1rem; color: #ffffff; font-weight: 700;"><?php echo htmlspecialchars($m['name']); ?></h3>
                                 <div style="font-size: 0.8rem; color: var(--quezon-gold); font-weight: 600;"><?php echo htmlspecialchars($m['role']); ?></div>
+                                <?php if (!empty($m['officer_position'])): ?>
+                                    <div style="font-size: 0.74rem; color: #4ade80; font-weight: 700; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px; background: rgba(34,197,94,0.12); padding: 2px 7px; border-radius: 4px; border: 1px solid rgba(34,197,94,0.3);">
+                                        <?php echo icon('award', '', 11); ?> <?php echo htmlspecialchars($m['officer_position']); ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
 
