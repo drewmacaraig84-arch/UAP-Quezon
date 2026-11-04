@@ -285,7 +285,7 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
                     type="text"
                     name="q"
                     value="<?php echo htmlspecialchars($search); ?>"
-                    placeholder="Search by architect name, company, municipality, or PRC license number..."
+                    placeholder="Search by architect name, company, or municipality..."
                     class="search-bar-input"
                 >
                 <?php if ($filterSpec): ?>
@@ -404,7 +404,9 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
                         <?php endif; ?>
 
                         <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--quezon-border); padding-top: 12px; font-size: 0.82rem;">
-                            <span style="color: var(--quezon-gold); font-size: 0.8rem; font-weight: 600;"><?php echo htmlspecialchars($m['id_number']); ?></span>
+                            <span style="color: var(--quezon-gold); font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                <?php echo icon('landmark', '', 12); ?> UAP Chapter 121
+                            </span>
                             <span style="color: var(--text-muted); font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;">
                                 <?php echo icon('map_pin', '', 12); ?>
                                 <span><?php echo htmlspecialchars($m['location']); ?></span>

@@ -1787,7 +1787,6 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                                         <th>Architect</th>
                                         <th>Role / Practice</th>
                                         <th>Specialty</th>
-                                        <th>PRC Reg.</th>
                                         <th>Location</th>
                                     </tr>
                                 </thead>
@@ -1802,7 +1801,6 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                                             </td>
                                             <td style="color: var(--quezon-gold); font-weight: 600;"><?php echo htmlspecialchars($m['role']); ?></td>
                                             <td style="color: var(--text-muted);"><?php echo htmlspecialchars($m['specialty']); ?></td>
-                                            <td><span class="badge-prc"><?php echo htmlspecialchars($m['prc']); ?></span></td>
                                             <td style="color: var(--text-muted);"><?php echo htmlspecialchars($m['location']); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
