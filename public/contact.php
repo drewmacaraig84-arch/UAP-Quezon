@@ -28,6 +28,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $stmt = $pdo->prepare("INSERT INTO contact_inquiries (name, email, phone, subject, message, status, created_at) VALUES (?, ?, ?, ?, ?, 'unread', NOW())");
             $stmt->execute([$name, $email, $phone, $subject, $msg]);
             $contactSuccess = 'Thank you for reaching out! Your message has been received by the UAP Quezon Province Chapter secretariat.';
+
+            // Social & Telegram notification
+            @require_once __DIR__ . '/../includes/social_notifier.php';
+            if (function_exists('notify_admin_event')) {
+                notify_admin_event($pdo, 'inquiry', [
+                    'name' => $name,
+                    'email' => $email,
+                    'phone' => $phone,
+                    'subject' => $subject,
+                    'message' => $msg
+                ]);
+            }
         } catch (Throwable $e) {
             $contactError = 'Unable to send message at this time. Please try again or contact us directly via email.';
         }

@@ -55,6 +55,17 @@ if ($action === 'manual_checkin') {
     }
 
     $res = record_event_scan_attendance($pdo, $targetUserId, $eventKey, $adminId, $mode, 'manual_override', 'Manual registration desk check-in');
+    if (!empty($res['success'])) {
+        @require_once __DIR__ . '/../../includes/social_notifier.php';
+        if (function_exists('notify_admin_event')) {
+            notify_admin_event($pdo, 'attendance', [
+                'name' => $res['member']['name'] ?? 'Architect',
+                'event_title' => $res['event']['title'] ?? $eventKey,
+                'time' => date('h:i A'),
+                'total_count' => $res['stats']['total_attendees'] ?? 0
+            ]);
+        }
+    }
     echo json_encode($res);
     exit;
 }
@@ -86,6 +97,18 @@ $userId = (int)$verification['user_id'];
 $method = !empty($verification['is_static']) ? 'qr_scan_static' : 'qr_scan_rolling';
 
 $res = record_event_scan_attendance($pdo, $userId, $eventKey, $adminId, $mode, $method);
+
+if (!empty($res['success'])) {
+    @require_once __DIR__ . '/../../includes/social_notifier.php';
+    if (function_exists('notify_admin_event')) {
+        notify_admin_event($pdo, 'attendance', [
+            'name' => $res['member']['name'] ?? 'Architect',
+            'event_title' => $res['event']['title'] ?? $eventKey,
+            'time' => date('h:i A'),
+            'total_count' => $res['stats']['total_attendees'] ?? 0
+        ]);
+    }
+}
 
 if (!empty($verification['warning']) && $res['success']) {
     $res['warning'] = $verification['warning'];

@@ -111,6 +111,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['
             $stmt->execute([$userId, $feeVal, $memberDueId]);
 
             $pdo->commit();
+
+            // Social & Telegram notification
+            @require_once __DIR__ . '/../includes/social_notifier.php';
+            if (function_exists('notify_admin_event')) {
+                notify_admin_event($pdo, 'directory_app', [
+                    'name' => $_SESSION['user_name'] ?? 'Architect',
+                    'fee_amount' => $feeVal
+                ]);
+            }
+
             $app = get_directory_application($pdo, $userId);
             $success = 'Application submitted! An advertising fee invoice of ₱' . number_format($feeVal, 2) . ' has been generated. Please proceed to payment below to unlock your listing.';
         } catch (Throwable $e) {

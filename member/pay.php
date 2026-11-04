@@ -268,6 +268,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         // Clear current idempotency key so future payments receive fresh key
                         unset($_SESSION['pay_idempotency_key'][$member_due_id]);
 
+                        // Social & Telegram notification
+                        @require_once __DIR__ . '/../includes/social_notifier.php';
+                        if (function_exists('notify_admin_event')) {
+                            notify_admin_event($pdo, 'payment', [
+                                'name' => $_SESSION['user_name'] ?? 'Member',
+                                'due_title' => $due['title'] ?? 'Chapter Due',
+                                'amount_paid' => $amount_paid,
+                                'method' => $method,
+                                'reference_number' => $reference_number
+                            ]);
+                        }
+
                         if (function_exists('set_flash')) {
                             set_flash('success', 'Payment submitted successfully! Please wait for admin verification.');
                         }

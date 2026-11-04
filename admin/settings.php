@@ -22,6 +22,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     } elseif (in_array($action, ['add_news', 'edit_news', 'delete_news', 'reorder_news'])) {
         $active_tab = 'newsTab';
     }
+    } elseif (in_array($action, ['update_telegram_settings', 'test_telegram'])) {
+        $active_tab = 'notificationsTab';
 
     // ============ LOGO UPLOAD ============
     if ($action === 'upload_logo' && isset($_FILES['logo'])) {
@@ -703,6 +705,48 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $stmt->execute([$fy]);
         $success = 'Chapter Fiscal Year updated.';
     }
+
+    // ============ SOCIAL MEDIA & TELEGRAM ALERTS ============
+    if ($action === 'update_telegram_settings') {
+        $enabled = !empty($_POST['telegram_notifications_enabled']) ? '1' : '0';
+        $token = trim($_POST['telegram_bot_token'] ?? '');
+        $chatId = trim($_POST['telegram_chat_id'] ?? '');
+        $notifyInq = !empty($_POST['telegram_notify_inquiries']) ? '1' : '0';
+        $notifyReg = !empty($_POST['telegram_notify_registrations']) ? '1' : '0';
+        $notifyPay = !empty($_POST['telegram_notify_payments']) ? '1' : '0';
+        $notifyDir = !empty($_POST['telegram_notify_directory']) ? '1' : '0';
+        $notifyAtt = !empty($_POST['telegram_notify_attendance']) ? '1' : '0';
+
+        $settingsToSave = [
+            'telegram_notifications_enabled' => $enabled,
+            'telegram_bot_token' => $token,
+            'telegram_chat_id' => $chatId,
+            'telegram_notify_inquiries' => $notifyInq,
+            'telegram_notify_registrations' => $notifyReg,
+            'telegram_notify_payments' => $notifyPay,
+            'telegram_notify_directory' => $notifyDir,
+            'telegram_notify_attendance' => $notifyAtt,
+        ];
+
+        $saveStmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+        foreach ($settingsToSave as $k => $v) {
+            $saveStmt->execute([$k, $v]);
+            if (function_exists('cache_delete')) {
+                cache_delete("site_setting:{$k}");
+            }
+        }
+        $success = 'Social & Telegram notification settings saved successfully.';
+    }
+
+    if ($action === 'test_telegram') {
+        require_once __DIR__ . '/../includes/social_notifier.php';
+        $testRes = notify_admin_event($pdo, 'test');
+        if (!empty($testRes['success'])) {
+            $success = 'Test alert dispatched successfully! Please check your Telegram conversation or group.';
+        } else {
+            $error = 'Telegram Alert Failed: ' . ($testRes['error'] ?? 'Please check your Bot Token, Chat ID, and host internet access.');
+        }
+    }
 }
 
 // Fetch current data
@@ -740,6 +784,15 @@ try {
 } catch (Throwable $e) {}
 
 $chapter_fiscal_year_val = $settings_rows['chapter_fiscal_year'] ?? '2026-2027';
+
+$telegram_enabled_val = (bool)(int)($settings_rows['telegram_notifications_enabled'] ?? '0');
+$telegram_bot_token_val = $settings_rows['telegram_bot_token'] ?? '';
+$telegram_chat_id_val = $settings_rows['telegram_chat_id'] ?? '';
+$telegram_notify_inquiries_val = (bool)(int)($settings_rows['telegram_notify_inquiries'] ?? '1');
+$telegram_notify_registrations_val = (bool)(int)($settings_rows['telegram_notify_registrations'] ?? '1');
+$telegram_notify_payments_val = (bool)(int)($settings_rows['telegram_notify_payments'] ?? '1');
+$telegram_notify_directory_val = (bool)(int)($settings_rows['telegram_notify_directory'] ?? '1');
+$telegram_notify_attendance_val = (bool)(int)($settings_rows['telegram_notify_attendance'] ?? '0');
 
 $chapterOfficers = [];
 try {
@@ -819,6 +872,9 @@ include __DIR__ . '/../includes/header.php';
   </button>
   <button type="button" class="tab-btn" data-tab="newsTab" onclick="switchSettingsTab('newsTab', this)">
     <?php echo icon('newspaper', '', 16); ?> <span>News &amp; Updates (<?php echo count($news); ?>)</span>
+  </button>
+  <button type="button" class="tab-btn" data-tab="notificationsTab" onclick="switchSettingsTab('notificationsTab', this)">
+    <?php echo icon('bell', '', 16); ?> <span>Social Alerts &amp; Telegram</span>
   </button>
 </div>
 
@@ -1861,6 +1917,228 @@ function switchSettingsTab(tabId, btn) {
     <?php endif; ?>
   </div>
 </div>
+
+<!-- ========================================== -->
+<!-- SOCIAL ALERTS & TELEGRAM NOTIFICATIONS TAB -->
+<!-- ========================================== -->
+<div id="notificationsTab" class="settings-panel">
+  <!-- Status & Quick Test Top Banner -->
+  <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)); border: 1px solid var(--border-color); border-radius: 14px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: #229ED9; color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(34, 158, 217, 0.35);">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h2 style="font-size: 18px; margin: 0; font-weight: 700;">Instant Telegram &amp; Social Alerts</h2>
+            <?php if ($telegram_enabled_val && !empty($telegram_bot_token_val) && !empty($telegram_chat_id_val)): ?>
+              <span class="badge-pill" style="background: rgba(16, 185, 129, 0.18); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; padding: 2px 10px; border-radius: 20px; font-weight: 600;">● Active &amp; Connected</span>
+            <?php elseif ($telegram_enabled_val): ?>
+              <span class="badge-pill" style="background: rgba(245, 158, 11, 0.18); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 11px; padding: 2px 10px; border-radius: 20px; font-weight: 600;">● Missing Bot Token / Chat ID</span>
+            <?php else: ?>
+              <span class="badge-pill" style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); font-size: 11px; padding: 2px 10px; border-radius: 20px; font-weight: 600;">○ Inactive (Disabled)</span>
+            <?php endif; ?>
+          </div>
+          <p class="muted" style="margin: 4px 0 0; font-size: 13px;">Receive real-time push notifications on your phone, tablet, desktop, or Chapter Admin Telegram group for all vital events.</p>
+        </div>
+      </div>
+
+      <!-- Quick Test Button Form -->
+      <form method="post" style="margin: 0;">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="action" value="test_telegram">
+        <input type="hidden" name="current_tab" value="notificationsTab">
+        <button type="submit" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; padding: 8px 16px; background: rgba(34, 158, 217, 0.15); border: 1px solid rgba(34, 158, 217, 0.4); color: #38bdf8;" <?php echo (empty($telegram_bot_token_val) || empty($telegram_chat_id_val)) ? 'title="Configure Token & Chat ID first"' : ''; ?>>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          <span>Send Test Alert Now</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="grid-2" style="gap: 24px;">
+    <!-- LEFT COLUMN: SETTINGS FORM -->
+    <div class="card" style="margin: 0;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+        <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(242,184,53,0.12); color: var(--accent-primary); display: flex; align-items: center; justify-content: center;">
+          <?php echo icon('bell', '', 18); ?>
+        </div>
+        <div>
+          <h2 style="font-size: 16px; margin: 0; font-weight: 700;">Bot &amp; Channel Credentials</h2>
+          <span class="muted" style="font-size: 12px;">Configure bot authentication and target recipient chat</span>
+        </div>
+      </div>
+
+      <form method="post">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="action" value="update_telegram_settings">
+        <input type="hidden" name="current_tab" value="notificationsTab">
+
+        <!-- Master Switch -->
+        <div style="padding: 14px 16px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <strong style="display: block; font-size: 14px;">Enable Social &amp; Telegram Push Alerts</strong>
+            <span class="muted" style="font-size: 12px;">When enabled, verified system events will immediately dispatch push notifications.</span>
+          </div>
+          <label style="position: relative; display: inline-block; width: 44px; height: 24px; margin: 0; cursor: pointer;">
+            <input type="checkbox" name="telegram_notifications_enabled" value="1" <?php echo $telegram_enabled_val ? 'checked' : ''; ?> style="opacity: 0; width: 0; height: 0;" onchange="this.nextElementSibling.style.background = this.checked ? 'var(--button-primary, #f59e0b)' : '#475569'; this.nextElementSibling.querySelector('span').style.transform = this.checked ? 'translateX(20px)' : 'translateX(0)';">
+            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: <?php echo $telegram_enabled_val ? 'var(--button-primary, #f59e0b)' : '#475569'; ?>; transition: .3s; border-radius: 24px; display: block;">
+              <span style="position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; display: block; transform: <?php echo $telegram_enabled_val ? 'translateX(20px)' : 'translateX(0)'; ?>;"></span>
+            </span>
+          </label>
+        </div>
+
+        <!-- Bot Token -->
+        <div class="field" style="margin-bottom: 16px;">
+          <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">
+            Telegram Bot Token
+            <span style="color: #ef4444;">*</span>
+          </label>
+          <div style="position: relative;">
+            <input type="password" id="telegram_bot_token" name="telegram_bot_token" value="<?php echo htmlspecialchars($telegram_bot_token_val); ?>" placeholder="e.g. 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" style="width: 100%; padding: 10px 40px 10px 12px; font-family: monospace; font-size: 13px;">
+            <button type="button" onclick="const f = document.getElementById('telegram_bot_token'); f.type = f.type === 'password' ? 'text' : 'password';" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px;">
+              👁️
+            </button>
+          </div>
+          <span class="muted" style="font-size: 12px; display: block; margin-top: 4px;">Issued by <b>@BotFather</b> when you create your telegram bot.</span>
+        </div>
+
+        <!-- Chat ID -->
+        <div class="field" style="margin-bottom: 20px;">
+          <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">
+            Target Chat ID / Channel ID
+            <span style="color: #ef4444;">*</span>
+          </label>
+          <input type="text" name="telegram_chat_id" value="<?php echo htmlspecialchars($telegram_chat_id_val); ?>" placeholder="e.g. 987654321 or -1001234567890 (for Groups)" style="width: 100%; padding: 10px 12px; font-family: monospace; font-size: 13px;">
+          <span class="muted" style="font-size: 12px; display: block; margin-top: 4px;">Your private user chat ID, or a group ID (starts with <code>-</code> or <code>-100</code>).</span>
+        </div>
+
+        <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-color);">
+          <h3 style="font-size: 14px; margin: 0 0 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">
+            Notification Trigger Filters
+          </h3>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" name="telegram_notify_inquiries" value="1" <?php echo $telegram_notify_inquiries_val ? 'checked' : ''; ?> style="margin-top: 3px;">
+              <div>
+                <strong>Public Website Inquiries</strong>
+                <span class="muted" style="display: block; font-size: 12px;">Alert when a visitor submits the "Contact Secretariat" form on the public site.</span>
+              </div>
+            </label>
+
+            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" name="telegram_notify_registrations" value="1" <?php echo $telegram_notify_registrations_val ? 'checked' : ''; ?> style="margin-top: 3px;">
+              <div>
+                <strong>New Member Signups / Registrations</strong>
+                <span class="muted" style="display: block; font-size: 12px;">Alert when an architect signs up and is awaiting membership approval.</span>
+              </div>
+            </label>
+
+            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" name="telegram_notify_payments" value="1" <?php echo $telegram_notify_payments_val ? 'checked' : ''; ?> style="margin-top: 3px;">
+              <div>
+                <strong>Payment Proof Submissions</strong>
+                <span class="muted" style="display: block; font-size: 12px;">Alert when a member uploads bank/GCash slip for chapter dues verification.</span>
+              </div>
+            </label>
+
+            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" name="telegram_notify_directory" value="1" <?php echo $telegram_notify_directory_val ? 'checked' : ''; ?> style="margin-top: 3px;">
+              <div>
+                <strong>Directory Listing Applications</strong>
+                <span class="muted" style="display: block; font-size: 12px;">Alert when a member applies to unlock their public architect practice profile.</span>
+              </div>
+            </label>
+
+            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" name="telegram_notify_attendance" value="1" <?php echo $telegram_notify_attendance_val ? 'checked' : ''; ?> style="margin-top: 3px;">
+              <div>
+                <strong>Real-Time Attendance Check-Ins</strong>
+                <span class="muted" style="display: block; font-size: 12px;">Alert on every attendee check-in during GMMs and chapter events (Optional).</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px;">
+          <button type="submit" class="btn" style="display: inline-flex; align-items: center; gap: 8px;">
+            <?php echo icon('check', '', 16); ?> <span>Save Notification Settings</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- RIGHT COLUMN: SETUP GUIDE & CRON AUTOMATION -->
+    <div>
+      <div class="card" style="margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center;">
+            <?php echo icon('info', '', 18); ?>
+          </div>
+          <h2 style="font-size: 16px; margin: 0; font-weight: 700;">How to Setup in 2 Minutes</h2>
+        </div>
+
+        <div style="font-size: 13px; line-height: 1.6; color: var(--text-secondary);">
+          <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 3px;">Step 1: Create Your Bot</div>
+            Open Telegram, search for <a href="https://t.me/BotFather" target="_blank" style="color: #38bdf8; text-decoration: underline;">@BotFather</a>, and send <code>/newbot</code>. Follow the prompts to name it (e.g. <i>UAP Quezon Alerts</i>) and copy the API token provided.
+          </div>
+
+          <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 3px;">Step 2: Get Your Chat ID</div>
+            <b>Option A (Private Alerts):</b> Search for <a href="https://t.me/userinfobot" target="_blank" style="color: #38bdf8; text-decoration: underline;">@userinfobot</a> on Telegram and click <i>Start</i> to see your numerical Id (e.g. <code>123456789</code>).<br>
+            <b>Option B (Admin Group Alerts):</b> Create a Telegram group for Chapter Officers, add your bot as an admin, and add <a href="https://t.me/RawDataBot" target="_blank" style="color: #38bdf8; text-decoration: underline;">@RawDataBot</a> to get the group's Chat ID (e.g. <code>-1002345678901</code>).
+          </div>
+
+          <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 3px;">Step 3: Start the Bot</div>
+            Open your bot's chat and press <b>Start</b> (Telegram requires you to click start once so the bot has permission to message you).
+          </div>
+
+          <div>
+            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 3px;">Step 4: Save &amp; Test</div>
+            Paste the Token and Chat ID on the left, enable the switch, click <b>Save</b>, and then click <b>Send Test Alert Now</b> above!
+          </div>
+        </div>
+      </div>
+
+      <!-- Standalone Script / Cron Automation Guide -->
+      <div class="card" style="margin: 0;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center;">
+            <?php echo icon('clock', '', 18); ?>
+          </div>
+          <h2 style="font-size: 16px; margin: 0; font-weight: 700;">Scheduled Cron / CLI Commands</h2>
+        </div>
+
+        <p class="muted" style="font-size: 12px; margin-bottom: 12px;">You can run periodic digests or dispatch broadcasts via terminal command line or scheduled cron jobs:</p>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;">
+            <span class="muted" style="font-size: 11px; display: block; font-weight: 600;">Daily Pending Summary Digest:</span>
+            <code style="font-size: 12px; color: #f59e0b; word-break: break-all;">php scripts/social_notify.php --summary</code>
+          </div>
+
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;">
+            <span class="muted" style="font-size: 11px; display: block; font-weight: 600;">Check Configuration Status:</span>
+            <code style="font-size: 12px; color: #f59e0b; word-break: break-all;">php scripts/social_notify.php --status</code>
+          </div>
+
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;">
+            <span class="muted" style="font-size: 11px; display: block; font-weight: 600;">Send Custom Broadcast Alert:</span>
+            <code style="font-size: 12px; color: #f59e0b; word-break: break-all;">php scripts/social_notify.php --send "Reminder: Chapter Meeting at 7 PM"</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /notificationsTab -->
 
 <!-- EDIT NEWS MODAL -->
 <div id="editNewsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:99999; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(6px);">

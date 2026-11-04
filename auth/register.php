@@ -64,6 +64,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $hash
             ]);
 
+            // Social & Telegram notification
+            @require_once __DIR__ . '/../includes/social_notifier.php';
+            if (function_exists('notify_admin_event')) {
+                notify_admin_event($pdo, 'registration', [
+                    'name' => $name,
+                    'id_number' => $id_number,
+                    'email' => $email,
+                    'phone' => $phone
+                ]);
+            }
+
             header('Location: ' . BASE_URL . '/auth/login.php?registered=1');
             exit;
         }
