@@ -2014,7 +2014,7 @@ function switchSettingsTab(tabId, btn) {
             <span style="color: #ef4444;">*</span>
           </label>
           <input type="text" name="telegram_chat_id" value="<?php echo htmlspecialchars($telegram_chat_id_val); ?>" placeholder="e.g. 987654321 or -1001234567890 (for Groups)" style="width: 100%; padding: 10px 12px; font-family: monospace; font-size: 13px;">
-          <span class="muted" style="font-size: 12px; display: block; margin-top: 4px;">Your private user chat ID, or a group ID (starts with <code>-</code> or <code>-100</code>).</span>
+          <span class="muted" style="font-size: 12px; display: block; margin-top: 4px;">Supports your private User ID, a Group ID (e.g. <code>-100...</code>), public Channel handle (e.g. <code>@uap_channel</code>), or multiple IDs separated by commas.</span>
         </div>
 
         <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-color);">
@@ -2091,8 +2091,10 @@ function switchSettingsTab(tabId, btn) {
 
           <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
             <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 3px;">Step 2: Get Your Chat ID</div>
-            <b>Option A (Private Alerts):</b> Search for <a href="https://t.me/userinfobot" target="_blank" style="color: #38bdf8; text-decoration: underline;">@userinfobot</a> on Telegram and click <i>Start</i> to see your numerical Id (e.g. <code>123456789</code>).<br>
-            <b>Option B (Admin Group Alerts):</b> Create a Telegram group for Chapter Officers, add your bot as an admin, and add <a href="https://t.me/RawDataBot" target="_blank" style="color: #38bdf8; text-decoration: underline;">@RawDataBot</a> to get the group's Chat ID (e.g. <code>-1002345678901</code>).
+            <b>Option A (Private Alerts):</b> Search for <a href="https://t.me/userinfobot" target="_blank" style="color: #38bdf8; text-decoration: underline;">@userinfobot</a> on Telegram and click <i>Start</i> to see your numerical Id (e.g. <code>9262262702</code>).<br>
+            <b>Option B (Group Alerts for All Officers):</b> Create a Telegram group with chapter officers, add your bot as an admin, and add <a href="https://t.me/RawDataBot" target="_blank" style="color: #38bdf8; text-decoration: underline;">@RawDataBot</a> to get the group ID (e.g. <code>-1002345678901</code>).<br>
+            <b>Option C (Public Broadcast Channel):</b> Create a Telegram Channel, add your bot as Admin with post permissions, and use the channel handle (e.g. <code>@uap_quezon_alerts</code>).<br>
+            <i>Tip: You can enter multiple IDs separated by commas to alert multiple people &amp; groups simultaneously!</i>
           </div>
 
           <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">

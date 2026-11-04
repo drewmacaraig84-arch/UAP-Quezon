@@ -25,64 +25,85 @@ if (!function_exists('get_telegram_config')) {
 if (!function_exists('send_telegram_message')) {
     function send_telegram_message(string $botToken, string $chatId, string $htmlMessage): array {
         $botToken = trim($botToken);
-        $chatId = trim($chatId);
+        // Supports single ID, channel handle (@channel), or multiple comma-separated IDs
+        $chatIds = array_filter(array_map('trim', preg_split('/[,;]+/', $chatId)));
 
-        if (empty($botToken) || empty($chatId)) {
+        if (empty($botToken) || empty($chatIds)) {
             return ['success' => false, 'error' => 'Telegram Bot Token or Chat ID is missing.'];
         }
 
-        $url = "https://api.telegram.org/bot" . urlencode($botToken) . "/sendMessage";
-        $payload = [
-            'chat_id' => $chatId,
-            'text' => $htmlMessage,
-            'parse_mode' => 'HTML',
-            'disable_web_page_preview' => true
-        ];
+        $sentCount = 0;
+        $lastData = null;
+        $errors = [];
 
-        // 1. Try cURL if available
-        if (function_exists('curl_init')) {
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $curlError = curl_error($ch);
-            curl_close($ch);
+        foreach ($chatIds as $targetId) {
+            if ($targetId === '') continue;
 
-            if ($response !== false) {
-                $json = json_decode($response, true);
-                if ($httpCode >= 200 && $httpCode < 300 && !empty($json['ok'])) {
-                    return ['success' => true, 'data' => $json];
+            $url = "https://api.telegram.org/bot" . urlencode($botToken) . "/sendMessage";
+            $payload = [
+                'chat_id' => $targetId,
+                'text' => $htmlMessage,
+                'parse_mode' => 'HTML',
+                'disable_web_page_preview' => true
+            ];
+
+            $sent = false;
+
+            // 1. Try cURL
+            if (function_exists('curl_init')) {
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($response !== false) {
+                    $json = json_decode($response, true);
+                    if ($httpCode >= 200 && $httpCode < 300 && !empty($json['ok'])) {
+                        $sent = true;
+                        $sentCount++;
+                        $lastData = $json;
+                    } else {
+                        $errors[] = "Chat $targetId: " . ($json['description'] ?? "HTTP $httpCode");
+                    }
                 }
-                $errMsg = $json['description'] ?? ('Telegram API returned HTTP ' . $httpCode);
-                return ['success' => false, 'error' => $errMsg];
+            }
+
+            // 2. Fallback to stream context
+            if (!$sent) {
+                $options = [
+                    'http' => [
+                        'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                        'method'  => 'POST',
+                        'content' => http_build_query($payload),
+                        'timeout' => 6
+                    ]
+                ];
+                $context  = stream_context_create($options);
+                $response = @file_get_contents($url, false, $context);
+                if ($response !== false) {
+                    $json = json_decode($response, true);
+                    if (!empty($json['ok'])) {
+                        $sent = true;
+                        $sentCount++;
+                        $lastData = $json;
+                    } else {
+                        $errors[] = "Chat $targetId: " . ($json['description'] ?? 'API error');
+                    }
+                }
             }
         }
 
-        // 2. Fallback to stream context file_get_contents
-        $options = [
-            'http' => [
-                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-                'method'  => 'POST',
-                'content' => http_build_query($payload),
-                'timeout' => 6
-            ]
-        ];
-        $context  = stream_context_create($options);
-        $response = @file_get_contents($url, false, $context);
-        if ($response !== false) {
-            $json = json_decode($response, true);
-            if (!empty($json['ok'])) {
-                return ['success' => true, 'data' => $json];
-            }
-            return ['success' => false, 'error' => $json['description'] ?? 'Telegram API error'];
+        if ($sentCount > 0) {
+            return ['success' => true, 'sent_count' => $sentCount, 'data' => $lastData, 'errors' => $errors];
         }
 
-        return ['success' => false, 'error' => 'Unable to connect to Telegram API servers. Check host network connectivity.'];
+        return ['success' => false, 'error' => implode(' | ', $errors) ?: 'Unable to dispatch Telegram message.'];
     }
 }
 
