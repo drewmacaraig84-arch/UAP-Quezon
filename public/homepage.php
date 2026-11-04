@@ -112,6 +112,63 @@ try {
     $milestones = $pdo->query("SELECT * FROM chapter_milestones WHERE deleted_at IS NULL ORDER BY display_order ASC")->fetchAll();
 } catch (Exception $e) {}
 
+// Fetch Birthday Celebrants
+$birthdayCelebrants = [];
+try {
+    // 1. Priority: Celebrants today
+    $todayStmt = $pdo->query("
+        SELECT u.id, u.name, u.birth_date, u.profile_photo, wm.photo_path as wm_photo
+        FROM users u
+        LEFT JOIN website_members wm ON wm.user_id = u.id AND wm.deleted_at IS NULL
+        WHERE u.status = 'approved' AND u.deleted_at IS NULL AND u.birth_date IS NOT NULL
+          AND MONTH(u.birth_date) = MONTH(CURRENT_DATE()) AND DAY(u.birth_date) = DAY(CURRENT_DATE())
+        LIMIT 2
+    ");
+    $todayRows = $todayStmt->fetchAll();
+
+    if (!empty($todayRows)) {
+        foreach ($todayRows as $row) {
+            $row['badge'] = 'Celebrating Today • ' . date('F j');
+            $birthdayCelebrants[] = $row;
+        }
+    } else {
+        // 2. Priority: Celebrants this month
+        $monthStmt = $pdo->query("
+            SELECT u.id, u.name, u.birth_date, u.profile_photo, wm.photo_path as wm_photo
+            FROM users u
+            LEFT JOIN website_members wm ON wm.user_id = u.id AND wm.deleted_at IS NULL
+            WHERE u.status = 'approved' AND u.deleted_at IS NULL AND u.birth_date IS NOT NULL
+              AND MONTH(u.birth_date) = MONTH(CURRENT_DATE())
+            ORDER BY DAY(u.birth_date) ASC
+            LIMIT 2
+        ");
+        $monthRows = $monthStmt->fetchAll();
+        if (!empty($monthRows)) {
+            foreach ($monthRows as $row) {
+                $row['badge'] = date('F j', strtotime($row['birth_date']));
+                $birthdayCelebrants[] = $row;
+            }
+        }
+    }
+
+    foreach ($birthdayCelebrants as &$b) {
+        $rawPhoto = !empty($b['profile_photo']) ? $b['profile_photo'] : (!empty($b['wm_photo']) ? $b['wm_photo'] : '');
+        $b['avatar_url'] = !empty($rawPhoto) ? media_url($rawPhoto) : '';
+        
+        $parts = explode(' ', trim(preg_replace('/^(Ar\.|Arch\.)\s+/i', '', $b['name'])));
+        $first = mb_substr($parts[0] ?? 'A', 0, 1);
+        $last = mb_substr(end($parts) ?: 'U', 0, 1);
+        $b['initials'] = strtoupper($first . $last);
+
+        $cleanName = preg_replace('/,\s*uap$/i', '', $b['name']);
+        if (!preg_match('/^Ar\./i', $cleanName)) {
+            $cleanName = 'Ar. ' . $cleanName;
+        }
+        $b['display_name'] = $cleanName . ', UAP';
+    }
+    unset($b);
+} catch (Throwable $e) {}
+
 $logoSrc = BASE_URL . '/public/logo.jpg';
 ?>
 <!DOCTYPE html>
@@ -750,6 +807,155 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
         }
 
         /* SIDEBAR SPONSORS & CONTACT */
+        .sidebar-birthday-card {
+            background: linear-gradient(145deg, rgba(25, 37, 66, 0.75) 0%, rgba(13, 20, 36, 0.92) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            padding: 1.6rem 1.4rem;
+        }
+
+        .sidebar-birthday-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 15%;
+            right: 15%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #f59e0b, #10b981, transparent);
+        }
+
+        .birthday-card-header {
+            margin-bottom: 1.1rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .birthday-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            color: #fbbf24;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .birthday-item-wrap {
+            margin-bottom: 1.2rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .birthday-item-wrap:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .birthday-avatar-wrap {
+            position: relative;
+            width: 82px;
+            height: 82px;
+            margin: 0 auto 12px;
+        }
+
+        .birthday-avatar-img {
+            width: 82px;
+            height: 82px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2.5px solid #f59e0b;
+            box-shadow: 0 0 16px rgba(245, 158, 11, 0.35), 0 4px 12px rgba(0, 0, 0, 0.5);
+            display: block;
+            background: #0f172a;
+        }
+
+        .birthday-avatar-placeholder {
+            width: 82px;
+            height: 82px;
+            border-radius: 50%;
+            border: 2.5px solid #f59e0b;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(16, 185, 129, 0.25) 100%);
+            box-shadow: 0 0 16px rgba(245, 158, 11, 0.35), 0 4px 12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fbbf24;
+            font-size: 1.5rem;
+            font-weight: 800;
+            font-family: var(--font-heading);
+        }
+
+        .birthday-sparkle-badge {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #1e293b;
+            border: 1.5px solid #f59e0b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .birthday-name {
+            font-size: 1rem;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.35;
+            margin: 0 0 8px;
+        }
+
+        .birthday-message {
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.55;
+            margin: 0 0 10px;
+            font-style: italic;
+            padding: 0 4px;
+        }
+
+        .birthday-footer-line {
+            padding-top: 8px;
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            align-items: center;
+        }
+
+        .birthday-footer-line strong {
+            color: #94a3b8;
+            font-size: 0.76rem;
+            letter-spacing: 0.02em;
+        }
+
+        .birthday-date-pill {
+            margin-top: 6px;
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            color: #34d399;
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-size: 0.70rem;
+            font-weight: 700;
+        }
+
         .sidebar-box {
             background: var(--quezon-card);
             border: 1px solid var(--quezon-border);
@@ -1687,6 +1893,76 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                                     <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- CHAPTER BIRTHDAY GREETINGS (Placed between Partners and Contact) -->
+                <div class="sidebar-box sidebar-birthday-card" id="birthday-greetings">
+                    <div class="birthday-card-header">
+                        <span class="birthday-tag">
+                            <?php echo icon('award', '', 13) ?: '🎂'; ?> Chapter Birthday Greetings
+                        </span>
+                    </div>
+
+                    <?php if (!empty($birthdayCelebrants)): ?>
+                        <?php foreach ($birthdayCelebrants as $bday): ?>
+                            <div class="birthday-item-wrap">
+                                <!-- Circular Profile Photo -->
+                                <div class="birthday-avatar-wrap">
+                                    <?php if (!empty($bday['avatar_url'])): ?>
+                                        <img src="<?php echo htmlspecialchars($bday['avatar_url']); ?>" 
+                                             alt="<?php echo htmlspecialchars($bday['display_name']); ?>" 
+                                             class="birthday-avatar-img">
+                                    <?php else: ?>
+                                        <div class="birthday-avatar-placeholder">
+                                            <span><?php echo htmlspecialchars($bday['initials']); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="birthday-sparkle-badge" title="Birthday Celebrant">🎂</div>
+                                </div>
+
+                                <!-- Polite Greetings & Name -->
+                                <div class="birthday-text-wrap">
+                                    <h4 class="birthday-name">
+                                        Happy Birthday,<br>
+                                        <span class="highlight-gold"><?php echo htmlspecialchars($bday['display_name']); ?></span>
+                                    </h4>
+                                    <p class="birthday-message">
+                                        &ldquo;Wishing you good health, continued joy, and abundant blessings in your life and architectural practice on your special day.&rdquo;
+                                    </p>
+                                    <div class="birthday-footer-line">
+                                        <span>With warmest felicitations,</span>
+                                        <strong>UAP Quezon Province Chapter Family</strong>
+                                        <?php if (!empty($bday['badge'])): ?>
+                                            <div class="birthday-date-pill"><?php echo htmlspecialchars($bday['badge']); ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <!-- Monthly Chapter Felicitation Fallback -->
+                        <div class="birthday-item-wrap">
+                            <div class="birthday-avatar-wrap">
+                                <div class="birthday-avatar-placeholder">
+                                    <span>🎂</span>
+                                </div>
+                            </div>
+                            <div class="birthday-text-wrap">
+                                <h4 class="birthday-name">
+                                    To All Our<br>
+                                    <span class="highlight-gold"><?php echo date('F'); ?> Birthday Celebrants</span>
+                                </h4>
+                                <p class="birthday-message">
+                                    &ldquo;Wishing all esteemed chapter architects celebrating their birthdays this month good health, prosperous endeavors, and enduring fellowship.&rdquo;
+                                </p>
+                                <div class="birthday-footer-line">
+                                    <span>Warmest greetings,</span>
+                                    <strong>UAP Quezon Province Chapter Family</strong>
+                                    <div class="birthday-date-pill"><?php echo date('F Y'); ?> Felicitations</div>
+                                </div>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </div>
