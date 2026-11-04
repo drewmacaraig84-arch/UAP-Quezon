@@ -108,5 +108,119 @@ document.addEventListener('click', function(e) {
         }
     }
 });
+
+// ==============================================================================
+// PUBLIC ANIMATIONS & SCROLL REVEAL ENGINE (Modeled after uap_mc)
+// ==============================================================================
+(function() {
+    // 1. Top Loading Progress Bar
+    var bar = document.getElementById('pageLoadingBar');
+    if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'pageLoadingBar';
+        document.body.prepend(bar);
+    }
+    bar.style.width = '35%';
+    setTimeout(function() { if (bar) bar.style.width = '75%'; }, 80);
+    window.addEventListener('load', function() {
+        if (bar) {
+            bar.style.width = '100%';
+            setTimeout(function() {
+                bar.classList.add('done');
+                setTimeout(function() { if (bar) bar.remove(); }, 400);
+            }, 200);
+        }
+    });
+
+    // 2. Floating Back To Top Button
+    var btt = document.getElementById('backToTopBtn');
+    if (!btt) {
+        btt = document.createElement('button');
+        btt.id = 'backToTopBtn';
+        btt.setAttribute('aria-label', 'Back to top');
+        btt.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>';
+        document.body.appendChild(btt);
+        btt.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // 3. Scroll Listener for Sticky Header & Back-To-Top Button
+    var header = document.querySelector('header');
+    function handleScroll() {
+        var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        if (header) {
+            if (scrollY > 30) header.classList.add('scrolled');
+            else header.classList.remove('scrolled');
+        }
+        if (btt) {
+            if (scrollY > 350) btt.classList.add('visible');
+            else btt.classList.remove('visible');
+        }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    // 4. Scroll Reveal via IntersectionObserver
+    var SELECTORS = [
+        '.reveal',
+        '.reveal-pop',
+        '.reveal-scale',
+        '.reveal-left',
+        '.reveal-right',
+        '.reveal-stagger',
+        '[data-reveal]',
+        '.section-box',
+        '.sidebar-box',
+        '.arch-profile-card',
+        '.officer-showcase-card',
+        '.news-article-card',
+        '.partner-showcase-card',
+        '.milestone-card-full',
+        '.birthday-greeting-card'
+    ].join(',');
+
+    if ('IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-revealed');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            root: null,
+            rootMargin: '0px 0px -40px 0px',
+            threshold: 0.08
+        });
+
+        function observeElements() {
+            var elements = document.querySelectorAll(SELECTORS);
+            elements.forEach(function(el) {
+                if (!el.classList.contains('is-revealed')) {
+                    observer.observe(el);
+                }
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', observeElements);
+        } else {
+            observeElements();
+        }
+
+        // Catch dynamically rendered items
+        var mutObs = new MutationObserver(function() {
+            observeElements();
+        });
+        mutObs.observe(document.body, { childList: true, subtree: true });
+    } else {
+        // Fallback for older browsers
+        document.querySelectorAll(SELECTORS).forEach(function(el) {
+            el.classList.add('is-revealed');
+        });
+    }
+})();
+
 </script>
 

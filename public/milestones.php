@@ -138,7 +138,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             <h2><?php echo icon('award', '', 22); ?> Historical <span>Timeline &bull; Chronology</span></h2>
         </div>
 
-        <div class="milestone-timeline-full">
+        <div class="milestone-timeline-full reveal-stagger">
             <?php foreach ($milestones as $idx => $ms): ?>
                 <div class="milestone-card-full">
                     <div class="milestone-year-badge">

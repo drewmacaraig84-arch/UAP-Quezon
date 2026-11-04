@@ -153,7 +153,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 <p style="color: var(--text-muted);">No announcements at this time. Check back soon for upcoming CPD events.</p>
             </div>
         <?php else: ?>
-            <div class="news-full-grid">
+            <div class="news-full-grid reveal-stagger">
                 <?php foreach ($newsItems as $n): ?>
                     <article class="news-article-card">
                         <span class="news-badge">

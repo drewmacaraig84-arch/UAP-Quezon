@@ -129,7 +129,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
     <div class="page-container" style="max-width: 1200px;">
         <div class="contact-layout">
             <!-- LEFT: INFO CARDS -->
-            <div class="info-card-wrap">
+            <div class="info-card-wrap reveal-left">
                 <h2 style="color: #ffffff; font-size: 1.4rem; font-family: var(--font-heading); margin-bottom: 8px;">
                     Chapter Secretariat
                 </h2>

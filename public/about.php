@@ -446,7 +446,7 @@ try {
                 </div>
             </div>
 
-            <div class="officers-cards-grid">
+            <div class="officers-cards-grid reveal-stagger">
                 <?php foreach ($chapterOfficers as $off): 
                     $offFullName = trim($off['title_prefix'] . ' ' . $off['name'] . ($off['title_suffix'] ? ', ' . $off['title_suffix'] : ''));
                     $offPhoto = !empty($off['photo_path']) ? media_url($off['photo_path']) : (!empty($off['user_avatar']) ? media_url($off['user_avatar']) : null);

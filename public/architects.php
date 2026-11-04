@@ -279,7 +279,7 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
 
     <div class="page-container" style="max-width: 1240px;">
         <!-- SEARCH & FILTER TOOLBAR -->
-        <div class="search-container">
+        <div class="search-container reveal-pop">
             <form method="GET" class="search-bar-wrap">
                 <input
                     type="text"
@@ -328,7 +328,7 @@ $specialties = ['All', 'Residential', 'Commercial', 'Heritage', 'Sustainable', '
                 </a>
             </div>
         <?php else: ?>
-            <div class="architect-card-grid">
+            <div class="architect-card-grid reveal-stagger">
                 <?php foreach ($members as $m): ?>
                     <?php
                         $initials = '';

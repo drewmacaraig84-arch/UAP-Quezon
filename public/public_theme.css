@@ -1442,3 +1442,353 @@
             font-size: 0.70rem;
             font-weight: 700;
         }
+
+
+
+/* ==============================================================================
+   UAP QUEZON ANIMATION & TRANSITION SYSTEM (Modeled after uap_mc)
+   ============================================================================== */
+
+:root {
+    /* Animation Easing Tokens */
+    --ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-pop: cubic-bezier(0.34, 1.35, 0.64, 1);
+    --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+    --t-fast: 0.18s;
+    --t-med: 0.35s;
+    --t-slow: 0.65s;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* --- Top Loading Progress Bar --- */
+#pageLoadingBar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background: linear-gradient(90deg, #e58a13 0%, #f59e0b 50%, #22c55e 100%);
+    z-index: 999999;
+    box-shadow: 0 0 10px rgba(229, 138, 19, 0.8), 0 0 5px rgba(34, 197, 94, 0.8);
+    transition: width 0.35s ease, opacity 0.4s ease;
+    pointer-events: none;
+}
+
+#pageLoadingBar.done {
+    width: 100% !important;
+    opacity: 0;
+}
+
+/* --- Floating Back To Top Button --- */
+#backToTopBtn {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(19, 29, 51, 0.9);
+    border: 1.5px solid rgba(229, 138, 19, 0.4);
+    color: var(--quezon-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(20px) scale(0.85);
+    pointer-events: none;
+    transition: opacity 0.35s var(--ease-reveal), transform 0.35s var(--ease-reveal), background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+}
+
+#backToTopBtn.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: all;
+}
+
+#backToTopBtn:hover {
+    background: rgba(229, 138, 19, 0.2);
+    border-color: var(--quezon-gold);
+    color: #ffffff;
+    transform: translateY(-3px) scale(1.06);
+    box-shadow: 0 8px 24px rgba(229, 138, 19, 0.35);
+}
+
+#backToTopBtn:active {
+    transform: translateY(0) scale(0.96);
+}
+
+/* --- Header Scrolled Sticky State --- */
+header {
+    transition: background 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+header.scrolled {
+    background: rgba(8, 13, 24, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6) !important;
+    border-bottom: 2px solid;
+    border-image: linear-gradient(90deg, #e58a13 0%, #22c55e 100%) 1;
+}
+
+/* ======================== SCROLL POP-UP REVEAL CLASSES ======================== */
+
+/* Base Pop Up on Scroll */
+.reveal, [data-reveal] {
+    opacity: 0;
+    transform: translateY(32px) scale(0.97);
+    filter: blur(3px);
+    transition:
+        opacity 0.7s var(--ease-reveal),
+        transform 0.7s var(--ease-reveal),
+        filter 0.6s var(--ease-reveal);
+    will-change: opacity, transform, filter;
+}
+
+.reveal.is-revealed, [data-reveal].is-revealed {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+}
+
+/* Extra Bouncy Pop Up */
+.reveal-pop {
+    opacity: 0;
+    transform: translateY(42px) scale(0.92);
+    filter: blur(4px);
+    transition:
+        opacity 0.75s var(--ease-pop),
+        transform 0.75s var(--ease-pop),
+        filter 0.6s var(--ease-reveal);
+    will-change: opacity, transform, filter;
+}
+
+.reveal-pop.is-revealed {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+}
+
+/* Scale & Pop In */
+.reveal-scale {
+    opacity: 0;
+    transform: scale(0.88);
+    filter: blur(5px);
+    transition:
+        opacity 0.7s var(--ease-pop),
+        transform 0.7s var(--ease-pop),
+        filter 0.6s ease;
+    will-change: opacity, transform, filter;
+}
+
+.reveal-scale.is-revealed {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+}
+
+/* Slide & Pop from Left */
+.reveal-left {
+    opacity: 0;
+    transform: translateX(-38px) scale(0.96);
+    filter: blur(4px);
+    transition:
+        opacity 0.75s var(--ease-reveal),
+        transform 0.75s var(--ease-reveal),
+        filter 0.65s ease;
+    will-change: opacity, transform, filter;
+}
+
+.reveal-left.is-revealed {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+}
+
+/* Slide & Pop from Right */
+.reveal-right {
+    opacity: 0;
+    transform: translateX(38px) scale(0.96);
+    filter: blur(4px);
+    transition:
+        opacity 0.75s var(--ease-reveal),
+        transform 0.75s var(--ease-reveal),
+        filter 0.65s ease;
+    will-change: opacity, transform, filter;
+}
+
+.reveal-right.is-revealed {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+}
+
+/* Stagger Children within Grids & Lists */
+.reveal-stagger > * {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+    filter: blur(4px);
+    transition:
+        opacity 0.65s var(--ease-pop),
+        transform 0.65s var(--ease-pop),
+        filter 0.65s ease;
+    will-change: opacity, transform, filter;
+}
+
+.reveal-stagger.is-revealed > * {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+}
+
+.reveal-stagger.is-revealed > *:nth-child(1) { transition-delay: 0.05s; }
+.reveal-stagger.is-revealed > *:nth-child(2) { transition-delay: 0.12s; }
+.reveal-stagger.is-revealed > *:nth-child(3) { transition-delay: 0.19s; }
+.reveal-stagger.is-revealed > *:nth-child(4) { transition-delay: 0.26s; }
+.reveal-stagger.is-revealed > *:nth-child(5) { transition-delay: 0.33s; }
+.reveal-stagger.is-revealed > *:nth-child(6) { transition-delay: 0.40s; }
+.reveal-stagger.is-revealed > *:nth-child(7) { transition-delay: 0.47s; }
+.reveal-stagger.is-revealed > *:nth-child(8) { transition-delay: 0.54s; }
+.reveal-stagger.is-revealed > *:nth-child(9) { transition-delay: 0.61s; }
+.reveal-stagger.is-revealed > *:nth-child(10) { transition-delay: 0.68s; }
+.reveal-stagger.is-revealed > *:nth-child(11) { transition-delay: 0.75s; }
+.reveal-stagger.is-revealed > *:nth-child(12) { transition-delay: 0.82s; }
+
+/* Transition Delay Utilities */
+.delay-1 { transition-delay: 0.1s !important; }
+.delay-2 { transition-delay: 0.2s !important; }
+.delay-3 { transition-delay: 0.3s !important; }
+.delay-4 { transition-delay: 0.4s !important; }
+.delay-5 { transition-delay: 0.5s !important; }
+
+/* ======================== BOX & CARD ELEVATIONS ======================== */
+
+.arch-profile-card,
+.officer-showcase-card,
+.news-article-card,
+.partner-showcase-card,
+.milestone-card-full,
+.feature-box,
+.sidebar-box,
+.birthday-greeting-card {
+    transition: transform var(--t-med) var(--ease-reveal),
+                box-shadow var(--t-med) var(--ease-reveal),
+                border-color var(--t-med) var(--ease-reveal) !important;
+    will-change: transform, box-shadow;
+}
+
+.arch-profile-card:hover,
+.officer-showcase-card:hover,
+.news-article-card:hover,
+.partner-showcase-card:hover,
+.milestone-card-full:hover,
+.sidebar-box:hover,
+.birthday-greeting-card:hover {
+    transform: translateY(-6px) !important;
+    border-color: rgba(229, 138, 19, 0.45) !important;
+    box-shadow: 0 18px 40px -10px rgba(0, 0, 0, 0.75), 0 0 24px rgba(229, 138, 19, 0.18) !important;
+}
+
+/* Thumbnail Zoom Inside Overflow Containers */
+.arch-avatar,
+.officer-photo-box,
+.news-cover-wrap {
+    overflow: hidden;
+}
+
+.arch-avatar img,
+.officer-photo-box img,
+.news-cover-wrap img {
+    transition: transform 0.6s var(--ease-smooth);
+    will-change: transform;
+}
+
+.arch-profile-card:hover .arch-avatar img,
+.officer-showcase-card:hover .officer-photo-box img,
+.news-article-card:hover .news-cover-wrap img {
+    transform: scale(1.07);
+}
+
+/* ======================== BUTTONS & INTERACTIVE ELEMENTS ======================== */
+.btn-primary-quezon,
+.btn-outline-quezon {
+    transition: transform 0.2s var(--ease-reveal),
+                box-shadow 0.2s var(--ease-reveal),
+                background-color 0.2s ease,
+                border-color 0.2s ease !important;
+}
+
+.btn-primary-quezon:hover,
+.btn-outline-quezon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(229, 138, 19, 0.35);
+}
+
+.btn-primary-quezon:active,
+.btn-outline-quezon:active {
+    transform: translateY(0) scale(0.97);
+}
+
+.btn-primary-quezon svg,
+.btn-outline-quezon svg {
+    transition: transform 0.2s var(--ease-reveal);
+}
+
+.btn-primary-quezon:hover svg,
+.btn-outline-quezon:hover svg {
+    transform: translateX(4px);
+}
+
+/* Specialty Filter Chips hover transition */
+.spec-chip {
+    transition: transform 0.2s var(--ease-reveal), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+}
+
+.spec-chip:hover {
+    transform: translateY(-2px);
+}
+
+/* Birthday Badge Gentle Float */
+@keyframes bday-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-4px) rotate(3deg); }
+}
+
+.birthday-badge-float {
+    animation: bday-float 3s ease-in-out infinite;
+    display: inline-block;
+}
+
+/* Skeleton Shimmer Loading Class */
+.skeleton-shimmer {
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+}
+
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Accessibility: Respect Reduced Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .reveal, .reveal-pop, .reveal-scale, .reveal-left, .reveal-right, .reveal-stagger > * {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+    }
+    #pageLoadingBar { display: none !important; }
+}

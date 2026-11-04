@@ -1603,7 +1603,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
     <?php $activePage = 'home'; require __DIR__ . '/../includes/public_nav.php'; ?>
 
     <!-- HERO SECTION -->
-    <section class="hero">
+    <section class="hero reveal">
         <div class="hero-badge">
             <?php echo icon('landmark', '', 14); ?> <?php echo htmlspecialchars($heroBadge); ?>
         </div>
@@ -1713,7 +1713,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
             <!-- MAIN COLUMN -->
             <main>
                 <!-- ABOUT US SECTION -->
-                <section class="section-box" id="about">
+                <section class="section-box reveal-pop" id="about">
                     <div class="section-header">
                         <h2><?php echo icon('landmark', '', 20); ?> Built Through Time &amp; <span>About UAP Quezon</span></h2>
                         <a href="<?php echo BASE_URL; ?>/public/about.php" class="btn-outline-quezon" style="font-size: 0.78rem; padding: 6px 14px;">
@@ -1752,7 +1752,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 </section>
 
                 <!-- DIRECTORY SECTION -->
-                <section class="section-box" id="directory">
+                <section class="section-box reveal" id="directory">
                     <div class="section-header">
                         <h2><?php echo icon('members', '', 20); ?> Chapter <span>Architect Directory</span></h2>
                         <div style="display: flex; gap: 8px;">
@@ -1811,7 +1811,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 </section>
 
                 <!-- NEWS & EVENTS SECTION -->
-                <section class="section-box" id="news">
+                <section class="section-box reveal" id="news">
                     <div class="section-header">
                         <h2><?php echo icon('newspaper', '', 20); ?> News &amp; <span>Announcements</span></h2>
                         <a href="<?php echo BASE_URL; ?>/public/news.php" class="btn-outline-quezon" style="font-size: 0.78rem; padding: 6px 14px;">
@@ -1832,7 +1832,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 </section>
 
                 <!-- CHAPTER MILESTONES -->
-                <section class="section-box" id="milestones">
+                <section class="section-box reveal" id="milestones">
                     <div class="section-header">
                         <h2><?php echo icon('award', '', 20); ?> Chapter <span>Milestones</span></h2>
                         <a href="<?php echo BASE_URL; ?>/public/milestones.php" class="btn-outline-quezon" style="font-size: 0.78rem; padding: 6px 14px;">

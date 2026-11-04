@@ -352,7 +352,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 </a>
             </div>
         <?php else: ?>
-            <div class="partners-grid" id="partnersGrid">
+            <div class="partners-grid reveal-stagger" id="partnersGrid">
                 <?php foreach ($partners as $p): 
                     $isPlat = !empty($p['is_platinum']);
                     $tierKey = $isPlat ? 'platinum' : 'standard';
@@ -448,7 +448,7 @@ $logoSrc = BASE_URL . '/public/logo.jpg';
                 </p>
             </div>
 
-            <div class="benefits-grid">
+            <div class="benefits-grid reveal-stagger">
                 <div class="benefit-card">
                     <div class="benefit-icon"><?php echo icon('members', '', 22); ?></div>
                     <h4 style="color: #ffffff; font-size: 1.05rem; margin: 0 0 6px;">Direct Architect Access</h4>
