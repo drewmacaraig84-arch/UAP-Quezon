@@ -17,3 +17,4 @@ CREATE TABLE IF NOT EXISTS chapter_officers (
     INDEX idx_officers_fy_active (fiscal_year, is_active, display_order),
     INDEX idx_officers_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

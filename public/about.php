@@ -129,143 +129,198 @@ try {
             .history-stats-grid { grid-template-columns: 1fr; gap: 10px; }
         }
 
-        /* Chapter Officers Showcase Grid */
+                /* Chapter Officers Showcase Grid - Top Box Image / Bottom Box Text format */
         .officers-cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.4rem;
+            gap: 1.5rem;
             margin-top: 1.8rem;
         }
+
         .officer-showcase-card {
             background: var(--quezon-card-inner, #0f172a);
-            border: 1px solid var(--quezon-border, rgba(255,255,255,0.1));
-            border-radius: 16px;
-            padding: 1.8rem 1.2rem;
-            text-align: center;
+            border: 1px solid var(--quezon-border, rgba(255,255,255,0.12));
+            border-radius: 14px;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
             position: relative;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.35);
             transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
         }
+
         .officer-showcase-card:hover {
             transform: translateY(-4px);
             border-color: var(--quezon-border-gold, #e58a13);
-            box-shadow: 0 10px 28px rgba(229,138,19,0.18);
+            box-shadow: 0 12px 30px rgba(229,138,19,0.22);
         }
+
         .officer-president-card {
-            border-color: rgba(229,138,19,0.45);
-            background: linear-gradient(180deg, rgba(229,138,19,0.08) 0%, var(--quezon-card-inner, #0f172a) 100%);
-            box-shadow: 0 8px 24px rgba(229,138,19,0.2);
+            border-color: rgba(229,138,19,0.5);
+            background: linear-gradient(180deg, rgba(229,138,19,0.06) 0%, var(--quezon-card-inner, #0f172a) 100%);
+            box-shadow: 0 8px 24px rgba(229,138,19,0.25);
         }
-        .officer-photo-wrapper {
+
+        /* Top Box: Image */
+        .officer-img-box {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #090e17;
             position: relative;
-            width: 96px;
-            height: 96px;
-            margin-bottom: 1rem;
+            overflow: hidden;
+            border-bottom: 2px solid rgba(255,255,255,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .officer-photo {
+
+        .officer-president-card .officer-img-box {
+            border-bottom-color: var(--quezon-gold, #e58a13);
+        }
+
+        .officer-top-photo {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
             object-fit: cover;
-            border: 3px solid var(--quezon-gold, #e58a13);
-            box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-            background: #0b1120;
+            object-position: top center;
+            display: block;
+            transition: transform 0.3s ease;
         }
-        .officer-photo-fallback {
+
+        .officer-showcase-card:hover .officer-top-photo {
+            transform: scale(1.03);
+        }
+
+        .officer-top-fallback {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 3px solid var(--quezon-gold, #e58a13);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--quezon-gold, #e58a13);
-            box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-        }
-        .officer-lead-star {
-            position: absolute;
-            bottom: -2px;
-            right: -2px;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: var(--quezon-gold, #e58a13);
-            color: #111827;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #0f172a;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-        }
-        .officer-info-block {
-            width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            flex: 1;
+            justify-content: center;
+            background: radial-gradient(circle at 50% 40%, rgba(229,138,19,0.15) 0%, #090e17 80%);
+            padding: 1.5rem;
+            text-align: center;
         }
+
+        .officer-fallback-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(229,138,19,0.15);
+            border: 2px solid var(--quezon-gold, #e58a13);
+            color: var(--quezon-gold, #e58a13);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            margin-bottom: 8px;
+        }
+
+        .officer-floating-lead-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--quezon-gold, #e58a13);
+            color: #111827;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+
+        /* Bottom Box: Text Info */
+        .officer-text-box {
+            padding: 1.25rem 1.15rem 1.35rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .officer-name {
+            font-size: 1.08rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0 0 0.4rem 0;
+            line-height: 1.3;
+        }
+
         .officer-position-tag {
-            font-size: 0.76rem;
+            font-size: 0.74rem;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.06em;
             padding: 4px 10px;
-            border-radius: 999px;
-            background: rgba(34,197,94,0.12);
+            border-radius: 6px;
+            background: rgba(34,197,94,0.14);
             color: var(--quezon-green-light, #22c55e);
-            border: 1px solid rgba(34,197,94,0.3);
-            margin-bottom: 0.65rem;
-            line-height: 1.2;
+            border: 1px solid rgba(34,197,94,0.35);
+            margin-bottom: 0.55rem;
+            line-height: 1.25;
+            display: inline-block;
         }
+
         .officer-position-tag.tag-president {
-            background: rgba(229,138,19,0.18);
+            background: rgba(229,138,19,0.2);
             color: var(--quezon-gold, #f59e0b);
-            border-color: rgba(229,138,19,0.5);
+            border-color: rgba(229,138,19,0.55);
         }
-        .officer-name {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin: 0 0 0.35rem 0;
-            line-height: 1.35;
-        }
+
         .officer-committee-text {
             font-size: 0.82rem;
             color: var(--text-muted, #94a3b8);
             line-height: 1.4;
             margin-bottom: 0.75rem;
         }
+
         .officer-action-wrap {
             margin-top: auto;
-            padding-top: 0.75rem;
-            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: 0.65rem;
+            border-top: 1px dashed rgba(255,255,255,0.08);
             width: 100%;
         }
+
         .officer-profile-link {
             font-size: 0.8rem;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--quezon-gold, #e58a13);
             text-decoration: none;
             transition: color 0.2s ease, transform 0.2s ease;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
+
         .officer-profile-link:hover {
             color: #ffffff;
             transform: translateX(3px);
         }
+
         @media (max-width: 640px) {
             .officers-cards-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 1.1rem;
             }
-            .officer-showcase-card {
-                padding: 1.4rem 1rem;
+            .officer-text-box {
+                padding: 1.1rem 0.9rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .officers-cards-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -398,20 +453,30 @@ try {
                     $isPresident = (stripos($off['position'], 'President') !== false && stripos($off['position'], 'Vice') === false && stripos($off['position'], 'Past') === false);
                 ?>
                     <div class="officer-showcase-card <?php echo $isPresident ? 'officer-president-card' : ''; ?>">
-                        <div class="officer-photo-wrapper">
+                        <!-- TOP BOX: IMAGE -->
+                        <div class="officer-img-box">
                             <?php if ($offPhoto): ?>
-                                <img src="<?php echo htmlspecialchars($offPhoto); ?>" alt="<?php echo htmlspecialchars($offFullName); ?>" class="officer-photo" loading="lazy">
+                                <img src="<?php echo htmlspecialchars($offPhoto); ?>" alt="<?php echo htmlspecialchars($offFullName); ?>" class="officer-top-photo" loading="lazy">
                             <?php else: ?>
-                                <div class="officer-photo-fallback">
-                                    <span><?php echo strtoupper(substr($off['name'], 0, 1)); ?></span>
+                                <div class="officer-top-fallback">
+                                    <div class="officer-fallback-avatar">
+                                        <?php echo strtoupper(substr($off['name'], 0, 1)); ?>
+                                    </div>
+                                    <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">
+                                        UAP Quezon Officer
+                                    </span>
                                 </div>
                             <?php endif; ?>
+
                             <?php if ($isPresident): ?>
-                                <div class="officer-lead-star" title="Chapter President"><?php echo icon('award', '', 14); ?></div>
+                                <div class="officer-floating-lead-badge">
+                                    <?php echo icon('award', '', 12); ?> <span>President</span>
+                                </div>
                             <?php endif; ?>
                         </div>
 
-                        <div class="officer-info-block">
+                        <!-- BOTTOM BOX: TEXT DETAILS -->
+                        <div class="officer-text-box">
                             <span class="officer-position-tag <?php echo $isPresident ? 'tag-president' : ''; ?>">
                                 <?php echo htmlspecialchars($off['position']); ?>
                             </span>
@@ -419,7 +484,7 @@ try {
                             <h3 class="officer-name"><?php echo htmlspecialchars($offFullName); ?></h3>
 
                             <?php if (!empty($off['committee'])): ?>
-                                <span class="officer-committee-text"><?php echo htmlspecialchars($off['committee']); ?></span>
+                                <div class="officer-committee-text"><?php echo htmlspecialchars($off['committee']); ?></div>
                             <?php endif; ?>
 
                             <?php if (!empty($off['directory_id'])): ?>
