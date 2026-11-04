@@ -248,7 +248,22 @@ if (!function_exists('notify_admin_event')) {
                     break;
             }
 
-            return send_telegram_message($cfg['bot_token'], $cfg['chat_id'], $msg);
+            $res = send_telegram_message($cfg['bot_token'], $cfg['chat_id'], $msg);
+            if (empty($res['success'])) {
+                // If server-side dispatch failed (e.g. host blocks outbound cURL / InfinityFree DNS restriction),
+                // queue client-side fallback dispatch in session so the browser sends it!
+                if (session_status() === PHP_SESSION_ACTIVE) {
+                    if (!isset($_SESSION['pending_telegram_alerts']) || !is_array($_SESSION['pending_telegram_alerts'])) {
+                        $_SESSION['pending_telegram_alerts'] = [];
+                    }
+                    $_SESSION['pending_telegram_alerts'][] = [
+                        'token' => $cfg['bot_token'],
+                        'chat_id' => $cfg['chat_id'],
+                        'text' => $msg
+                    ];
+                }
+            }
+            return $res;
         } catch (Throwable $e) {
             return ['success' => false, 'error' => $e->getMessage()];
         }

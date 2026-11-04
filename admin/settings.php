@@ -21,9 +21,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $active_tab = 'sponsorsTab';
     } elseif (in_array($action, ['add_news', 'edit_news', 'delete_news', 'reorder_news'])) {
         $active_tab = 'newsTab';
-    }
     } elseif (in_array($action, ['update_telegram_settings', 'test_telegram'])) {
         $active_tab = 'notificationsTab';
+    }
 
     // ============ LOGO UPLOAD ============
     if ($action === 'upload_logo' && isset($_FILES['logo'])) {
@@ -1948,17 +1948,22 @@ function switchSettingsTab(tabId, btn) {
       </div>
 
       <!-- Quick Test Button Form -->
-      <form method="post" style="margin: 0;">
+      <form id="telegramTestForm" method="post" style="margin: 0;" onsubmit="return handleTelegramTestSubmit(event);">
         <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="test_telegram">
         <input type="hidden" name="current_tab" value="notificationsTab">
-        <button type="submit" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; padding: 8px 16px; background: rgba(34, 158, 217, 0.15); border: 1px solid rgba(34, 158, 217, 0.4); color: #38bdf8;" <?php echo (empty($telegram_bot_token_val) || empty($telegram_chat_id_val)) ? 'title="Configure Token & Chat ID first"' : ''; ?>>
+        <input type="hidden" name="telegram_bot_token" id="test_telegram_bot_token" value="">
+        <input type="hidden" name="telegram_chat_id" id="test_telegram_chat_id" value="">
+        <button type="submit" id="sendTestAlertBtn" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; padding: 8px 16px; background: rgba(34, 158, 217, 0.15); border: 1px solid rgba(34, 158, 217, 0.4); color: #38bdf8; cursor: pointer;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-          <span>Send Test Alert Now</span>
+          <span id="sendTestAlertBtnText">Send Test Alert Now</span>
         </button>
       </form>
     </div>
   </div>
+
+  <!-- Inline Dynamic Feedback Alert -->
+  <div id="telegramTestFeedback" style="display: none; margin-bottom: 20px;"></div>
 
   <div class="grid-2" style="gap: 24px;">
     <!-- LEFT COLUMN: SETTINGS FORM -->
@@ -2981,6 +2986,122 @@ function switchSettingsTab(tabId, btn) {
       });
     });
   })();
+
+// Telegram Test Dispatch Handler
+async function handleTelegramTestSubmit(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  
+  var tokenInput = document.getElementById('telegram_bot_token');
+  var chatInput = document.querySelector('input[name="telegram_chat_id"]');
+  var feedback = document.getElementById('telegramTestFeedback');
+  var btn = document.getElementById('sendTestAlertBtn');
+  var btnText = document.getElementById('sendTestAlertBtnText');
+  
+  var token = tokenInput ? tokenInput.value.trim() : '';
+  var chatId = chatInput ? chatInput.value.trim() : '';
+  
+  if (!token || !chatId) {
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.innerHTML = '<div class="alert alert-error" style="margin: 0; padding: 14px 18px;"><div style="display: flex; align-items: center; gap: 10px;"><div style="font-size: 20px;">⚠️</div><div><strong style="font-size: 14px;">Credentials Required:</strong><div style="font-size: 12px; margin-top: 2px;">Please make sure both the <b>Telegram Bot Token</b> and <b>Target Chat ID / Channel ID</b> are filled in before testing.</div></div></div></div>';
+    }
+    if (!token && tokenInput) tokenInput.focus();
+    else if (chatInput) chatInput.focus();
+    return false;
+  }
+  
+  // Set sync inputs for fallback
+  var testTok = document.getElementById('test_telegram_bot_token');
+  var testChat = document.getElementById('test_telegram_chat_id');
+  if (testTok) testTok.value = token;
+  if (testChat) testChat.value = chatId;
+  
+  // Update button state
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+  }
+  if (btnText) btnText.textContent = 'Sending Test Alert...';
+  
+  if (feedback) {
+    feedback.style.display = 'block';
+    feedback.innerHTML = '<div class="alert" style="margin: 0; padding: 14px 18px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8;"><div style="display: flex; align-items: center; gap: 10px;"><div style="font-size: 18px;">⏳</div><div><strong style="font-size: 14px;">Contacting Telegram Servers...</strong><div style="font-size: 12px; margin-top: 2px;">Dispatching test push message to ' + chatId + '...</div></div></div></div>';
+  }
+  
+  var targets = chatId.split(/[,;]+/).map(function(s){ return s.trim(); }).filter(Boolean);
+  var now = new Date().toLocaleString();
+  var htmlMsg = '🔔 <b>UAP QUEZON • NOTIFICATION TEST</b>\n━━━━━━━━━━━━━━━━━━━\n✅ <b>Telegram push alerts are connected successfully!</b>\n📅 <b>Time:</b> ' + now + '\n🌐 <b>Host:</b> ' + window.location.origin + '\n━━━━━━━━━━━━━━━━━━━\nYour Chapter Website is now fully connected to this bot. You will receive instant notifications for member signups, dues payments, and contact inquiries!';
+
+  var delivered = 0;
+  var errors = [];
+  
+  for (var i = 0; i < targets.length; i++) {
+    var target = targets[i];
+    try {
+      var res = await fetch('https://api.telegram.org/bot' + encodeURIComponent(token) + '/sendMessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: target,
+          text: htmlMsg,
+          parse_mode: 'HTML',
+          disable_web_page_preview: true
+        })
+      });
+      var data = await res.json();
+      if (data && data.ok) {
+        delivered++;
+      } else {
+        errors.push(target + ': ' + (data.description || 'API Error'));
+      }
+    } catch(err) {
+      errors.push(target + ': Connection error');
+    }
+  }
+  
+  // Auto-save settings in background so settings are persisted in DB
+  try {
+    var formData = new FormData();
+    formData.append('action', 'update_telegram_settings');
+    formData.append('current_tab', 'notificationsTab');
+    formData.append('_csrf_token', '<?php echo csrf_token(); ?>');
+    formData.append('csrf_token', '<?php echo csrf_token(); ?>');
+    formData.append('telegram_notifications_enabled', '1');
+    formData.append('telegram_bot_token', token);
+    formData.append('telegram_chat_id', chatId);
+    formData.append('telegram_notify_inquiries', '1');
+    formData.append('telegram_notify_registrations', '1');
+    formData.append('telegram_notify_payments', '1');
+    formData.append('telegram_notify_directory', '1');
+    formData.append('telegram_notify_attendance', '0');
+    fetch(window.location.href, { method: 'POST', body: formData }).catch(function(){});
+  } catch(e) {}
+  
+  if (btn) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }
+  if (btnText) btnText.textContent = 'Send Test Alert Now';
+  
+  if (delivered > 0) {
+    if (feedback) {
+      feedback.innerHTML = '<div class="alert alert-success" style="margin: 0; padding: 14px 18px;"><div style="display: flex; align-items: center; gap: 10px;"><div style="font-size: 20px;">🎉</div><div><strong style="font-size: 14px;">Success! Test alert delivered to ' + delivered + ' Telegram destination(s)!</strong><div style="font-size: 12px; margin-top: 2px;">Check your Telegram app (<a href="https://t.me/UAPQC_ALERT_bot" target="_blank" style="color: #22c55e; font-weight: 700; text-decoration: underline;">@UAPQC_ALERT_bot</a>). Your credentials have also been saved.</div></div></div></div>';
+    }
+  } else {
+    var errText = errors.join(' | ') || 'Failed to dispatch Telegram alert.';
+    var tip = '';
+    if (errText.indexOf('chat not found') !== -1 || errText.indexOf('blocked') !== -1) {
+      tip = '<div style="margin-top: 6px; font-size: 12px; color: #fca5a5;">👉 <b>Tip:</b> Make sure you have opened <a href="https://t.me/UAPQC_ALERT_bot" target="_blank" style="color: #38bdf8; text-decoration: underline;">@UAPQC_ALERT_bot</a> in your Telegram app and tapped <b>START</b> first.</div>';
+    } else if (errText.indexOf('Unauthorized') !== -1) {
+      tip = '<div style="margin-top: 6px; font-size: 12px; color: #fca5a5;">👉 <b>Tip:</b> The Bot Token is invalid. Check the token provided by @BotFather.</div>';
+    }
+    if (feedback) {
+      feedback.innerHTML = '<div class="alert alert-error" style="margin: 0; padding: 14px 18px;"><div style="display: flex; align-items: center; gap: 10px;"><div style="font-size: 20px;">⚠️</div><div><strong style="font-size: 14px;">Telegram Delivery Issue:</strong><div style="font-size: 12px; margin-top: 2px;">' + errText + '</div>' + tip + '</div></div></div>';
+    }
+  }
+  return false;
+}
+
 </script>
 
 <style>

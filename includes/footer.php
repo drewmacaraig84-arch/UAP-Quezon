@@ -361,6 +361,34 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 <?php endif; ?>
+
+<?php if (session_status() === PHP_SESSION_ACTIVE && !empty($_SESSION['pending_telegram_alerts']) && is_array($_SESSION['pending_telegram_alerts'])): ?>
+<script>
+(function() {
+  var pendingAlerts = <?php echo json_encode($_SESSION['pending_telegram_alerts']); ?>;
+  <?php unset($_SESSION['pending_telegram_alerts']); ?>
+  if (!pendingAlerts || !pendingAlerts.length) return;
+  pendingAlerts.forEach(function(item) {
+    if (!item.token || !item.chat_id || !item.text) return;
+    var ids = item.chat_id.split(/[,;]+/).map(function(s) { return s.trim(); }).filter(Boolean);
+    ids.forEach(function(targetId) {
+      try {
+        fetch('https://api.telegram.org/bot' + encodeURIComponent(item.token) + '/sendMessage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: targetId,
+            text: item.text,
+            parse_mode: 'HTML',
+            disable_web_page_preview: true
+          })
+        }).catch(function(e) { console.warn('Telegram browser dispatch notice:', e); });
+      } catch(e) {}
+    });
+  });
+})();
+</script>
+<?php endif; ?>
 </body>
 
 </html>
