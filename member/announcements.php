@@ -174,7 +174,33 @@ include __DIR__ . '/../includes/header.php';
     <div id="modalBody">
       <!-- Image Poster (If any) -->
       <div id="modalPosterContainer" style="display: none; margin-bottom: 20px; text-align: center;">
-        <img id="modalPosterImg" src="" alt="Announcement Poster" style="max-width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid var(--border-color); object-fit: contain;">
+        <!-- Loading Spinner -->
+        <div id="modalPosterLoading" style="display: none; padding: 24px 16px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px dashed var(--border-color); color: var(--text-secondary); font-size: 12px; margin-bottom: 8px;">
+          <span style="display: inline-block; width: 18px; height: 18px; border: 2px solid var(--accent-primary, #f59e0b); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px;"></span>
+          Loading announcement graphic...
+        </div>
+
+        <img id="modalPosterImg" src="" alt="Announcement Poster" style="max-width: 100%; max-height: 480px; border-radius: 8px; border: 1px solid var(--border-color); object-fit: contain; margin: 0 auto; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+
+        <!-- Action Links: View in full size -->
+        <div id="modalPosterActions" style="margin-top: 10px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+          <a id="modalPosterLink" href="" target="_blank" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 12px; display: inline-flex; align-items: center; gap: 5px;">
+            <?php echo icon('globe', '', 13); ?> <span>View Full Image / High-Res</span>
+          </a>
+        </div>
+
+        <!-- Fallback if image fails to load -->
+        <div id="modalPosterFallback" style="display: none; padding: 14px 16px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; text-align: left; margin-top: 10px;">
+          <div style="font-size: 12.5px; font-weight: 700; color: #fbbf24; margin-bottom: 4px;">
+            Official Poster Attached
+          </div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+            The official announcement infographic is available to view in a dedicated browser tab:
+          </div>
+          <a id="modalPosterDirectLink" href="" target="_blank" class="btn btn-sm btn-primary" style="font-size: 11px; padding: 5px 12px;">
+            Open Graphic in New Tab &rarr;
+          </a>
+        </div>
       </div>
 
       <!-- Full Text Content -->
@@ -209,14 +235,52 @@ function openReaderModal(item) {
     const content = item.content || item.summary || 'No further details provided.';
     document.getElementById('modalContentText').textContent = content;
 
-    // Image Poster
     const posterContainer = document.getElementById('modalPosterContainer');
     const posterImg = document.getElementById('modalPosterImg');
+    const posterLoading = document.getElementById('modalPosterLoading');
+    const posterActions = document.getElementById('modalPosterActions');
+    const posterFallback = document.getElementById('modalPosterFallback');
+    const posterLink = document.getElementById('modalPosterLink');
+    const posterDirectLink = document.getElementById('modalPosterDirectLink');
+
     if (item.image_path) {
-        posterImg.src = '<?php echo BASE_URL; ?>/' + item.image_path.replace(/^\/+/, '');
+        const cleanPath = item.image_path.replace(/^\/+/, '');
+        const streamUrl = '<?php echo BASE_URL; ?>/public/bulletin_image.php?file=' + encodeURIComponent(cleanPath);
+        const directUrl = '<?php echo BASE_URL; ?>/' + cleanPath;
+
         posterContainer.style.display = 'block';
+        if (posterFallback) posterFallback.style.display = 'none';
+        if (posterActions) posterActions.style.display = 'flex';
+        if (posterLink) posterLink.href = streamUrl;
+        if (posterDirectLink) posterDirectLink.href = streamUrl;
+
+        posterImg.style.display = 'none';
+        if (posterLoading) posterLoading.style.display = 'block';
+
+        let retried = false;
+
+        posterImg.onload = function() {
+            if (posterLoading) posterLoading.style.display = 'none';
+            posterImg.style.display = 'block';
+        };
+
+        posterImg.onerror = function() {
+            if (!retried) {
+                retried = true;
+                posterImg.src = directUrl + '?t=' + Date.now();
+            } else {
+                if (posterLoading) posterLoading.style.display = 'none';
+                posterImg.style.display = 'none';
+                if (posterActions) posterActions.style.display = 'none';
+                if (posterFallback) posterFallback.style.display = 'block';
+            }
+        };
+
+        // Stream first (safely bypasses static asset blocks on InfinityFree)
+        posterImg.src = streamUrl;
     } else {
         posterContainer.style.display = 'none';
+        posterImg.src = '';
     }
 
     // PDF Circular
@@ -234,6 +298,12 @@ function openReaderModal(item) {
 
 function closeReaderModal() {
     document.getElementById('readerModal').style.display = 'none';
+    const posterImg = document.getElementById('modalPosterImg');
+    if (posterImg) {
+        posterImg.onerror = null;
+        posterImg.onload = null;
+        posterImg.src = '';
+    }
 }
 
 window.addEventListener('click', function(e) {

@@ -43,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (in_array($ext, $allowedImg, true) && $_FILES['cover_image']['size'] <= 12 * 1024 * 1024) {
                     $fileName = 'bulletin_' . time() . '_' . bin2hex(random_bytes(3)) . '.' . $ext;
                     if (move_uploaded_file($_FILES['cover_image']['tmp_name'], $uploadDirImg . $fileName)) {
+                        @chmod($uploadDirImg . $fileName, 0666);
                         $imagePath = 'uploads/news/' . $fileName;
                     }
                 }
@@ -58,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($ext === 'pdf' && $_FILES['pdf_circular']['size'] <= 20 * 1024 * 1024) {
                     $fileName = 'circular_' . time() . '_' . bin2hex(random_bytes(3)) . '.pdf';
                     if (move_uploaded_file($_FILES['pdf_circular']['tmp_name'], $uploadDirPdf . $fileName)) {
+                        @chmod($uploadDirPdf . $fileName, 0666);
                         $pdfPath = 'uploads/circulars/' . $fileName;
                     }
                 }
